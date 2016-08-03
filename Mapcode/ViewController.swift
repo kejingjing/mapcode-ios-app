@@ -63,34 +63,54 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theLat.text = "\(lat)"
         theLon.text = "\(lon)"
 
-        // Construct latitude, longitude string from coordinates.
-        let stringLatLon = "\(lat),\(lon)"
-        
-        // Make sure we encode the URL correctly.
-        let expectedCharSet = NSCharacterSet.URLQueryAllowedCharacterSet()
-        let paramLatLon = stringLatLon.stringByAddingPercentEncodingWithAllowedCharacters(expectedCharSet)!
-        let url = "http://localhost:8080/mapcode/codes/\(paramLatLon)?debug=true"
+        updateMapcode(lat, lon: lon);
+    }
 
+    func updateMapcode(lat: CLLocationDegrees, lon: CLLocationDegrees) {
+
+        CLGeocoder().reverseGeocodeLocation(manager.location!, completionHandler: {
+            (placemarks, error) -> Void in
+            if (error != nil) {
+                print("Reverse geocoder failed with error" + error!.localizedDescription)
+                return
+            }
+
+            if placemarks!.count > 0 {
+                let pm = placemarks![0] as CLPlacemark
+                let address : String = "\(pm.thoroughfare) \(pm.subThoroughfare)\n\(pm.locality)\n\(pm.country)"
+                print("Addess=\(address)")
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.theError.text = address;
+                }
+            } else {
+                print("Problem with the data received from geocoder")
+            }
+        })
+        return
+
+        // Construct latitude, longitude string from coordinates.
+        let url = "http://localhost:8080/mapcode/codes/\(lat),\(lon)?debug=true"
         print("--> Call url=\(url)")
         guard let rest = RestController.createFromURLString(url) else {
             print("--> Found bad URL: \(url)")
             return
         }
 
+
         rest.get {
             result, httpResponse in
             print("--> Callback, status=\(httpResponse?.statusCode)")
             do {
                 let json = try result.value()
-                let mapcodeInternational : String = (json["international"]?["mapcode"]?.stringValue)!
-                let mapcodeLocalTerritory : String = (json["mapcodes"]?[0]?["territory"]?.stringValue)!
-                let mapcodeLocalMapcode : String = (json["mapcodes"]?[0]?["mapcode"]?.stringValue)!
-                let mapcodeLocal = "\(mapcodeLocalTerritory) \(mapcodeLocalMapcode)"
+                let mcInternational : String = (json["international"]?["mapcode"]?.stringValue)!
+                let mcLocalTerritory : String = (json["mapcodes"]?[0]?["territory"]?.stringValue)!
+                let mcLocalMapcode : String = (json["mapcodes"]?[0]?["mapcode"]?.stringValue)!
+                let mcLocal = "\(mcLocalTerritory) \(mcLocalMapcode)"
 
-                print("--> Got mapcodes: '\(mapcodeInternational)', '\(mapcodeLocal)'")
+                print("--> Got mapcodes: '\(mcInternational)', '\(mcLocal)'")
                 dispatch_async(dispatch_get_main_queue()) {
-                    self.theMapcodeInternational.text = mapcodeInternational
-                    self.theMapcodeLocal.text = mapcodeLocal
+                    self.theMapcodeInternational.text = mcInternational
+                    self.theMapcodeLocal.text = mcLocal
                 }
             } catch {
                 self.theError.text = "ERROR: \(error)"
