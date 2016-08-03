@@ -24,12 +24,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     @IBOutlet weak var theMap: MKMapView!
     @IBOutlet weak var theError: UILabel!
-    @IBOutlet weak var theCoordinates: UILabel!
-    @IBOutlet weak var theMapcode: UILabel!
-    
-    let defaultSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
-    var dataTask: NSURLSessionDataTask?
-    
+    @IBOutlet weak var theMapcodeInternational: UITextField!
+    @IBOutlet weak var theMapcodeLocal: UITextField!
+    @IBOutlet weak var theLat: UITextField!
+    @IBOutlet weak var theLon: UITextField!
+
     var manager: CLLocationManager!
     
     override func viewDidLoad() {
@@ -61,14 +60,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.setRegion(newRegion, animated: true)
         
         theError.text = ""
-        theCoordinates.text = "latitude=\(lat)\nlongitude=\(lon)"
-        
-        // Don't ask for mapcode if already busy.
-        if (dataTask != nil) {
-            dataTask?.cancel()
-            theError.text = "Cancelled request..."
-            return
-        }
+        theLat.text = "\(lat)"
+        theLon.text = "\(lon)"
 
         // Construct latitude, longitude string from coordinates.
         let stringLatLon = "\(lat),\(lon)"
@@ -76,28 +69,34 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Make sure we encode the URL correctly.
         let expectedCharSet = NSCharacterSet.URLQueryAllowedCharacterSet()
         let paramLatLon = stringLatLon.stringByAddingPercentEncodingWithAllowedCharacters(expectedCharSet)!
-        
-        // Create the REST API URL.
-        if let url = NSURL(string: "http://localhost:8080/mapcode/codes/\(paramLatLon))/international?debug=true") {
-            if let data = try? NSData(contentsOfURL: url, options: []) {
-                let json = JSON(data: data)
-                
-                if json["mapcode"] != nil {
-                    theMapcode.text = json["mapcode"].stringValue
+        let url = "http://localhost:8080/mapcode/codes/\(paramLatLon)?debug=true"
+
+        print("--> Call url=\(url)")
+        guard let rest = RestController.createFromURLString(url) else {
+            print("--> Found bad URL: \(url)")
+            return
+        }
+
+        rest.get {
+            result, httpResponse in
+            print("--> Callback, status=\(httpResponse?.statusCode)")
+            do {
+                let json = try result.value()
+                let mapcodeInternational : String = (json["international"]?["mapcode"]?.stringValue)!
+                let mapcodeLocalTerritory : String = (json["mapcodes"]?[0]?["territory"]?.stringValue)!
+                let mapcodeLocalMapcode : String = (json["mapcodes"]?[0]?["mapcode"]?.stringValue)!
+                let mapcodeLocal = "\(mapcodeLocalTerritory) \(mapcodeLocalMapcode)"
+
+                print("--> Got mapcodes: '\(mapcodeInternational)', '\(mapcodeLocal)'")
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.theMapcodeInternational.text = mapcodeInternational
+                    self.theMapcodeLocal.text = mapcodeLocal
                 }
-                else {
-                    theMapcode.text = "ERROR"
-                }
+            } catch {
+                self.theError.text = "ERROR: \(error)"
+                print("API called failed: \(error)")
             }
         }
-    }
-    
-    func mapView(mapView: MKMapView,
-                 rendererForOverlay overlay: MKOverlay) -> MKOverlayRenderer {
-        let polylineRenderer = MKPolylineRenderer(overlay: overlay)
-        polylineRenderer.strokeColor = UIColor.blueColor()
-        polylineRenderer.lineWidth = 4
-        return polylineRenderer
     }
     
     override func didReceiveMemoryWarning() {

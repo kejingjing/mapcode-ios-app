@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "ABE99D20D292AB28860009E2B4C3A954C0DBE2C3",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "ABE99D20D292AB28860009E2B4C3A954C0DBE2C3" : 0,
+    "3DEE348339549D2FB2F5E154D083822C5CB44DF0" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "67779D38-F695-4CFD-8BA9-A7FA9DBE6792",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "ABE99D20D292AB28860009E2B4C3A954C0DBE2C3" : "mapcode-ios-app\/",
+    "3DEE348339549D2FB2F5E154D083822C5CB44DF0" : "..\/3rd-party\/RestEssentials"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "Mapcode",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Mapcode.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/sean7512\/RestEssentials.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "3DEE348339549D2FB2F5E154D083822C5CB44DF0"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/rijnb\/mapcode-ios-app.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "ABE99D20D292AB28860009E2B4C3A954C0DBE2C3"
+    }
+  ]
+}
