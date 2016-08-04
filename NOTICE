@@ -6,3 +6,18 @@ Original C library created by Pieter Geelen. Work on Java version
 of the Mapcode library by Rijn Buve (original port by Matthew Lowden).
 
 Copyright (C) 2014-2016 Stichting Mapcode Foundation (http://www.mapcode.com)
+
+-------------------------------------------------------------------------------
+
+Other libraries being used:
+
+SwiftyJSON
+https://github.com/SwiftyJSON/SwiftyJSON
+MIT License
+
+RestEssentials
+https://github.com/sean7512/RestEssentials
+MIT License
+
+-------------------------------------------------------------------------------
+

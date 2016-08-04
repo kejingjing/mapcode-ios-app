@@ -20,19 +20,22 @@ import CoreLocation
 import MapKit
 import UIKit
 
-class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate, UITextFieldDelegate {
+class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate, UITextFieldDelegate,
+    UIGestureRecognizerDelegate {
 
     @IBOutlet weak var theMap: MKMapView!
     @IBOutlet weak var theMapcodeInternational: UITextField!
     @IBOutlet weak var theMapcodeLocal: UITextField!
     @IBOutlet weak var theLat: UITextField!
     @IBOutlet weak var theLon: UITextField!
-    @IBOutlet weak var theGenerate: UIButton!
     @IBOutlet weak var theFollow: UISwitch!
     @IBOutlet weak var theAddress: UITextField!
+    @IBOutlet weak var theHere: UIButton!
 
     let host: String = "http://api.mapcode.com";
+
     var manager: CLLocationManager!
+    var stopUpdatingLocation: Bool = false
 
     /**
      * This method gets called when the view loads.
@@ -40,28 +43,44 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // Setup our Map View.
+        theMap.delegate = self
+        theMap.mapType = MKMapType.Standard
+        theMap.showsUserLocation = true
+
+        // Setup up delegates for text input boxes.
+        theAddress.delegate = self
+        theLat.delegate = self
+        theLon.delegate = self
+        theMapcodeInternational.delegate = self
+        theMapcodeLocal.delegate = self
+
+        theMap.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(ViewController.handleMapGesture(_:))))
+        theMap.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapGesture(_:))))
+
         // Setup our Location Manager.
         manager = CLLocationManager()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
+    }
 
-        // Setup our Map View.
-        theMap.delegate = self
-        theMap.mapType = MKMapType.Standard
-        theMap.showsUserLocation = true
+    /**
+     * This method gets called when the user taps on the maps.
+     */
+    func handleMapGesture(gestureRecognizer: UIGestureRecognizer) {
+        print("Map gesture")
+        stopUpdatingLocation = true
+    }
 
-        theAddress.tag = 1
-        theAddress.delegate = self
-        theLat.tag = 2
-        theLat.delegate = self
-        theLon.delegate = self
-        theLon.tag = 3
-        theMapcodeInternational.delegate = self
-        theMapcodeInternational.tag = 4
-        theMapcodeLocal.delegate = self
-        theMapcodeLocal.tag = 5
+    /**
+     * This method gets called when the "find here" icon is pressed.
+     */
+    @IBAction func findHere(sender: AnyObject) {
+        print("find here")
+        stopUpdatingLocation = true
+        manager.startUpdatingLocation()
     }
 
     /**
@@ -85,12 +104,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     @IBAction func followChanged(sender: AnyObject) {
         if theFollow.on {
+            stopUpdatingLocation = false
             manager.startUpdatingLocation()
             theAddress.text = "";
         }
         else {
-            manager.stopUpdatingLocation()
-            theAddress.text = "";
+            stopUpdatingLocation = true
         }
     }
 
@@ -102,19 +121,78 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         textField.resignFirstResponder()
         switch textField.tag {
         case theAddress.tag:
-            print("Got address: \(textField.text)")
+            useAddress(theAddress.text)
         case theLat.tag:
-            print("Got latitude: \(textField.text)")
+            useLatLon(theLat.text, longitude: theLon.text)
         case theLon.tag:
-            print("Got longitude: \(textField.text)")
+            useLatLon(theLat.text, longitude: theLon.text)
         case theMapcodeInternational.tag:
-            print("Got international mapcode: \(textField.text)")
+            useMapcode(theMapcodeInternational.text)
         case theMapcodeLocal.tag:
-            print("Got local mapcode: \(textField.text)")
+            useMapcode(theMapcodeLocal.text)
         default:
             print("Unknown text field: \(textField.tag)")
         }
         return true
+    }
+
+    func useAddress(address: String?) {
+        if address == nil {
+            return
+        }
+        // TODO: search
+    }
+
+    func useLatLon(latitude: String?, longitude: String?) {
+        if (latitude == nil) || (longitude == nil) {
+            return
+        }
+        let lat = Double(latitude!)
+        let lon = Double(longitude!)
+        if (lat == nil) || (lon == nil) {
+            return
+        }
+        theMap.setCenterCoordinate(CLLocationCoordinate2D(latitude: lat!, longitude: lon!), animated: false)
+        self.updateFieldsMapcodes(lat!, lon: lon!)
+        self.updateFieldsLatLonAddress(lat!, lon: lon!)
+    }
+
+    func useMapcode(mapcode: String?) {
+        if mapcode == nil {
+            return
+        }
+
+        // Create URL for REST API call to get mapcodes.
+        let encodedMapcode = mapcode!.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
+        let url = "\(host)/mapcode/coords/\(encodedMapcode)?debug=true"
+        print("URL: \(url)")
+        guard let rest = RestController.createFromURLString(url) else {
+            print("Found bad URL: \(url)")
+            return
+        }
+
+        // Get coordinate.
+        rest.get {
+            result, httpResponse in
+            do {
+                let json = try result.value()
+                if (json["latDeg"] == nil) || (json["latDeg"]?.doubleValue == nil) {
+                    return
+                }
+                if (json["lonDeg"] == nil) || (json["lonDeg"]?.doubleValue == nil) {
+                    return
+                }
+                let lat = (json["latDeg"]?.doubleValue)!
+                let lon = (json["lonDeg"]?.doubleValue)!
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.theMap.setCenterCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: lon), animated: false)
+                }
+                self.updateFieldsMapcodes(lat, lon: lon)
+                self.updateFieldsLatLonAddress(lat, lon: lon)
+            } catch {
+                print("API /mapcode/coords called failed: \(error)")
+            }
+        }
     }
 
     /**
@@ -142,19 +220,45 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
         if allow {
             manager.startUpdatingLocation()
-            dispatch_async(dispatch_get_main_queue()) {
-                self.theAddress.text = "";
-                self.theFollow.setOn(true, animated: false)
-                self.theFollow.enabled = true
-            }
+            theAddress.text = "";
+            theFollow.setOn(true, animated: false)
+            theFollow.enabled = true
         }
         else {
             manager.stopUpdatingLocation()
-            dispatch_async(dispatch_get_main_queue()) {
-                self.theAddress.text = "(Not allowed to fetch current location.)";
-                self.theFollow.enabled = false
-                self.theFollow.setOn(false, animated: false)
-            }
+            theAddress.text = "(Not allowed to fetch current location.)";
+            theFollow.enabled = false
+            theFollow.setOn(false, animated: false)
+        }
+    }
+
+    /**
+     * This method gets called whenever a location change is detected.
+     */
+    func mapView(mapView: MKMapView,
+                 regionDidChangeAnimated animated: Bool) {
+
+        // Stop updating if requested.
+        if stopUpdatingLocation {
+            manager.stopUpdatingLocation()
+            theFollow.setOn(false, animated: true)
+            theAddress.text = ""
+        }
+        else {
+
+            // Get latitude and longitude.
+            let lat = mapView.centerCoordinate.latitude
+            let lon = mapView.centerCoordinate.longitude
+
+            theLat.text = "\(lat)"
+            theLon.text = "\(lon)"
+
+            // Dim mapcodes fields; these are outdated now.
+            theMapcodeInternational.textColor = UIColor.grayColor();
+            theMapcodeLocal.textColor = UIColor.grayColor();
+            
+            updateFieldsLatLonAddress(lat, lon: lon);
+            updateFieldsMapcodes(lat, lon: lon)
         }
     }
 
@@ -163,40 +267,29 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func locationManager(manager: CLLocationManager,
                          didUpdateLocations locations:[CLLocation]) {
+        print("didUpdateLocation")
 
-        // Get latitude and longitude.
-        let lat = locations[0].coordinate.latitude
-        let lon = locations[0].coordinate.longitude
-        
         // Show map.
         let spanX = 0.02
         let spanY = 0.02
         let newRegion = MKCoordinateRegion(center: theMap.userLocation.coordinate,
                                            span: MKCoordinateSpanMake(spanX, spanY))
-        theMap.setRegion(newRegion, animated: true)
-
-        // Dim mapcodes fields; these are outdated now.
-        theMapcodeInternational.textColor = UIColor.grayColor();
-        theMapcodeLocal.textColor = UIColor.grayColor();
-
-        // Update button text.
-        theGenerate.setTitle("Get mapcode from position", forState: UIControlState.Normal)
-
-        updateFieldsLatLonAddress(lat, lon: lon);
-        updateFieldsMapcodes(lat, lon: lon)
+         theMap.setRegion(newRegion, animated: true)
     }
-
+    
     /**
      * This method updates the coordinates and address fields.
      */
     func updateFieldsLatLonAddress(lat: CLLocationDegrees, lon: CLLocationDegrees) {
 
         // Update latitude and longitude.
+        theAddress.text = ""
         theLat.text = "\(lat)"
         theLon.text = "\(lon)"
 
         // Get address from reverse geocode.
-        CLGeocoder().reverseGeocodeLocation(manager.location!, completionHandler: {
+        CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: lat, longitude: lon),
+                                            completionHandler: {
             (placemarks, error) -> Void in
             if error != nil {
                 print("Reverse geocode failed: " + error!.localizedDescription)
@@ -223,20 +316,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 }
 
                 // Update address fields.
-                print("Addess=\(address)")
                 dispatch_async(dispatch_get_main_queue()) {
                     self.theAddress.text = address;
                 }
             } else {
                 print("No result from reverse geocode")
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.theAddress.text = ""
-                }
             }
         })
     }
     
-
     /**
      * This method updates the mapcodes fields.
      */
@@ -247,7 +335,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMapcodeLocal.textColor = UIColor.blackColor();
 
         // Create URL for REST API call to get mapcodes.
-        let url = "\(host)/mapcode/codes/\(lat),\(lon)?debug=true"
+        let encodedLatLon = "\(lat),\(lon)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
+        let url = "\(host)/mapcode/codes/\(encodedLatLon)?debug=true"
+        print("URL: \(url)")
         guard let rest = RestController.createFromURLString(url) else {
             print("Found bad URL: \(url)")
             theMapcodeLocal.text = ""
@@ -258,16 +348,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Get mapcodes.
         rest.get {
             result, httpResponse in
-            print("Callback, status=\(httpResponse?.statusCode)")
             do {
+                var mcInternational = ""
+                var mcLocal = ""
                 let json = try result.value()
-                let mcInternational : String = (json["international"]?["mapcode"]?.stringValue)!
-                let mcLocalTerritory : String = (json["mapcodes"]?[0]?["territory"]?.stringValue)!
-                let mcLocalMapcode : String = (json["mapcodes"]?[0]?["mapcode"]?.stringValue)!
-                let mcLocal = "\(mcLocalTerritory) \(mcLocalMapcode)"
+                if json["international"] != nil {
+                    if json["international"]?["mapcode"] != nil {
+                        mcInternational = (json["international"]?["mapcode"]?.stringValue)!
+                    }
+                }
+                if json["mapcodes"] != nil {
+                    if json["mapcodes"]?[0]?["territory"] != nil {
+                        mcLocal = "\((json["mapcodes"]?[0]?["territory"]?.stringValue)!) \((json["mapcodes"]?[0]?["mapcode"]?.stringValue)!)"
+                    }
+                }
 
                 // Update mapcode fields.
-                print("Got mapcodes: '\(mcInternational)', '\(mcLocal)'")
                 dispatch_async(dispatch_get_main_queue()) {
                     self.theMapcodeInternational.text = mcInternational
                     self.theMapcodeLocal.text = mcLocal
@@ -278,7 +374,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.theMapcodeInternational.text = ""
                     self.theMapcodeLocal.text = ""
                 }
-                print("API called failed: \(error)")
+                print("API call /mapcode/codes called failed: \(error)")
             }
         }
     }
