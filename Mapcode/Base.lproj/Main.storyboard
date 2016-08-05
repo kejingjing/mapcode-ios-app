@@ -68,6 +68,11 @@
                                     <action selector="endEdit:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="eKi-gF-hfk"/>
                                 </connections>
                             </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Mapcode" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WYV-VT-YRt" userLabel="Mapcode Label">
+                                <rect key="frame" x="8" y="393" width="69" height="23"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="International:" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4eD-gA-qlr" userLabel="International Label">
                                 <rect key="frame" x="18" y="413" width="81" height="36"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
@@ -101,6 +106,7 @@
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rKN-zi-tQH">
                                 <rect key="frame" x="8" y="305" width="34" height="34"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                <size key="titleShadowOffset" width="2.2250738585072014e-308" height="2.2250738585072014e-308"/>
                                 <state key="normal" image="HereIcon"/>
                                 <connections>
                                     <action selector="findHere:" destination="BYZ-38-t0r" eventType="touchDown" id="AEj-05-qZJ"/>
@@ -112,11 +118,15 @@
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                 <state key="normal" image="CenterIcon"/>
                             </button>
-                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Mapcode" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WYV-VT-YRt" userLabel="Mapcode Label">
-                                <rect key="frame" x="8" y="393" width="69" height="23"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PbS-qj-HqD">
+                                <rect key="frame" x="273" y="296" width="42" height="42"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                <size key="titleShadowOffset" width="1" height="1"/>
+                                <state key="normal" image="MapsIcon"/>
+                                <connections>
+                                    <action selector="openInMapApplication:" destination="BYZ-38-t0r" eventType="touchUpInside" id="gyX-O0-iDW"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -140,5 +150,6 @@
     <resources>
         <image name="CenterIcon" width="512" height="512"/>
         <image name="HereIcon" width="71" height="73"/>
+        <image name="MapsIcon" width="64" height="64"/>
     </resources>
 </document>

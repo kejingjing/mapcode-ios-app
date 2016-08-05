@@ -428,7 +428,41 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             }
         }
     }
+
+    /**
+     * This method gets called when the "find here" icon is pressed.
+     */
+    @IBAction func openInMapApplication(sender: AnyObject) {
+        let lat = theMap.centerCoordinate.latitude
+        let lon = theMap.centerCoordinate.longitude
+        let name: String
+        if (theMapcodeLocal.text != nil) && !(theMapcodeLocal.text?.isEmpty)! {
+            name = theMapcodeLocal.text!
+        }
+        else {
+            name = theMapcodeInternational.text!
+        }
+        openMapApplication(lat, lon: lon, name: name)
+    }
     
+    /**
+     * This method open the Apple Maps application.
+     */
+    func openMapApplication(lat: CLLocationDegrees, lon: CLLocationDegrees, name: String) {
+        let regionDistance: CLLocationDistance = 10000
+        let coordinates = CLLocationCoordinate2DMake(lat, lon)
+        let regionSpan = MKCoordinateRegionMakeWithDistance(coordinates, regionDistance, regionDistance)
+        let options = [
+            MKLaunchOptionsMapCenterKey: NSValue(MKCoordinate: regionSpan.center),
+            MKLaunchOptionsMapSpanKey: NSValue(MKCoordinateSpan: regionSpan.span)
+        ]
+        let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
+        let mapItem = MKMapItem(placemark: placemark)
+        mapItem.name = name
+        mapItem.openInMapsWithLaunchOptions(options)
+        
+    }
+
     /**
      * This method gets called when on low memory.
      */
