@@ -87,6 +87,38 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
     /**
+     * This method moves the screen up or down when a field gets edited.
+     */
+    func animateTextField(textField: UITextField, up: Bool) {
+        let movementDistance: CGFloat = -130
+        let movementDuration: Double = 0.3
+
+        var movement: CGFloat = 0
+        if up {
+            movement = movementDistance
+        }
+        else {
+            movement = -movementDistance
+        }
+        UIView.beginAnimations("animateTextField", context: nil)
+        UIView.setAnimationBeginsFromCurrentState(true)
+        UIView.setAnimationDuration(movementDuration)
+        self.view.frame = CGRectOffset(self.view.frame, 0, movement)
+        UIView.commitAnimations()
+    }
+
+    /**
+     * This method moves the screen up or down when a field gets edited.
+     */
+    func textFieldDidBeginEditing(textField: UITextField) {
+        self.animateTextField(textField, up: true)
+    }
+
+    func textFieldDidEndEditing(textField: UITextField) {
+        self.animateTextField(textField, up: false)
+    }
+    
+    /**
      * This method gets called when user starts editing the address.
      */
     @IBAction func beginEdit(textField: UITextField) {
