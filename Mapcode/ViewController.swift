@@ -32,7 +32,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theHere: UIButton!
 
     let host: String = "http:/api.mapcode.com";
-    let debug: String = "true";
+    let debug: String = "false";
 
     let spanX = 0.005
     let spanY = 0.005
