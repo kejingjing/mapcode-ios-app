@@ -16,7 +16,39 @@
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="nMq-8G-ahl">
+                                <rect key="frame" x="20" y="20" width="560" height="560"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aBb-Hp-sq5">
+                                <rect key="frame" x="0.0" y="254" width="600" height="91"/>
+                                <string key="text">Version 1.0 - 2016-08-07
+Copyright (C) 2016, Mapcode Foundation</string>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                <color key="textColor" red="0.035498027583858269" green="0.30902767558116623" blue="0.45827879581151831" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="nMq-8G-ahl" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="04W-pI-c73"/>
+                            <constraint firstItem="aBb-Hp-sq5" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="3CM-UA-S8F"/>
+                            <constraint firstItem="nMq-8G-ahl" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="55A-sC-L9u"/>
+                            <constraint firstAttribute="trailing" secondItem="aBb-Hp-sq5" secondAttribute="trailing" id="93U-a9-qcj"/>
+                            <constraint firstItem="nMq-8G-ahl" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" constant="20" id="FE9-Ko-Rif"/>
+                            <constraint firstItem="aBb-Hp-sq5" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="FTF-sy-Qwd"/>
+                            <constraint firstItem="xb3-aO-Qok" firstAttribute="top" secondItem="nMq-8G-ahl" secondAttribute="bottom" constant="20" id="KHW-MZ-fIq"/>
+                            <constraint firstItem="nMq-8G-ahl" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="20" id="SLV-Bk-36e"/>
+                            <constraint firstItem="aBb-Hp-sq5" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="bDJ-tf-eQI"/>
+                            <constraint firstAttribute="trailing" secondItem="nMq-8G-ahl" secondAttribute="trailing" constant="20" id="bJ6-Cb-wJH"/>
+                            <constraint firstItem="aBb-Hp-sq5" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="g6m-LP-aud"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="04W-pI-c73"/>
+                                <exclude reference="55A-sC-L9u"/>
+                            </mask>
+                        </variation>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -24,4 +56,7 @@
             <point key="canvasLocation" x="53" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="Logo" width="2767" height="3320"/>
+    </resources>
 </document>

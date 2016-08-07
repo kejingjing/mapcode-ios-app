@@ -90,7 +90,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method moves the screen up or down when a field gets edited.
      */
     func animateTextField(textField: UITextField, up: Bool) {
-        let movementDistance: CGFloat = -130
+        let movementDistance: CGFloat = -250
         let movementDuration: Double = 0.3
 
         var movement: CGFloat = 0
@@ -206,7 +206,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
     /**
-     * lat or lon box was edited.
+     * Lat or lon box was edited.
      */
     func useLatLon(latitude: String?, longitude: String?) {
         if (latitude == nil) || (longitude == nil) {
@@ -228,7 +228,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
     /**
-     * Mapcode box was edited.
+     * Call Mapcode REST API to get coordinate from mapcode.
      */
     func useMapcode(textField: UITextField) {
         if textField.text == nil {
@@ -363,13 +363,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
     
     /**
-     * This method updates the coordinates and address fields.
+     * Call Apple reverse geocoding API to get coordinates from address.
      */
     func updateFieldsLatLonAddress(lat: CLLocationDegrees, lon: CLLocationDegrees) {
 
         // Update latitude and longitude.
         theLat.text = "\(lat)"
         theLon.text = "\(lon)"
+        theAddress.text = "Searching..."
 
         // Get address from reverse geocode.
         CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: lat, longitude: lon), completionHandler: {
@@ -385,12 +386,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 var address: String = "";
                 if pm.thoroughfare != nil {
                     address = pm.thoroughfare!
-                }
-                if pm.subThoroughfare != nil {
-                    address = "\(address) \(pm.subThoroughfare!)";
+                    if pm.subThoroughfare != nil {
+                        address = "\(address) \(pm.subThoroughfare!)";
+                    }
                 }
                 if pm.locality != nil {
-                    address = "\(address), \(pm.locality!)";
+                    if (pm.thoroughfare != nil) {
+                        address = "\(address), ";
+                    }
+                    address = "\(address)\(pm.locality!)";
                 }
                 if pm.ISOcountryCode != nil {
                     address = "\(address), \(pm.ISOcountryCode!)";
@@ -407,7 +411,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
     /**
-     * This method updates the mapcodes fields.
+     * Call Mapcode REST API to get mapcode codes from latitude, longitude.
      */
     func updateFieldsMapcodes(lat: CLLocationDegrees, lon: CLLocationDegrees) {
 
@@ -462,7 +466,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
     /**
-     * This method gets called when the "find here" icon is pressed.
+     * This method gets called when the "open in maps" icon is pressed.
      */
     @IBAction func openInMapApplication(sender: AnyObject) {
         let lat = theMap.centerCoordinate.latitude
@@ -481,7 +485,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method open the Apple Maps application.
      */
     func openMapApplication(lat: CLLocationDegrees, lon: CLLocationDegrees, name: String) {
-        let regionDistance: CLLocationDistance = 10000
+        let regionDistance: CLLocationDistance = 2000
         let coordinates = CLLocationCoordinate2DMake(lat, lon)
         let regionSpan = MKCoordinateRegionMakeWithDistance(coordinates, regionDistance, regionDistance)
         let options = [
@@ -492,7 +496,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let mapItem = MKMapItem(placemark: placemark)
         mapItem.name = name
         mapItem.openInMapsWithLaunchOptions(options)
-        
     }
 
     /**
