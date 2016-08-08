@@ -430,13 +430,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     }
                 }
                 if pm.locality != nil {
-                    if (pm.thoroughfare != nil) {
+                    if (!address.isEmpty) {
                         address = "\(address), ";
                     }
                     address = "\(address)\(pm.locality!)";
                 }
                 if pm.ISOcountryCode != nil {
-                    address = "\(address), \(pm.ISOcountryCode!)";
+                    if (!address.isEmpty) {
+                        address = "\(address), ";
+                    }
+                    address = "\(address)\(pm.ISOcountryCode!)";
                 }
 
                 // Update address fields.
