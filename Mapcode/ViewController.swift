@@ -31,8 +31,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theAddress: UITextField!
     @IBOutlet weak var theHere: UIButton!
 
-    let host: String = "http:/api.mapcode.com";
-    let debug: String = "false";
+    let host: String = "http:/api.mapcode.com";     // Host name of REST API.
+    let allowLog: String = "true";                  // Log requests.
+    let client: String = "ios";                     // Client ID.
 
     let spanX = 0.005
     let spanY = 0.005
@@ -40,6 +41,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     var manager: CLLocationManager!
     var firstTimeLocation = true
+    var prevTerritory: String!
+    var prevTextField: String!
 
     /**
      * This method gets called when the view loads.
@@ -125,6 +128,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         dispatch_async(dispatch_get_main_queue()) {
             textField.becomeFirstResponder()
             textField.selectedTextRange = textField.textRangeFromPosition(textField.beginningOfDocument, toPosition: textField.endOfDocument)
+            self.prevTextField = textField.text
         }
     }
 
@@ -139,23 +143,34 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the Return key is pressed in a text edit field.
      */
     func textFieldShouldReturn(textField: UITextField) -> Bool {
+
+        // Hide keyboard.
         textField.resignFirstResponder()
+
+        // Do not process empty fields.
+        if (textField.text == nil) || (textField.text?.isEmpty)! {
+
+            // Restore contents of field.
+            textField.text = prevTextField
+            return true
+        }
+
         switch textField.tag {
 
         case theAddress.tag:
-            useAddress(textField)
+            useAddress(theAddress.text!)
 
         case theLat.tag:
-            useLatLon(theLat.text, longitude: theLon.text)
+            useLatLon(theLat.text!, longitude: theLon.text!)
 
         case theLon.tag:
-            useLatLon(theLat.text, longitude: theLon.text)
+            useLatLon(theLat.text!, longitude: theLon.text!)
 
         case theMapcodeInternational.tag:
-            useMapcode(textField)
+            useMapcode(theMapcodeInternational.text!)
 
         case theMapcodeLocal.tag:
-            useMapcode(textField)
+            useMapcode(theMapcodeLocal.text!)
 
         default:
             print("Unknown text field: \(textField.tag)")
@@ -166,24 +181,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Address box was edited.
      */
-    func useAddress(textField: UITextField) {
-        if textField.text == nil {
-            return
-        }
-        let address = textField.text
+    func useAddress(address: String) {
 
         // Geocode address.
         let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(address!, completionHandler: {
+        geocoder.geocodeAddressString(address, completionHandler: {
             (placemarks, error) -> Void in
             if error != nil {
                 print("Geocode failed, address=\(address), error=\(error)")
+                self.showAlert("Incorrect address", message: "Can't find a location for\n'\(address)'", button: "OK")
 
                 // Reset address field.
                 dispatch_async(dispatch_get_main_queue()) {
-                    textField.text = ""
-                    let lat = self.theMap.centerCoordinate.latitude
-                    let lon = self.theMap.centerCoordinate.longitude
+                    let lat = self.truncToMicroDegrees(self.theMap.centerCoordinate.latitude)
+                    let lon = self.truncToMicroDegrees(self.theMap.centerCoordinate.longitude)
                     self.updateFieldsLatLonAddress(lat, lon: lon)
                 }
             }
@@ -192,8 +203,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 // Get location.
                 if let placemark = placemarks?.first {
                     let coordinates: CLLocationCoordinate2D = placemark.location!.coordinate
-                    let lat = coordinates.latitude
-                    let lon = coordinates.longitude
+                    let lat = self.truncToMicroDegrees(coordinates.latitude)
+                    let lon = self.truncToMicroDegrees(coordinates.longitude)
 
                     dispatch_async(dispatch_get_main_queue()) {
                         self.theMap.setCenterCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: lon), animated: false)
@@ -208,19 +219,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Lat or lon box was edited.
      */
-    func useLatLon(latitude: String?, longitude: String?) {
-        if (latitude == nil) || (longitude == nil) {
-            return
-        }
-        var lat = Double(latitude!)
-        var lon = Double(longitude!)
+    func useLatLon(latitude: String, longitude: String) {
+        var lat = Double(latitude)
+        var lon = Double(longitude)
         if (lat == nil) || (lon == nil) {
             return
         }
 
         // Limit range.
-        lat = max(-90.0, min(90.0, lat!))
-        lon = max(-180.0, min(180.0, lon!))
+        lat = max(-90.0, min(90.0, truncToMicroDegrees(lat!)))
+        lon = max(-180.0, min(180.0, truncToMicroDegrees(lon!)))
 
         theMap.setCenterCoordinate(CLLocationCoordinate2D(latitude: lat!, longitude: lon!), animated: false)
         updateFieldsMapcodes(lat!, lon: lon!)
@@ -230,18 +238,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Call Mapcode REST API to get coordinate from mapcode.
      */
-    func useMapcode(textField: UITextField) {
-        if textField.text == nil {
-            return
+    func useMapcode(mapcode: String) {
+
+        // Prefix previous territory for local mapcodes.
+        var fullMapcode = mapcode;
+        if (prevTerritory != nil) && (mapcode.characters.count < 10) && !mapcode.containsString(" "){
+            fullMapcode = "\(prevTerritory) \(mapcode)"
         }
-        let mapcode = textField.text!
 
         // Create URL for REST API call to get mapcodes.
-        let encodedMapcode = mapcode.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
-        let url = "\(host)/mapcode/coords/\(encodedMapcode)?debug=\(debug)"
+        let encodedMapcode = fullMapcode.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
+        let url = "\(host)/mapcode/coords/\(encodedMapcode)?client=\(client)&allowLog=\(allowLog)"
         guard let rest = RestController.createFromURLString(url) else {
             print("Found bad URL: \(url)")
-            textField.text = ""
             return
         }
 
@@ -251,13 +260,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             do {
                 let json = try result.value()
 
+                let status = httpResponse?.statusCode
+                if (status != 200) || (json["errors"] != nil) {
+                    self.showAlert("Incorrect mapcode", message: "Mapcode '\(mapcode)' does not exist", button: "OK")
+                }
+
                 // Check status OK
-                if (httpResponse?.statusCode == 200) &&
+                if (status == 200) &&
                     (json["errors"] == nil) &&
                     (json["latDeg"] != nil) && (json["latDeg"]?.doubleValue != nil) &&
                     (json["lonDeg"] != nil) && (json["lonDeg"]?.doubleValue != nil) {
-                    let lat = (json["latDeg"]?.doubleValue)!
-                    let lon = (json["lonDeg"]?.doubleValue)!
+                    let lat = self.truncToMicroDegrees((json["latDeg"]?.doubleValue)!)
+                    let lon = self.truncToMicroDegrees((json["lonDeg"]?.doubleValue)!)
 
                     // Set map center.
                     dispatch_async(dispatch_get_main_queue()) {
@@ -269,8 +283,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 else {
                     print("Find mapcode failed: url=\(url), status=\(httpResponse?.statusCode), json=\(json)")
                     dispatch_async(dispatch_get_main_queue()) {
-                        let lat = self.theMap.centerCoordinate.latitude
-                        let lon = self.theMap.centerCoordinate.longitude
+                        let lat = self.truncToMicroDegrees(self.theMap.centerCoordinate.latitude)
+                        let lon = self.truncToMicroDegrees(self.theMap.centerCoordinate.longitude)
                         self.updateFieldsMapcodes(lat, lon: lon)
                     }
                 }
@@ -288,11 +302,34 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                  regionDidChangeAnimated animated: Bool) {
 
         // Get latitude and longitude.
-        let lat = mapView.centerCoordinate.latitude
-        let lon = mapView.centerCoordinate.longitude
+        let lat = truncToMicroDegrees(mapView.centerCoordinate.latitude)
+        let lon = truncToMicroDegrees(mapView.centerCoordinate.longitude)
 
         updateFieldsLatLonAddress(lat, lon: lon);
         updateFieldsMapcodes(lat, lon: lon)
+    }
+
+    /**
+     * This method gets called when the "info" icon is pressed.
+     */
+    @IBAction func showInfo(sender: AnyObject) {
+        let nsObject: AnyObject? = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"]
+        let version = nsObject as! String
+        self.showAlert("About Mapcode \(version)", message:
+            "Copyright (C) 2016\n" +
+            "Rijn Buve, Mapcode Foundation\n\n" +
+
+            "Get a mapcode by entering an address or coordinate, or moving the map around.\n\n" +
+
+            "Show a mapcode on the map by entering it in one of the mapcode input boxes. If you omit " +
+            "the territory for a local mapcode, the current territory is automatically assumed.\n\n" +
+
+            "Plan a route to a mapcode by enter it and then tapping on the 'map' icon at the bottom right of the map.\n\n" +
+
+            "For more info on mapcodes in general, visit us at: http://mapcode.com\n\n________\n" +
+
+            "Note that some usage data may be collected to improve the Mapcode REST API service " +
+            "(not used for commercial purposes).", button: "OK")
     }
 
     /**
@@ -376,7 +413,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: lat, longitude: lon), completionHandler: {
             (placemarks, error) -> Void in
             if error != nil {
-                print("Reverse geocode failed: lat/lon=\(lat,lon), error=\(error!.localizedDescription)")
+
+                // Print an message to console, but don't show a user dialog (not an error).
+                print("No reverse geocode info for \(lat,lon), error=\(error!.localizedDescription)")
                 return
             }
 
@@ -405,7 +444,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.theAddress.text = address;
                 }
             } else {
-                print("No results from reverse geocode: lat/lon=\(lat,lon)")
+                print("No placemarks for \(lat,lon)")
             }
         })
     }
@@ -417,7 +456,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
         let encodedLatLon = "\(lat),\(lon)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
-        let url = "\(host)/mapcode/codes/\(encodedLatLon)?debug=\(debug)"
+        let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
         guard let rest = RestController.createFromURLString(url) else {
             print("Found bad URL: \(url)")
@@ -430,9 +469,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         rest.get {
             result, httpResponse in
             do {
+                var territory: String! = nil
                 var mcInternational = ""
                 var mcLocal = ""
                 let json = try result.value()
+
+                // The JSON response indicated an error, territory is set to nil.
+                if json["errors"] != nil {
+                    self.showAlert("Invalid mapcode", message: "Can get mapcode for\n'\(lat,lon)'", button: "OK")
+                }
 
                 // Get international mapcode.
                 if json["international"] != nil {
@@ -445,6 +490,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 if json["local"] != nil {
                     if (json["local"]?["territory"] != nil) && (json["local"]?["mapcode"] != nil) {
                         mcLocal = "\((json["local"]?["territory"]?.stringValue)!) \((json["local"]?["mapcode"]?.stringValue)!)"
+                        territory = json["local"]?["territory"]?.stringValue
                     }
                 }
 
@@ -452,6 +498,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 dispatch_async(dispatch_get_main_queue()) {
                     self.theMapcodeInternational.text = mcInternational
                     self.theMapcodeLocal.text = mcLocal
+                    self.prevTerritory = territory
                 }
             } catch {
                 print("API call failed: url=\(url), error=\(error)")
@@ -469,8 +516,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the "open in maps" icon is pressed.
      */
     @IBAction func openInMapApplication(sender: AnyObject) {
-        let lat = theMap.centerCoordinate.latitude
-        let lon = theMap.centerCoordinate.longitude
+        let lat = truncToMicroDegrees(theMap.centerCoordinate.latitude)
+        let lon = truncToMicroDegrees(theMap.centerCoordinate.longitude)
         let name: String
         if (theMapcodeLocal.text != nil) && !(theMapcodeLocal.text?.isEmpty)! {
             name = theMapcodeLocal.text!
@@ -485,17 +532,33 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method open the Apple Maps application.
      */
     func openMapApplication(lat: CLLocationDegrees, lon: CLLocationDegrees, name: String) {
-        let regionDistance: CLLocationDistance = 2000
+        let span = theMap.region.span
+        let center = theMap.region.center
         let coordinates = CLLocationCoordinate2DMake(lat, lon)
-        let regionSpan = MKCoordinateRegionMakeWithDistance(coordinates, regionDistance, regionDistance)
         let options = [
-            MKLaunchOptionsMapCenterKey: NSValue(MKCoordinate: regionSpan.center),
-            MKLaunchOptionsMapSpanKey: NSValue(MKCoordinateSpan: regionSpan.span)
+            MKLaunchOptionsMapCenterKey: NSValue(MKCoordinate: center),
+            MKLaunchOptionsMapSpanKey: NSValue(MKCoordinateSpan: span)
         ]
         let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
         let mapItem = MKMapItem(placemark: placemark)
         mapItem.name = name
         mapItem.openInMapsWithLaunchOptions(options)
+    }
+
+    /**
+     * Method to show an alert.
+     */
+    func showAlert(title: String, message: String, button: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.Alert)
+        alert.addAction(UIAlertAction(title: button, style: UIAlertActionStyle.Default, handler: nil))
+        self.presentViewController(alert, animated: true, completion: nil)
+    }
+
+    /**
+     * Round degrees to microdegree precision.
+     */
+    func truncToMicroDegrees(deg: Double) -> Double {
+        return round(deg * 1.0e6) / 1.0e6;
     }
 
     /**
