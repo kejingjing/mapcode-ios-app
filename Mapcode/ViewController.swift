@@ -39,8 +39,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let allowLog: String = "true";                  // Log requests.
     let client: String = "ios";                     // Client ID.
 
-    let spanInitX = 60.0        // Initial zoom.
-    let spanInitY = 30.0
+    let spanStartUpX = 60.0     // Initial zoom.
+    let spanStartUpY = 30.0
+
+    let spanInitX = 1.0         // Initial zoom.
+    let spanInitY = 1.0
 
     let spanZoomedInX = 0.003   // Zoomed in.
     let spanZoomedInY = 0.003
@@ -491,7 +494,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
         let encodedLatLon = "\(lat),\(lon)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
-        let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
+
+        // Add context parameter if a previous territory was found. This should
+        // bias resolving mapcode towards the previous territory context.
+        var paramTerritory: String;
+        if prevTerritory == nil {
+            paramTerritory = ""
+        }
+        else {
+            paramTerritory = "&territory=\(prevTerritory)"
+        }
+
+        let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)\(paramTerritory)"
 
         guard let rest = RestController.createFromURLString(url) else {
             print("Found bad URL: \(url)")
@@ -511,7 +525,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // The JSON response indicated an error, territory is set to nil.
                 if json["errors"] != nil {
-                    self.showAlert("Invalid mapcode", message: "Can get mapcode for\n'\(lat,lon)'", button: "OK")
+                    print("Can get mapcode for: \(lat,lon)")
                 }
 
                 // Get international mapcode.

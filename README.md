@@ -56,6 +56,10 @@ Normally, one of our developers should be able to comment on them and fix.
 
 # Release Notes
 
+### 1.0.2
+
+* Added sharing with other apps.
+
 ### 1.0.1
 
 * Fixed panning, zooming.
