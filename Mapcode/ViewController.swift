@@ -413,7 +413,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the "other territory" button is pressed.
      */
     @IBAction func showAlternativeMapcode(sender: AnyObject) {
-        if alternativeMapcodes.count > 0 {
+        if alternativeMapcodes.count > 1 {
             theAlternative.hidden = false
             theMapcodeLocal.text = alternativeMapcodes[currentAlternativeMapcode]
             if currentAlternativeMapcode == 0 {
