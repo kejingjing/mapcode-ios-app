@@ -36,7 +36,6 @@
                                 <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="numbersAndPunctuation"/>
                                 <connections>
                                     <action selector="beginEdit:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="rLl-lG-w4G"/>
-                                    <action selector="endEdit:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="gSG-uN-ySR"/>
                                 </connections>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Address" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B9G-bC-hHA" userLabel="Mapcode Label">
@@ -131,7 +130,6 @@
                                 <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="numbersAndPunctuation"/>
                                 <connections>
                                     <action selector="beginEdit:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="mhw-x8-oNp"/>
-                                    <action selector="endEdit:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="ebi-Rx-42Q"/>
                                 </connections>
                             </textField>
                             <textField opaque="NO" clipsSubviews="YES" tag="5" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="FYG-w6-MCX" userLabel="Mapcode Local">
@@ -143,7 +141,6 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="allCharacters" autocorrectionType="no" spellCheckingType="no" keyboardType="emailAddress"/>
                                 <connections>
                                     <action selector="beginEdit:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="YVX-eM-rrg"/>
-                                    <action selector="endEdit:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="JBA-xO-Kbb"/>
                                 </connections>
                             </textField>
                             <textField opaque="NO" clipsSubviews="YES" tag="4" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="fdU-Dh-Irz" userLabel="Mapcode International">
@@ -155,7 +152,6 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="allCharacters" autocorrectionType="no" spellCheckingType="no" keyboardType="emailAddress"/>
                                 <connections>
                                     <action selector="beginEdit:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="9NF-Mk-9PX"/>
-                                    <action selector="endEdit:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="eKi-gF-hfk"/>
                                 </connections>
                             </textField>
                             <textField opaque="NO" clipsSubviews="YES" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="RV4-F7-Zd0" userLabel="Address">
@@ -165,7 +161,6 @@
                                 <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="alphabet"/>
                                 <connections>
                                     <action selector="beginEdit:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="XvG-G5-V5x"/>
-                                    <action selector="endEdit:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="d3w-zm-0r0"/>
                                 </connections>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Coordinate" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ymc-au-c9E" userLabel="Coordinate Label">

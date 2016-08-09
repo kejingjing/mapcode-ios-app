@@ -39,8 +39,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let allowLog: String = "true";                  // Log requests.
     let client: String = "ios";                     // Client ID.
 
-    let spanInitX = 120.0        // Initial zoom.
-    let spanInitY = 60.0
+    let spanInitX = 60.0        // Initial zoom.
+    let spanInitY = 30.0
 
     let spanZoomedInX = 0.003   // Zoomed in.
     let spanZoomedInY = 0.003
@@ -189,13 +189,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
     /**
-     * This method gets called when user ends editing the address.
-     */
-    @IBAction func endEdit(sender: UITextField) {
-        // No action.
-    }
-
-    /**
      * This method gets called when the Return key is pressed in a text edit field.
      */
     func textFieldShouldReturn(textField: UITextField) -> Bool {
@@ -210,6 +203,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             textField.text = prevTextField
             return true
         }
+
+        // Don't auto-zoom to user location anymore.
+        firstTimeLocation = false
 
         switch textField.tag {
 
@@ -435,9 +431,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func updateFieldsLatLonAddress(lat: CLLocationDegrees, lon: CLLocationDegrees) {
 
-        // Don't auto-zoom to user location anymore.
-        firstTimeLocation = false
-
         // Update latitude and longitude.
         theLat.text = "\(lat)"
         theLon.text = "\(lon)"
@@ -495,9 +488,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Call Mapcode REST API to get mapcode codes from latitude, longitude.
      */
     func updateFieldsMapcodes(lat: CLLocationDegrees, lon: CLLocationDegrees) {
-
-        // Don't auto-zoom to user location anymore.
-        firstTimeLocation = false
 
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
         let encodedLatLon = "\(lat),\(lon)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
