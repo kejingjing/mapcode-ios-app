@@ -39,14 +39,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let allowLog: String = "true";                  // Log requests.
     let client: String = "ios";                     // Client ID.
 
-    let spanZoomedInX = 0.005   // Zoomed in.
-    let spanZoomedInY = 0.005
+    let spanInitX = 120.0        // Initial zoom.
+    let spanInitY = 60.0
 
-    let spanZoomedOutX = 0.5    // Zoomed out.
-    let spanZoomedOutY = 0.5
+    let spanZoomedInX = 0.003   // Zoomed in.
+    let spanZoomedInY = 0.003
+
+    let spanZoomedOutX = 0.4    // Zoomed out.
+    let spanZoomedOutY = 0.4
 
     // provide a sensible screen if no user location is available (rather than mid Pacific).
-    let initialLocation = CLLocationCoordinate2D(latitude: 52.3731476, longitude: 4.8925322)
+    let initialLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
 
     var manager: CLLocationManager!
     var firstTimeLocation = true                    //
@@ -69,7 +72,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set initial map and zoom.
         let newRegion = MKCoordinateRegion(center:  initialLocation,
-                                           span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
+                                           span: MKCoordinateSpanMake(spanInitX, spanInitY))
         theMap.setRegion(newRegion, animated: false)
 
         // Setup up delegates for text input boxes.
@@ -103,6 +106,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the user taps the map.
      */
     func handleMapTap1(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Don't auto-zoom to user location anymore.
+        firstTimeLocation = false
 
         // Get location of tap.
         let location = gestureRecognizer.locationInView(theMap)
@@ -424,77 +430,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
     }
 
-
-    /**
-     * This method gets called whenever a location change is detected.
-     */
-    func locationManager(manager: CLLocationManager,
-                         didUpdateLocations locations:[CLLocation]) {
-
-        // First time? Set map zoom.
-        if firstTimeLocation {
-
-            // When the first user location is received, we'll move to that. Filter out garbage from (0, 0).
-            if ((Int(theMap.userLocation.coordinate.latitude) != 0) ||
-                (Int(theMap.userLocation.coordinate.longitude) != 0)) {
-                firstTimeLocation = false
-
-                // Change zoom level.
-                let userLocation = theMap.userLocation.coordinate
-                let newRegion = MKCoordinateRegion(center: userLocation,
-                                                   span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
-
-                // Move without animation.
-                theMap.setRegion(newRegion, animated: false)
-            }
-        }
-        else {
-
-            // Stop receiving updates after we get a first (decent) user location.
-            manager.stopUpdatingLocation()
-        }
-    }
-    
-    /**
-     * This method gets called when the location cannot be fetched.
-     */
-    func locationManager(manager: CLLocationManager,
-                         didFailWithError error: NSError) {
-        manager.stopUpdatingLocation()
-
-        // Code 0 is returned when during debugging anyhow.
-        if (error.code != 0) {
-            print("Location manager failed: \(error.localizedDescription)")
-        }
-    }
-
-    /**
-     * This method gets called when the location authorization changes.
-     */
-    func locationManager(manager: CLLocationManager,
-                         didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-        let allow: Bool!
-
-        switch status {
-
-        case CLAuthorizationStatus.AuthorizedWhenInUse:
-            allow = true
-
-        case CLAuthorizationStatus.AuthorizedAlways:
-            allow = true
-
-        default:
-            allow = false
-            manager.stopUpdatingLocation()
-        }
-        theHere.enabled = allow
-        theHere.hidden = !allow
-    }
-    
     /**
      * Call Apple reverse geocoding API to get coordinates from address.
      */
     func updateFieldsLatLonAddress(lat: CLLocationDegrees, lon: CLLocationDegrees) {
+
+        // Don't auto-zoom to user location anymore.
+        firstTimeLocation = false
 
         // Update latitude and longitude.
         theLat.text = "\(lat)"
@@ -554,6 +496,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func updateFieldsMapcodes(lat: CLLocationDegrees, lon: CLLocationDegrees) {
 
+        // Don't auto-zoom to user location anymore.
+        firstTimeLocation = false
+
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
         let encodedLatLon = "\(lat),\(lon)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
         let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
@@ -612,6 +557,69 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
     }
 
+    /**
+     * This method gets called whenever a location change is detected.
+     */
+    func locationManager(manager: CLLocationManager,
+                         didUpdateLocations locations:[CLLocation]) {
+
+        // First time? Set map zoom.
+        if firstTimeLocation {
+
+            // When the first user location is received, we'll move to that. Filter out garbage from (0, 0).
+            if ((Int(theMap.userLocation.coordinate.latitude) != 0) ||
+                (Int(theMap.userLocation.coordinate.longitude) != 0)) {
+                firstTimeLocation = false
+
+                // Change zoom level.
+                let userLocation = theMap.userLocation.coordinate
+                let newRegion = MKCoordinateRegion(center: userLocation,
+                                                   span: MKCoordinateSpanMake(spanInitX, spanInitY))
+
+                // Move without animation.
+                theMap.setRegion(newRegion, animated: true)
+            }
+        }
+        else {
+
+            // Stop receiving updates after we get a first (decent) user location.
+            manager.stopUpdatingLocation()
+        }
+    }
+
+    /**
+     * This method gets called when the location cannot be fetched.
+     */
+    func locationManager(manager: CLLocationManager,
+                         didFailWithError error: NSError) {
+
+        // Code 0 is returned when during debugging anyhow.
+        print("Location manager failed: \(error.localizedDescription)")
+    }
+
+    /**
+     * This method gets called when the location authorization changes.
+     */
+    func locationManager(manager: CLLocationManager,
+                         didChangeAuthorizationStatus status: CLAuthorizationStatus) {
+        let allow: Bool!
+
+        switch status {
+
+        case CLAuthorizationStatus.AuthorizedWhenInUse:
+            allow = true
+
+        case CLAuthorizationStatus.AuthorizedAlways:
+            allow = true
+
+        default:
+            allow = false
+            manager.stopUpdatingLocation()
+        }
+        theHere.enabled = allow
+        theHere.hidden = !allow
+    }
+    
     /**
      * This method gets called when the "open in maps" icon is pressed.
      */
