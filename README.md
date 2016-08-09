@@ -56,6 +56,14 @@ Normally, one of our developers should be able to comment on them and fix.
 
 # Release Notes
 
+### 1.0.1
+
+* Fixed panning, zooming.
+
+* Added copy-to-clipboard.
+
+* Change initial location fix.
+
 ### 1.0.0
 
-Under development. Not released yet.
+* Under development. Not released yet.
