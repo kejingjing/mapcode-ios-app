@@ -30,19 +30,29 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLon: UITextField!
     @IBOutlet weak var theAddress: UITextField!
     @IBOutlet weak var theHere: UIButton!
+    @IBOutlet weak var theCopyMapcodeInternational: UIButton!
+    @IBOutlet weak var theCopyMapcodeLocal: UIButton!
+    @IBOutlet weak var theCopyLatitude: UIButton!
+    @IBOutlet weak var theCopyLongitude: UIButton!
 
     let host: String = "http:/api.mapcode.com";     // Host name of REST API.
     let allowLog: String = "true";                  // Log requests.
     let client: String = "ios";                     // Client ID.
 
-    let spanX = 0.005
-    let spanY = 0.005
+    let spanZoomedInX = 0.005   // Zoomed in.
+    let spanZoomedInY = 0.005
+
+    let spanZoomedOutX = 0.5    // Zoomed out.
+    let spanZoomedOutY = 0.5
+
+    // provide a sensible screen if no user location is available (rather than mid Pacific).
     let initialLocation = CLLocationCoordinate2D(latitude: 52.3731476, longitude: 4.8925322)
 
     var manager: CLLocationManager!
-    var firstTimeLocation = true
-    var prevTerritory: String!
-    var prevTextField: String!
+    var firstTimeLocation = true                    //
+    var prevTerritory: String!                      // Previous territory, serves as default.
+    var prevTextField: String!                      // Undo edits if something went wrong.
+    var tapCoordinate: CLLocationCoordinate2D!;     // Coordinate of first tap (in multi-tap).
 
     /**
      * This method gets called when the view loads.
@@ -54,10 +64,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.delegate = self
         theMap.mapType = MKMapType.Standard
         theMap.showsUserLocation = true
+        theMap.showsScale = true
+        theMap.showsBuildings = true
 
         // Set initial map and zoom.
         let newRegion = MKCoordinateRegion(center:  initialLocation,
-                                           span: MKCoordinateSpanMake(spanX, spanY))
+                                           span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
         theMap.setRegion(newRegion, animated: false)
 
         // Setup up delegates for text input boxes.
@@ -68,7 +80,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMapcodeLocal.delegate = self
 
         // Recognize tap on map.
-        theMap.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapTap(_:))))
+        let tap1 = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapTap1(_:)))
+        tap1.numberOfTapsRequired = 1
+        let tap2 = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapTap2(_:)))
+        tap2.numberOfTapsRequired = 2
+        let tap3 = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapTap3(_:)))
+        tap3.numberOfTapsRequired = 3
+
+        theMap.addGestureRecognizer(tap1)
+        theMap.addGestureRecognizer(tap2)
+        theMap.addGestureRecognizer(tap3)
 
         // Setup our Location Manager.
         manager = CLLocationManager()
@@ -81,14 +102,43 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the user taps the map.
      */
-    func handleMapTap(gestureRecognizer: UITapGestureRecognizer) {
+    func handleMapTap1(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Get location of tap.
         let location = gestureRecognizer.locationInView(theMap)
-        let coordinate = theMap.convertPoint(location,toCoordinateFromView: theMap)
+        let coordinate = theMap.convertPoint(location, toCoordinateFromView: theMap)
+        tapCoordinate = coordinate
+
+        // Set map center.
         theMap.setCenterCoordinate(coordinate, animated: true)
+
+        // Update other fields.
         updateFieldsMapcodes(coordinate.latitude, lon: coordinate.longitude)
         updateFieldsLatLonAddress(coordinate.latitude, lon: coordinate.longitude)
     }
 
+    /**
+     * This method gets called when the user double taps the map.
+     */
+    func handleMapTap2(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
+        let newRegion = MKCoordinateRegion(center: tapCoordinate != nil ? tapCoordinate : theMap.centerCoordinate,
+                                           span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
+        theMap.setRegion(newRegion, animated: true)
+    }
+    
+    /**
+     * This method gets called when the user triple taps the map.
+     */
+    func handleMapTap3(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
+        let newRegion = MKCoordinateRegion(center: tapCoordinate != nil ? tapCoordinate : theMap.centerCoordinate,
+                                           span: MKCoordinateSpanMake(spanZoomedOutX, spanZoomedOutY))
+        theMap.setRegion(newRegion, animated: true)
+    }
+    
     /**
      * This method moves the screen up or down when a field gets edited.
      */
@@ -319,7 +369,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "Copyright (C) 2016\n" +
             "Rijn Buve, Mapcode Foundation\n\n" +
 
-            "Get a mapcode by entering an address or coordinate, or moving the map around.\n\n" +
+            "Get a mapcode by entering an address or coordinate, or moving the map around. You can tap " +
+            "once to move directly to a location, twice to zoom in and three times to zoom out.\n\n" +
 
             "Show a mapcode on the map by entering it in one of the mapcode input boxes. If you omit " +
             "the territory for a local mapcode, the current territory is automatically assumed.\n\n" +
@@ -338,11 +389,41 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func findHere(sender: AnyObject) {
 
         // Change zoom level.
-        let newRegion = MKCoordinateRegion(center: theMap.userLocation.coordinate,
-                                           span: MKCoordinateSpanMake(spanX, spanY))
+        let userLocation = theMap.userLocation.coordinate
+        let newRegion = MKCoordinateRegion(center: userLocation,
+                                           span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
         theMap.setRegion(newRegion, animated: true)
         manager.startUpdatingLocation()
     }
+
+    /**
+     * This method gets called when a "copy to clipboard" icon is pressed.
+     */
+    @IBAction func copyToClipboard(sender: AnyObject) {
+        var copytext: String!
+        switch sender.tag {
+
+        case 1:
+            copytext = theMapcodeInternational.text
+
+        case 2:
+            copytext = theMapcodeLocal.text
+
+        case 3:
+            copytext = theLat.text
+
+        case 4:
+            copytext = theLon.text
+
+        default:
+            copytext = nil
+
+        }
+        if copytext != nil {
+            UIPasteboard.generalPasteboard().string = copytext
+        }
+    }
+
 
     /**
      * This method gets called whenever a location change is detected.
@@ -352,17 +433,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // First time? Set map zoom.
         if firstTimeLocation {
+
+            // When the first user location is received, we'll move to that. Filter out garbage from (0, 0).
             if ((Int(theMap.userLocation.coordinate.latitude) != 0) ||
                 (Int(theMap.userLocation.coordinate.longitude) != 0)) {
                 firstTimeLocation = false
 
                 // Change zoom level.
-                let newRegion = MKCoordinateRegion(center: theMap.userLocation.coordinate,
-                                                   span: MKCoordinateSpanMake(spanX, spanY))
+                let userLocation = theMap.userLocation.coordinate
+                let newRegion = MKCoordinateRegion(center: userLocation,
+                                                   span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
+
+                // Move without animation.
                 theMap.setRegion(newRegion, animated: false)
             }
         }
         else {
+
+            // Stop receiving updates after we get a first (decent) user location.
             manager.stopUpdatingLocation()
         }
     }
@@ -373,7 +461,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func locationManager(manager: CLLocationManager,
                          didFailWithError error: NSError) {
         manager.stopUpdatingLocation()
-        print("Location manager failed: \(error.localizedDescription)")
+
+        // Code 0 is returned when during debugging anyhow.
+        if (error.code != 0) {
+            print("Location manager failed: \(error.localizedDescription)")
+        }
     }
 
     /**
@@ -426,7 +518,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 if pm.thoroughfare != nil {
                     address = pm.thoroughfare!
                     if pm.subThoroughfare != nil {
-                        address = "\(address) \(pm.subThoroughfare!)";
+                        if (self.useStreetThenNumber()) {
+                            address = "\(address) \(pm.subThoroughfare!)";
+                        }
+                        else {
+                            address = "\(pm.subThoroughfare!) \(address)";
+                        }
                     }
                 }
                 if pm.locality != nil {
@@ -562,6 +659,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func truncToMicroDegrees(deg: Double) -> Double {
         return round(deg * 1.0e6) / 1.0e6;
+    }
+
+    /**
+     * Returns true of the house number is to be put after the street name. False otherwise.
+     * The selection is based on a selected number of country codes (incomplete).
+     */
+    func useStreetThenNumber() -> Bool {
+        let locale = NSLocale.currentLocale()
+        if let country = locale.objectForKey(NSLocaleCountryCode) as? String {
+            if country == "AU" || country == "NZ" || country == "UK" || country == "US" || country == "VN" {
+                return false
+            }
+        }
+        return true
     }
 
     /**

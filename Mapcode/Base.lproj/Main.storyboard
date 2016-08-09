@@ -20,7 +20,7 @@
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" pitchEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ekd-s8-ZkY" userLabel="Map">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                             </mapView>
-                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.59999999999999998" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jrK-iG-h7U" userLabel="White Slab">
+                            <label opaque="NO" alpha="0.59999999999999998" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jrK-iG-h7U" userLabel="White Slab">
                                 <rect key="frame" x="0.0" y="346" width="320" height="222"/>
                                 <color key="backgroundColor" red="0.66274509803921566" green="0.75294117647058822" blue="0.87450980392156863" alpha="1" colorSpace="calibratedRGB"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -83,7 +83,7 @@
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rKN-zi-tQH">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rKN-zi-tQH">
                                 <rect key="frame" x="8" y="304" width="36" height="36"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                 <constraints>
@@ -97,7 +97,7 @@
                                     <action selector="findHereLocation:" destination="BYZ-38-t0r" eventType="valueChanged" id="Ose-cT-O0a"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PbS-qj-HqD" userLabel="MapApp">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PbS-qj-HqD" userLabel="MapApp">
                                 <rect key="frame" x="265" y="293" width="50" height="50"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                 <constraints>
@@ -185,7 +185,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h46-hV-f3b" userLabel="Eye">
-                                <rect key="frame" x="142" y="277" width="34" height="34"/>
+                                <rect key="frame" x="143" y="277" width="34" height="34"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="34" id="9dh-01-kU3"/>
@@ -193,7 +193,7 @@
                                 </constraints>
                                 <state key="normal" image="CenterIcon"/>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="infoLight" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tgm-Fn-qAP">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="infoLight" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tgm-Fn-qAP" userLabel="About">
                                 <rect key="frame" x="8" y="389" width="22" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="22" id="51W-dm-KQ8"/>
@@ -201,6 +201,58 @@
                                 </constraints>
                                 <connections>
                                     <action selector="showInfo:" destination="BYZ-38-t0r" eventType="touchDown" id="FiA-SL-t5j"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rQJ-Ie-AbI" userLabel="Copy Mapcode International">
+                                <rect key="frame" x="287" y="412" width="28" height="28"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="28" id="PgI-qk-J8l"/>
+                                    <constraint firstAttribute="height" constant="28" id="smJ-eK-30W"/>
+                                </constraints>
+                                <size key="titleShadowOffset" width="2.2250738585072014e-308" height="2.2250738585072014e-308"/>
+                                <state key="normal" image="CopyToClipboardIcon"/>
+                                <connections>
+                                    <action selector="copyToClipboard:" destination="BYZ-38-t0r" eventType="touchDown" id="3Ac-o1-o0o"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" tag="2" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FvT-Cu-1Ve" userLabel="Copy Mapcode Local">
+                                <rect key="frame" x="287" y="444" width="28" height="28"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="28" id="ftP-W7-8Rd"/>
+                                    <constraint firstAttribute="height" constant="28" id="pa9-Wg-ayP"/>
+                                </constraints>
+                                <size key="titleShadowOffset" width="2.2250738585072014e-308" height="2.2250738585072014e-308"/>
+                                <state key="normal" image="CopyToClipboardIcon"/>
+                                <connections>
+                                    <action selector="copyToClipboard:" destination="BYZ-38-t0r" eventType="touchDown" id="Vgw-Lp-Nd2"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0ar-bb-eJA" userLabel="Copy Latitude">
+                                <rect key="frame" x="287" y="498" width="28" height="28"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="28" id="Jm6-Db-3Cs"/>
+                                    <constraint firstAttribute="height" constant="28" id="dnH-U6-9r8"/>
+                                </constraints>
+                                <size key="titleShadowOffset" width="2.2250738585072014e-308" height="2.2250738585072014e-308"/>
+                                <state key="normal" image="CopyToClipboardIcon"/>
+                                <connections>
+                                    <action selector="copyToClipboard:" destination="BYZ-38-t0r" eventType="touchDown" id="37k-bL-mNy"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" tag="4" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cGr-8J-TOB" userLabel="Copy Longitude">
+                                <rect key="frame" x="287" y="530" width="28" height="28"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="28" id="geh-da-NXo"/>
+                                    <constraint firstAttribute="width" constant="28" id="h6S-qB-syL"/>
+                                </constraints>
+                                <size key="titleShadowOffset" width="2.2250738585072014e-308" height="2.2250738585072014e-308"/>
+                                <state key="normal" image="CopyToClipboardIcon"/>
+                                <connections>
+                                    <action selector="copyToClipboard:" destination="BYZ-38-t0r" eventType="touchDown" id="8SJ-ZJ-FAL"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -224,7 +276,7 @@
                             <constraint firstItem="RV4-F7-Zd0" firstAttribute="top" secondItem="jrK-iG-h7U" secondAttribute="top" constant="7" id="GPK-Bh-zSg"/>
                             <constraint firstItem="Tgm-Fn-qAP" firstAttribute="leading" secondItem="RV4-F7-Zd0" secondAttribute="leading" id="Hos-aQ-MZz"/>
                             <constraint firstItem="FYG-w6-MCX" firstAttribute="centerY" secondItem="xcH-Fl-fHj" secondAttribute="centerY" id="Iej-CF-HEB"/>
-                            <constraint firstItem="h46-hV-f3b" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" constant="-1" id="KE6-xX-oms"/>
+                            <constraint firstItem="h46-hV-f3b" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="KE6-xX-oms"/>
                             <constraint firstItem="vFV-Z4-Aim" firstAttribute="top" secondItem="ymc-au-c9E" secondAttribute="bottom" id="LaR-9W-zSD"/>
                             <constraint firstItem="fdU-Dh-Irz" firstAttribute="trailing" secondItem="WYV-VT-YRt" secondAttribute="trailing" id="Mi8-me-Zby"/>
                             <constraint firstItem="rKN-zi-tQH" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="8" id="OGb-gx-NTw"/>
@@ -234,16 +286,22 @@
                             <constraint firstAttribute="trailing" secondItem="RV4-F7-Zd0" secondAttribute="trailing" constant="5" id="Qdp-Ab-oQS"/>
                             <constraint firstItem="vFV-Z4-Aim" firstAttribute="leading" secondItem="9rL-r5-vtn" secondAttribute="trailing" constant="8" id="RKs-nd-sfN"/>
                             <constraint firstItem="fdU-Dh-Irz" firstAttribute="leading" secondItem="4eD-gA-qlr" secondAttribute="trailing" constant="8" id="Sen-k3-XV1"/>
+                            <constraint firstItem="cGr-8J-TOB" firstAttribute="trailing" secondItem="dA2-FW-eFa" secondAttribute="trailing" id="W07-6T-gpr"/>
                             <constraint firstItem="WYV-VT-YRt" firstAttribute="top" secondItem="RV4-F7-Zd0" secondAttribute="bottom" constant="8" id="WFX-ej-EKR"/>
                             <constraint firstItem="ymc-au-c9E" firstAttribute="centerY" secondItem="Tgm-Fn-qAP" secondAttribute="centerY" id="XzM-Fg-Bo3"/>
                             <constraint firstItem="fdU-Dh-Irz" firstAttribute="centerY" secondItem="4eD-gA-qlr" secondAttribute="centerY" id="ZyA-7c-78M"/>
                             <constraint firstItem="ekd-s8-ZkY" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="aDa-PV-0a7"/>
+                            <constraint firstItem="rQJ-Ie-AbI" firstAttribute="centerY" secondItem="fdU-Dh-Irz" secondAttribute="centerY" id="bIf-9M-2VP"/>
+                            <constraint firstItem="0ar-bb-eJA" firstAttribute="centerY" secondItem="vFV-Z4-Aim" secondAttribute="centerY" id="cg8-GJ-Qum"/>
                             <constraint firstAttribute="trailing" secondItem="FYG-w6-MCX" secondAttribute="trailing" constant="5" id="d1H-LV-e6P"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="jrK-iG-h7U" secondAttribute="bottom" id="dv1-I5-iqO"/>
+                            <constraint firstItem="FvT-Cu-1Ve" firstAttribute="trailing" secondItem="FYG-w6-MCX" secondAttribute="trailing" id="e38-wl-aZg"/>
                             <constraint firstItem="jrK-iG-h7U" firstAttribute="top" secondItem="PbS-qj-HqD" secondAttribute="bottom" constant="3" id="f0o-qG-8zA"/>
+                            <constraint firstItem="0ar-bb-eJA" firstAttribute="trailing" secondItem="vFV-Z4-Aim" secondAttribute="trailing" id="fX5-9l-4jJ"/>
                             <constraint firstItem="vFV-Z4-Aim" firstAttribute="trailing" secondItem="ymc-au-c9E" secondAttribute="trailing" id="gPD-jT-FTJ"/>
                             <constraint firstItem="RV4-F7-Zd0" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="8" id="goC-bl-h1h"/>
                             <constraint firstItem="Tgm-Fn-qAP" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="8" id="hlo-Wk-ZGD"/>
+                            <constraint firstItem="cGr-8J-TOB" firstAttribute="centerY" secondItem="dA2-FW-eFa" secondAttribute="centerY" id="jpW-1c-afo"/>
                             <constraint firstItem="jrK-iG-h7U" firstAttribute="top" secondItem="rKN-zi-tQH" secondAttribute="bottom" constant="6" id="miD-Li-cp6"/>
                             <constraint firstItem="fdU-Dh-Irz" firstAttribute="top" secondItem="WYV-VT-YRt" secondAttribute="bottom" id="nAC-zG-Qge"/>
                             <constraint firstItem="jrK-iG-h7U" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="oh9-bf-aYS"/>
@@ -252,8 +310,10 @@
                             <constraint firstAttribute="trailing" secondItem="fdU-Dh-Irz" secondAttribute="trailing" constant="5" id="sld-rf-nYp"/>
                             <constraint firstItem="ekd-s8-ZkY" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="spN-Lc-AQi"/>
                             <constraint firstItem="ekd-s8-ZkY" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="tLj-0B-i2c"/>
+                            <constraint firstItem="FvT-Cu-1Ve" firstAttribute="centerY" secondItem="FYG-w6-MCX" secondAttribute="centerY" id="ttn-zG-fh6"/>
                             <constraint firstItem="Tgm-Fn-qAP" firstAttribute="top" secondItem="RV4-F7-Zd0" secondAttribute="bottom" constant="6" id="upj-VM-1se"/>
                             <constraint firstAttribute="trailing" secondItem="dA2-FW-eFa" secondAttribute="trailing" constant="5" id="wMt-lN-a4b"/>
+                            <constraint firstItem="rQJ-Ie-AbI" firstAttribute="trailing" secondItem="fdU-Dh-Irz" secondAttribute="trailing" id="wb5-SE-Aoe"/>
                             <constraint firstItem="B9G-bC-hHA" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="8" id="xdu-tq-99N"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Tgm-Fn-qAP" secondAttribute="bottom" constant="6" id="yYn-aX-jLo"/>
                             <constraint firstAttribute="trailing" secondItem="PbS-qj-HqD" secondAttribute="trailing" constant="5" id="yee-g0-ZXs"/>
@@ -272,6 +332,10 @@
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                     <connections>
                         <outlet property="theAddress" destination="RV4-F7-Zd0" id="UPT-bI-4b8"/>
+                        <outlet property="theCopyLatitude" destination="0ar-bb-eJA" id="ma1-KC-u8s"/>
+                        <outlet property="theCopyLongitude" destination="cGr-8J-TOB" id="lnU-e2-YIa"/>
+                        <outlet property="theCopyMapcodeInternational" destination="rQJ-Ie-AbI" id="rzX-m5-7N1"/>
+                        <outlet property="theCopyMapcodeLocal" destination="FvT-Cu-1Ve" id="35w-dH-sDR"/>
                         <outlet property="theHere" destination="rKN-zi-tQH" id="XdX-M0-wSE"/>
                         <outlet property="theLat" destination="vFV-Z4-Aim" id="IbR-9a-dhX"/>
                         <outlet property="theLon" destination="dA2-FW-eFa" id="vtZ-mV-MJ6"/>
@@ -287,6 +351,7 @@
     </scenes>
     <resources>
         <image name="CenterIcon" width="512" height="512"/>
+        <image name="CopyToClipboardIcon" width="28" height="28"/>
         <image name="HereIcon" width="96" height="96"/>
         <image name="MapsIcon" width="256" height="256"/>
     </resources>
