@@ -40,35 +40,45 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let allowLog: String = "true";                  // Log requests.
     let client: String = "ios";                     // Client ID.
 
-    let spanStartUpX = 60.0     // Initial zoom.
+    let spanStartUpX = 60.0                         // Initial zoom.
     let spanStartUpY = 30.0
 
-    let spanInitX = 1.0         // Initial zoom.
+    let spanInitX = 1.0                             // Initial zoom.
     let spanInitY = 1.0
 
-    let spanZoomedInX = 0.003   // Zoomed in.
+    let spanZoomedInX = 0.003                       // Zoomed in.
     let spanZoomedInY = 0.003
 
-    let spanZoomedOutX = 0.4    // Zoomed out.
+    let spanZoomedOutX = 0.4                        // Zoomed out.
     let spanZoomedOutY = 0.4
 
-    // provide a sensible screen if no user location is available (rather than mid Pacific).
-    let initialLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
+    let scheduleUpdateLocationsSecs = 120.0         // Schedule update locations every x secs.
+    let distanceFilterMeters = 1000.0               // Distance filter (updates are stopped anyhow).
 
-    var manager: CLLocationManager!
-    var firstTimeLocation = true                    // First time fix is different.
-    var tapCoordinate: CLLocationCoordinate2D!      // Coordinate of first tap (in multi-tap).
+    // Provide a sensible screen if no user location is available (rather than mid Pacific).
+    var mapcodeLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
+
+    var locationManager: CLLocationManager!
+    var firstLocationSinceStarted = true            // First time fix is different.
+    var moveMapToUserLocation = false               // True if map should auto-move to user location.
     var prevTextField: String!                      // Undo edits if something went wrong.
     var prevTerritory: String!                      // Previous territory, serves as default.
 
     var currentAlternativeMapcode = 0               // Index of current alternative; 0 = shortest
     var alternativeMapcodes = [String]()            // List of alternative mapcodes.
 
+    var timer = NSTimer()                           // Timer to schedule stuff on.
+
+
     /**
      * This method gets called when the view loads.
      */
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // Reset alternative mapcode index.
+        currentAlternativeMapcode = 0
+        theAlternative.hidden = true
 
         // Setup our Map View.
         theMap.delegate = self
@@ -78,7 +88,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.showsBuildings = true
 
         // Set initial map and zoom.
-        let newRegion = MKCoordinateRegion(center:  initialLocation,
+        let newRegion = MKCoordinateRegion(center:  mapcodeLocation,
                                            span: MKCoordinateSpanMake(spanInitX, spanInitY))
         theMap.setRegion(newRegion, animated: false)
 
@@ -101,17 +111,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.addGestureRecognizer(tap2)
         theMap.addGestureRecognizer(tap3)
 
-        // Reset alternative mapcode index.
-        currentAlternativeMapcode = 0
-        theAlternative.hidden = true
-
-        // Setup our Location Manager.
-        manager = CLLocationManager()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        manager.requestWhenInUseAuthorization()
-        manager.startUpdatingLocation()
+        // Setup our Location Manager: high accuracy, but stopping location updates whenever possible.
+        // The distance filter is to reduce double updates even further, as they lead to more REST calls.
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = distanceFilterMeters
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
     }
+
 
     /**
      * This method gets called when the user taps the map.
@@ -119,20 +128,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func handleMapTap1(gestureRecognizer: UITapGestureRecognizer) {
 
         // Don't auto-zoom to user location anymore.
-        firstTimeLocation = false
+        firstLocationSinceStarted = false
 
         // Get location of tap.
         let location = gestureRecognizer.locationInView(theMap)
-        let coordinate = theMap.convertPoint(location, toCoordinateFromView: theMap)
-        tapCoordinate = coordinate
+        mapcodeLocation = theMap.convertPoint(location, toCoordinateFromView: theMap)
 
-        // Set map center.
-        theMap.setCenterCoordinate(coordinate, animated: true)
+        // Set map center and update fields.
+        theMap.setCenterCoordinate(mapcodeLocation, animated: true)
+        updateFieldsMapcodes(mapcodeLocation)
+        updateFieldsLatLonAddress(mapcodeLocation)
 
-        // Update other fields.
-        updateFieldsMapcodes(coordinate.latitude, lon: coordinate.longitude)
-        updateFieldsLatLonAddress(coordinate.latitude, lon: coordinate.longitude)
+        // Add a pin to the map.
+        let pinMapcode = MKPointAnnotation()
+        pinMapcode.coordinate = mapcodeLocation
+        pinMapcode.title = getCurrentMapcodeName()
+        theMap.addAnnotation(pinMapcode)
     }
+
 
     /**
      * This method gets called when the user double taps the map.
@@ -140,10 +153,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func handleMapTap2(gestureRecognizer: UITapGestureRecognizer) {
 
         // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
-        let newRegion = MKCoordinateRegion(center: tapCoordinate != nil ? tapCoordinate : theMap.centerCoordinate,
+        let newRegion = MKCoordinateRegion(center: mapcodeLocation,
                                            span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
         theMap.setRegion(newRegion, animated: true)
     }
+
     
     /**
      * This method gets called when the user triple taps the map.
@@ -151,10 +165,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func handleMapTap3(gestureRecognizer: UITapGestureRecognizer) {
 
         // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
-        let newRegion = MKCoordinateRegion(center: tapCoordinate != nil ? tapCoordinate : theMap.centerCoordinate,
+        let newRegion = MKCoordinateRegion(center: mapcodeLocation,
                                            span: MKCoordinateSpanMake(spanZoomedOutX, spanZoomedOutY))
         theMap.setRegion(newRegion, animated: true)
     }
+
     
     /**
      * This method moves the screen up or down when a field gets edited.
@@ -177,6 +192,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         UIView.commitAnimations()
     }
 
+
     /**
      * This method moves the screen up or down when a field gets edited.
      */
@@ -187,6 +203,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func textFieldDidEndEditing(textField: UITextField) {
         self.animateTextField(textField, up: false)
     }
+
     
     /**
      * This method gets called when user starts editing the address.
@@ -198,6 +215,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             self.prevTextField = textField.text
         }
     }
+
 
     /**
      * This method gets called when the Return key is pressed in a text edit field.
@@ -216,7 +234,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
 
         // Don't auto-zoom to user location anymore.
-        firstTimeLocation = false
+        firstLocationSinceStarted = false
 
         switch textField.tag {
 
@@ -241,6 +259,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         return true
     }
 
+
     /**
      * Address box was edited.
      */
@@ -250,30 +269,26 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(address, completionHandler: {
             (placemarks, error) -> Void in
-            if error != nil {
-                print("Geocode failed, address=\(address), error=\(error)")
+            if (error != nil) || (placemarks == nil) || (placemarks?.first == nil) || (placemarks?.first?.location == nil) {
+                print("useAddress: Geocode failed, address=\(address), error=\(error)")
                 self.showAlert("Incorrect address", message: "Can't find a location for\n'\(address)'", button: "OK")
 
-                // Reset address field.
+                // Reset address field; need to do a new reverse geocode as previous text is lost.
                 dispatch_async(dispatch_get_main_queue()) {
-                    let lat = self.theMap.centerCoordinate.latitude
-                    let lon = self.theMap.centerCoordinate.longitude
-                    self.updateFieldsLatLonAddress(lat, lon: lon)
+                    self.updateFieldsLatLonAddress(self.mapcodeLocation)
                 }
             }
             else {
 
-                // Get location.
-                if let placemark = placemarks?.first {
-                    let coordinates: CLLocationCoordinate2D = placemark.location!.coordinate
-                    let lat = coordinates.latitude
-                    let lon = coordinates.longitude
+                // Found location.
+                let coordinate = (placemarks?.first!.location!.coordinate)!
+                dispatch_async(dispatch_get_main_queue()) {
 
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.theMap.setCenterCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: lon), animated: false)
-                        self.updateFieldsMapcodes(lat, lon: lon)
-                        self.updateFieldsLatLonAddress(lat, lon: lon)
-                    }
+                    // Update location.
+                    self.mapcodeLocation = coordinate
+                    self.theMap.setCenterCoordinate(coordinate, animated: false)
+                    self.updateFieldsMapcodes(coordinate)
+                    self.updateFieldsLatLonAddress(coordinate)
                 }
             }
         })
@@ -293,10 +308,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         lat = max(-90.0, min(90.0, lat!))
         lon = max(-180.0, min(180.0, lon!))
 
-        theMap.setCenterCoordinate(CLLocationCoordinate2D(latitude: lat!, longitude: lon!), animated: false)
-        updateFieldsMapcodes(lat!, lon: lon!)
-        updateFieldsLatLonAddress(lat!, lon: lon!)
+        // Update location.
+        mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
+        theMap.setCenterCoordinate(mapcodeLocation, animated: false)
+        updateFieldsMapcodes(mapcodeLocation)
+        updateFieldsLatLonAddress(mapcodeLocation)
     }
+
 
     /**
      * Call Mapcode REST API to get coordinate from mapcode.
@@ -335,20 +353,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     (json["lonDeg"] != nil) && (json["lonDeg"]?.doubleValue != nil) {
                     let lat = (json["latDeg"]?.doubleValue)!
                     let lon = (json["lonDeg"]?.doubleValue)!
+                    let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
 
-                    // Set map center.
+                    // Update location and set map center.
                     dispatch_async(dispatch_get_main_queue()) {
-                        self.theMap.setCenterCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: lon), animated: false)
-                        self.updateFieldsMapcodes(lat, lon: lon)
-                        self.updateFieldsLatLonAddress(lat, lon: lon)
+                        self.mapcodeLocation = coordinate
+                        self.updateFieldsMapcodes(coordinate)
+                        self.updateFieldsLatLonAddress(coordinate)
+                        self.theMap.setCenterCoordinate(coordinate, animated: false)
                     }
                 }
                 else {
                     print("Find mapcode failed: url=\(url), status=\(httpResponse?.statusCode), json=\(json)")
+
+                    // Revert to previous mapcode; need to call REST API because previous text is lost.
                     dispatch_async(dispatch_get_main_queue()) {
-                        let lat = self.theMap.centerCoordinate.latitude
-                        let lon = self.theMap.centerCoordinate.longitude
-                        self.updateFieldsMapcodes(lat, lon: lon)
+                        self.updateFieldsMapcodes(self.mapcodeLocation)
                     }
                 }
 
@@ -358,27 +378,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
     }
 
+
     /**
      * This method gets called whenever a location change is detected.
      */
     func mapView(mapView: MKMapView,
                  regionDidChangeAnimated animated: Bool) {
-
-        // Get latitude and longitude.
-        let lat = mapView.centerCoordinate.latitude
-        let lon = mapView.centerCoordinate.longitude
-
-        updateFieldsLatLonAddress(lat, lon: lon);
-        updateFieldsMapcodes(lat, lon: lon)
+        print("regionDidChangeAnimated: \(mapView.centerCoordinate)")
+//        updateFieldsLatLonAddress(mapView.centerCoordinate);
+//        updateFieldsMapcodes(mapView.centerCoordinate)
     }
+
 
     /**
      * This method gets called when the "info" icon is pressed.
      */
     @IBAction func showInfo(sender: AnyObject) {
-        let nsObject: AnyObject? = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"]
-        let version = nsObject as! String
-        self.showAlert("About Mapcode \(version)", message:
+        let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
+        let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
+        self.showAlert("Mapcode \(version) (build \(build))", message:
             "Copyright (C) 2016\n" +
             "Rijn Buve, Mapcode Foundation\n\n" +
 
@@ -396,18 +414,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "(not used for commercial purposes).", button: "OK")
     }
 
+
     /**
      * This method gets called when the "find here" icon is pressed.
      */
     @IBAction func findHere(sender: AnyObject) {
 
-        // Change zoom level.
-        let userLocation = theMap.userLocation.coordinate
-        let newRegion = MKCoordinateRegion(center: userLocation,
-                                           span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
-        theMap.setRegion(newRegion, animated: true)
-        manager.startUpdatingLocation()
+        // Invalidate timer.
+        timer.invalidate()
+
+        // Set auto-move to user location and start collecting updates and update map.
+        moveMapToUserLocation = true;
+
+        // Turn on location updates.
+        turnOnLocationManagerUpdates()
     }
+
 
     /**
      * This method gets called when the "other territory" button is pressed.
@@ -429,6 +451,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             theAlternative.hidden = true
         }
     }
+
     
     /**
      * This method gets called when a "copy to clipboard" icon is pressed.
@@ -458,23 +481,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
     }
 
+
     /**
      * Call Apple reverse geocoding API to get coordinates from address.
      */
-    func updateFieldsLatLonAddress(lat: CLLocationDegrees, lon: CLLocationDegrees) {
+    func updateFieldsLatLonAddress(coordinate: CLLocationCoordinate2D) {
 
         // Update latitude and longitude.
-        theLat.text = String(format: "%3.5f", lat)
-        theLon.text = String(format: "%3.5f", lon)
+        theLat.text = String(format: "%3.5f", coordinate.latitude)
+        theLon.text = String(format: "%3.5f", coordinate.longitude)
         theAddress.text = "Searching..."
 
         // Get address from reverse geocode.
-        CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: lat, longitude: lon), completionHandler: {
+        CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude), completionHandler: {
             (placemarks, error) -> Void in
             if error != nil {
 
                 // Print an message to console, but don't show a user dialog (not an error).
-                print("No reverse geocode info for \(lat,lon), error=\(error!.localizedDescription)")
+                print("No reverse geocode info for \(coordinate), error=\(error!.localizedDescription)")
                 return
             }
 
@@ -511,18 +535,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.theAddress.text = address;
                 }
             } else {
-                print("No placemarks for \(lat,lon)")
+                print("No placemarks for \(coordinate)")
             }
         })
     }
 
+
     /**
      * Call Mapcode REST API to get mapcode codes from latitude, longitude.
      */
-    func updateFieldsMapcodes(lat: CLLocationDegrees, lon: CLLocationDegrees) {
+    func updateFieldsMapcodes(coordinate: CLLocationCoordinate2D) {
 
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
-        let encodedLatLon = "\(lat),\(lon)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
+        let encodedLatLon = "\(coordinate.latitude),\(coordinate.longitude)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
         let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
         guard let rest = RestController.createFromURLString(url) else {
@@ -545,7 +570,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // The JSON response indicated an error, territory is set to nil.
                 if json["errors"] != nil {
-                    print("Can get mapcode for: \(lat,lon)")
+                    print("Can get mapcode for: \(coordinate)")
                 }
 
                 // Get international mapcode.
@@ -607,53 +632,85 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
     }
 
+
     /**
      * This method gets called whenever a location change is detected.
      */
-    func locationManager(manager: CLLocationManager,
+    func locationManager(locationManager: CLLocationManager,
                          didUpdateLocations locations:[CLLocation]) {
 
-        // First time? Set map zoom.
-        if firstTimeLocation {
+        // Get new location.
+        let newLocation = locations[0].coordinate
 
-            // When the first user location is received, we'll move to that. Filter out garbage from (0, 0).
-            if ((Int(theMap.userLocation.coordinate.latitude) != 0) ||
-                (Int(theMap.userLocation.coordinate.longitude) != 0)) {
-                firstTimeLocation = false
+        // Set default span.
+        var spanX = spanZoomedInY
+        var spanY = spanZoomedInY
 
-                // Change zoom level.
-                let userLocation = theMap.userLocation.coordinate
-                let newRegion = MKCoordinateRegion(center: userLocation,
-                                                   span: MKCoordinateSpanMake(spanInitX, spanInitY))
+        // If it's a valid coordinate and we need to auto-move or it's the first location, move.
+        if isValidCoordinate(newLocation) {
+            if firstLocationSinceStarted || moveMapToUserLocation {
+
+                // Update location.
+                mapcodeLocation = newLocation;
+
+                // First time location ever? Override map zoom.
+                if firstLocationSinceStarted {
+                    spanX = spanInitX
+                    spanY = spanInitY
+                    firstLocationSinceStarted = false
+                }
+                moveMapToUserLocation = false
+
+                // Change zoom level, pretty much zoomed out.
+                let newRegion = MKCoordinateRegion(center: mapcodeLocation,
+                                                   span: MKCoordinateSpanMake(spanX, spanY))
 
                 // Move without animation.
                 theMap.setRegion(newRegion, animated: true)
+
+                // Update text fields.
+                updateFieldsMapcodes(mapcodeLocation)
+                updateFieldsLatLonAddress(mapcodeLocation)
             }
-        }
-        else {
 
             // Stop receiving updates after we get a first (decent) user location.
-            manager.stopUpdatingLocation()
+            locationManager.stopUpdatingLocation()
+
+            // Schedule updating the location again in some time.
+            timer = NSTimer.scheduledTimerWithTimeInterval(scheduleUpdateLocationsSecs, target: self,
+                                                           selector: #selector(turnOnLocationManagerUpdates),
+                                                           userInfo: nil, repeats: false)
         }
     }
+
+
+    /**
+     * Method to switch on the location manager updates.
+     */
+    func turnOnLocationManagerUpdates() {
+        locationManager.startUpdatingLocation()
+    }
+
 
     /**
      * This method gets called when the location cannot be fetched.
      */
-    func locationManager(manager: CLLocationManager,
+    func locationManager(locationManager: CLLocationManager,
                          didFailWithError error: NSError) {
 
         // Code 0 is returned when during debugging anyhow.
-        print("Location manager failed: \(error.localizedDescription)")
+        print("LocationManager: didFailWithError: \(error.localizedDescription)")
     }
+
 
     /**
      * This method gets called when the location authorization changes.
      */
-    func locationManager(manager: CLLocationManager,
+    func locationManager(locationManager: CLLocationManager,
                          didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-        let allow: Bool!
+        print("locationManager: didChangeAuthorizationStatus: \(status)")
 
+        let allow: Bool!
         switch status {
 
         case CLAuthorizationStatus.AuthorizedWhenInUse:
@@ -664,18 +721,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         default:
             allow = false
-            manager.stopUpdatingLocation()
+            locationManager.stopUpdatingLocation()
         }
         theHere.enabled = allow
         theHere.hidden = !allow
     }
-    
+
+
     /**
      * This method gets called when the "open in maps" icon is pressed.
      */
     @IBAction func openInMapApplication(sender: AnyObject) {
-        let lat = theMap.centerCoordinate.latitude
-        let lon = theMap.centerCoordinate.longitude
+        openMapApplication(mapcodeLocation, name: getCurrentMapcodeName())
+    }
+
+
+    /**
+     * Method to return mapcode name based on input fields.
+     */
+    func getCurrentMapcodeName() -> String {
         let name: String
         if (theMapcodeLocal.text != nil) && !(theMapcodeLocal.text?.isEmpty)! {
             name = theMapcodeLocal.text!
@@ -683,25 +747,30 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         else {
             name = theMapcodeInternational.text!
         }
-        openMapApplication(lat, lon: lon, name: name)
+        return name
     }
-    
+
+
     /**
      * This method open the Apple Maps application.
      */
-    func openMapApplication(lat: CLLocationDegrees, lon: CLLocationDegrees, name: String) {
+    func openMapApplication(coordinate: CLLocationCoordinate2D, name: String) {
+
+        // Minic current map.
         let span = theMap.region.span
         let center = theMap.region.center
-        let coordinates = CLLocationCoordinate2DMake(lat, lon)
         let options = [
             MKLaunchOptionsMapCenterKey: NSValue(MKCoordinate: center),
             MKLaunchOptionsMapSpanKey: NSValue(MKCoordinateSpan: span)
         ]
-        let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
+
+        // Set a placemark at the mapcode location.
+        let placemark = MKPlacemark(coordinate: coordinate, addressDictionary: nil)
         let mapItem = MKMapItem(placemark: placemark)
         mapItem.name = name
         mapItem.openInMapsWithLaunchOptions(options)
     }
+
 
     /**
      * Method to show an alert.
@@ -711,6 +780,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         alert.addAction(UIAlertAction(title: button, style: UIAlertActionStyle.Default, handler: nil))
         self.presentViewController(alert, animated: true, completion: nil)
     }
+
 
     /**
      * Returns true of the house number is to be put after the street name. False otherwise.
@@ -725,6 +795,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
         return true
     }
+
+
+    /**
+     * This method checks if a coordinate is valid or not.
+     */
+    func isValidCoordinate(coordinate: CLLocationCoordinate2D) -> Bool {
+
+        // Skip things very close (0, 0). Unfortunately you get (0, 0) sometimes as a coordinate.
+        return (abs(coordinate.latitude) > 0.1) || (abs(coordinate.latitude) > 0.1)
+    }
+
 
     /**
      * This method gets called when on low memory.
