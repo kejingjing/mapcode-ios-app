@@ -35,6 +35,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theCopyLatitude: UIButton!
     @IBOutlet weak var theCopyLongitude: UIButton!
     @IBOutlet weak var theAlternative: UIButton!
+    @IBOutlet weak var theMapType: UISegmentedControl!
+
+    let debugMask = 1
+    let DEBUG = 1
+    let INFO = 2
+    let ERROR = 4
+    let WARNING = 8
 
     let host: String = "http:/api.mapcode.com";     // Host name of REST API.
     let allowLog: String = "true";                  // Log requests.
@@ -52,19 +59,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let spanZoomedOutX = 0.4                        // Zoomed out.
     let spanZoomedOutY = 0.4
 
-    let limitReverseGeocodingSecs = 2.0             // No more than x reqs per second.
-    let limitMapcodeLookupSecs = 2.0                // No more than x reqs per second.
+    let limitReverseGeocodingSecs = 1.0             // No more than x reqs per second.
+    let limitMapcodeLookupSecs = 1.0                // No more than x reqs per second.
 
     let scheduleUpdateLocationsSecs = 120.0         // Schedule update locations every x secs.
     let distanceFilterMeters = 1000.0               // Distance filter (updates are stopped anyhow).
 
     // Provide a sensible screen if no user location is available (rather than mid Pacific).
     var mapcodeLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
-
-    // Latest coordinate to look up in reverse geocoding (nil if none).
-    var queuedCoordinateForReverseGeocode: CLLocationCoordinate2D!
-    var queuedCoordinateForMapcodeLookup: CLLocationCoordinate2D!
-
 
     var locationManager: CLLocationManager!
     var firstLocationSinceStarted = true            // First time fix is different.
@@ -75,8 +77,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     var currentAlternativeMapcode = 0               // Index of current alternative; 0 = shortest
     var alternativeMapcodes = [String]()            // List of alternative mapcodes.
 
+    var mapChangedFromUserInteraction = false       // True if map was panned by user.
+
+    // Latest coordinate to look up in reverse geocoding (nil if none).
+    var queuedCoordinateForReverseGeocode: CLLocationCoordinate2D!
+    var queuedCoordinateForMapcodeLookup: CLLocationCoordinate2D!
+
     var timerReverseGeocoding = NSTimer()           // Timer to limit reverse geocoding.
     var timerLocationUpdates = NSTimer()            // Timer to limit location updates.
+
+    var colorWaitingForUpdate = UIColor.lightGrayColor()
 
 
     /**
@@ -109,11 +119,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMapcodeLocal.delegate = self
 
         // Recognize tap on map.
-        let tap1 = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapTap1(_:)))
+        let tap1 = UITapGestureRecognizer(target: self, action: #selector(handleMapTap1))
         tap1.numberOfTapsRequired = 1
-        let tap2 = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapTap2(_:)))
+        let tap2 = UITapGestureRecognizer(target: self, action: #selector(handleMapTap2))
         tap2.numberOfTapsRequired = 2
-        let tap3 = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleMapTap3(_:)))
+        let tap3 = UITapGestureRecognizer(target: self, action: #selector(handleMapTap3))
         tap3.numberOfTapsRequired = 3
 
         theMap.addGestureRecognizer(tap1)
@@ -135,16 +145,64 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Schedule updates for reverse geocoding and Mapcdode REST API requests.
         timerReverseGeocoding = NSTimer.scheduledTimerWithTimeInterval(
-            limitReverseGeocodingSecs,
-            target: self,
+            limitReverseGeocodingSecs, target: self,
             selector: #selector(periodicCheckToUpdateFieldAddress),
             userInfo: nil, repeats: true)
+
         timerReverseGeocoding = NSTimer.scheduledTimerWithTimeInterval(
-            limitMapcodeLookupSecs,
-            target: self,
-            selector: #selector(periodicCheckToUpdateFieldMapcode()),
+            limitMapcodeLookupSecs, target: self,
+            selector: #selector(periodicCheckToUpdateFieldMapcode),
             userInfo: nil, repeats: true)
-}
+    }
+
+
+    /**
+     * Helper method to check if a gesture recognizer was used.
+     */
+    func mapViewRegionDidChangeFromUserInteraction() -> Bool {
+        let view = self.theMap.subviews[0]
+
+        // Look through gesture recognizers to determine whether this region change is from user interaction.
+        if let gestureRecognizers = view.gestureRecognizers {
+            for recognizer in gestureRecognizers {
+                if (recognizer.state == UIGestureRecognizerState.Began) || (recognizer.state == UIGestureRecognizerState.Ended) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
+
+    /**
+     * Helper method to record if the map change was by user interaction.
+     */
+    func mapView(mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+        mapChangedFromUserInteraction = mapViewRegionDidChangeFromUserInteraction()
+    }
+
+
+    /**
+     * This method gets called whenever a location change is detected.
+     */
+    func mapView(mapView: MKMapView,
+                 regionDidChangeAnimated animated: Bool) {
+
+        // Stop auto-move.
+        moveMapToUserLocation = false;
+        if mapChangedFromUserInteraction {
+
+            // Update fields.
+            mapcodeLocation = mapView.centerCoordinate
+            updateFieldsLatLon(mapcodeLocation);
+            queueUpdateForFieldMapcode(mapcodeLocation)
+            queueUpdateForFieldAddress(mapcodeLocation)
+        }
+        else {
+
+            // Fields were already updated.
+        }
+    }
 
 
     /**
@@ -161,12 +219,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set map center and update fields.
         theMap.setCenterCoordinate(mapcodeLocation, animated: true)
-        updateFieldsLatLon(mapcodeLocation)
+
+        // The map view will move and consequently fields get updated by regionDidChangeAnimated.
+        updateFieldsLatLon(mapcodeLocation);
         queueUpdateForFieldMapcode(mapcodeLocation)
         queueUpdateForFieldAddress(mapcodeLocation)
     }
-
-
+    
+    
     /**
      * This method gets called when the user double taps the map.
      */
@@ -190,7 +250,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.setRegion(newRegion, animated: true)
     }
 
-    
+
+    /**
+     * This gets called whenever the use switches between map types.
+     */
+    @IBAction func segmentedControlAction(sender: UISegmentedControl!) {
+        switch sender.selectedSegmentIndex {
+
+        case 0:
+            theMap.mapType = .Standard
+
+        case 1:
+            theMap.mapType = .Satellite
+
+        default:
+            theMap.mapType = .Hybrid
+        }
+    }
+
+
     /**
      * This method moves the screen up or down when a field gets edited.
      */
@@ -286,6 +364,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func useAddress(address: String) {
 
         // Geocode address.
+        debug(INFO, msg: "Call Forward Geocoding API: \(address)")
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(address, completionHandler: {
             (placemarks, error) -> Void in
@@ -358,6 +437,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
 
         // Get coordinate.
+        debug(INFO, msg: "Call Mapcode API: url=\(url)")
         rest.get {
             result, httpResponse in
             do {
@@ -399,23 +479,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 print("useMapcode: API call failed, url=\(url), error=\(error)")
             }
         }
-    }
-
-
-    /**
-     * This method gets called whenever a location change is detected.
-     */
-    func mapView(mapView: MKMapView,
-                 regionDidChangeAnimated animated: Bool) {
-
-        // Stop auto-move.
-        moveMapToUserLocation = false;
-
-        // Update fields.
-        mapcodeLocation = mapView.centerCoordinate
-        updateFieldsLatLon(mapcodeLocation);
-        queueUpdateForFieldMapcode(mapcodeLocation)
-        queueUpdateForFieldAddress(mapcodeLocation)
     }
 
 
@@ -527,6 +590,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func queueUpdateForFieldAddress(coordinate: CLLocationCoordinate2D) {
 
+        // Dim text.
+        theAddress.textColor = colorWaitingForUpdate
+
         // Keep only the last coordinate.
         queuedCoordinateForReverseGeocode = coordinate;
     }
@@ -543,10 +609,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             // Clear the request.
             queuedCoordinateForReverseGeocode = nil
 
-            // Clear address.
-            theAddress.text = ""
-
             // Get address from reverse geocode.
+            debug(INFO, msg: "Call Reverse Geocoding API: \(coordinate)")
             CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude), completionHandler: {
                 (placemarks, error) -> Void in
                 if error != nil {
@@ -586,6 +650,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                     // Update address fields.
                     dispatch_async(dispatch_get_main_queue()) {
+                        self.theAddress.textColor = UIColor.blackColor()
                         self.theAddress.text = address;
                     }
                 } else {
@@ -600,6 +665,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Queue Mapcode REST API request (to a max of 1 in the queue).
      */
     func queueUpdateForFieldMapcode(coordinate: CLLocationCoordinate2D) {
+
+        // Dim text.
+        theMapcodeInternational.textColor = colorWaitingForUpdate
+        theMapcodeLocal.textColor = colorWaitingForUpdate
 
         // Keep only the last coordinate.
         queuedCoordinateForMapcodeLookup = coordinate;
@@ -629,6 +698,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             }
 
             // Get mapcodes from REST API.
+            debug(INFO, msg: "Call Mapcode API: \(url)")
             rest.get {
                 result, httpResponse in
                 do {
@@ -684,6 +754,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                     // Update mapcode fields on main thread.
                     dispatch_async(dispatch_get_main_queue()) {
+                        self.theMapcodeInternational.textColor = UIColor.blackColor()
+                        self.theMapcodeLocal.textColor = UIColor.blackColor()
                         self.theMapcodeInternational.text = mcInternational
                         self.theMapcodeLocal.text = mcLocal
                         self.prevTerritory = territory
@@ -881,6 +953,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         return (abs(coordinate.latitude) > 0.1) || (abs(coordinate.latitude) > 0.1)
     }
 
+
+
+    /**
+     * Simple debug loggin.
+     */
+    func debug(level: Int, msg: String) {
+        if (level & debugMask) != 0 {
+            print("DEBUG: \(msg)")
+        }
+    }
 
     /**
      * This method gets called when on low memory.
