@@ -52,11 +52,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let spanZoomedOutX = 0.4                        // Zoomed out.
     let spanZoomedOutY = 0.4
 
+    let limitReverseGeocodingSecs = 2.0             // No more than x reqs per second.
+    let limitMapcodeLookupSecs = 2.0                // No more than x reqs per second.
+
     let scheduleUpdateLocationsSecs = 120.0         // Schedule update locations every x secs.
     let distanceFilterMeters = 1000.0               // Distance filter (updates are stopped anyhow).
 
     // Provide a sensible screen if no user location is available (rather than mid Pacific).
     var mapcodeLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
+
+    // Latest coordinate to look up in reverse geocoding (nil if none).
+    var queuedCoordinateForReverseGeocode: CLLocationCoordinate2D!
+    var queuedCoordinateForMapcodeLookup: CLLocationCoordinate2D!
+
 
     var locationManager: CLLocationManager!
     var firstLocationSinceStarted = true            // First time fix is different.
@@ -67,7 +75,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     var currentAlternativeMapcode = 0               // Index of current alternative; 0 = shortest
     var alternativeMapcodes = [String]()            // List of alternative mapcodes.
 
-    var timer = NSTimer()                           // Timer to schedule stuff on.
+    var timerReverseGeocoding = NSTimer()           // Timer to limit reverse geocoding.
+    var timerLocationUpdates = NSTimer()            // Timer to limit location updates.
 
 
     /**
@@ -119,7 +128,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         locationManager.distanceFilter = distanceFilterMeters
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
-    }
+
+        updateFieldsLatLon(mapcodeLocation)
+        queueUpdateForFieldMapcode(mapcodeLocation)
+        queueUpdateForFieldAddress(mapcodeLocation)
+
+        // Schedule updates for reverse geocoding and Mapcdode REST API requests.
+        timerReverseGeocoding = NSTimer.scheduledTimerWithTimeInterval(
+            limitReverseGeocodingSecs,
+            target: self,
+            selector: #selector(periodicCheckToUpdateFieldAddress),
+            userInfo: nil, repeats: true)
+        timerReverseGeocoding = NSTimer.scheduledTimerWithTimeInterval(
+            limitMapcodeLookupSecs,
+            target: self,
+            selector: #selector(periodicCheckToUpdateFieldMapcode()),
+            userInfo: nil, repeats: true)
+}
 
 
     /**
@@ -136,14 +161,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set map center and update fields.
         theMap.setCenterCoordinate(mapcodeLocation, animated: true)
-        updateFieldsMapcodes(mapcodeLocation)
-        updateFieldsLatLonAddress(mapcodeLocation)
-
-        // Add a pin to the map.
-        let pinMapcode = MKPointAnnotation()
-        pinMapcode.coordinate = mapcodeLocation
-        pinMapcode.title = getCurrentMapcodeName()
-        theMap.addAnnotation(pinMapcode)
+        updateFieldsLatLon(mapcodeLocation)
+        queueUpdateForFieldMapcode(mapcodeLocation)
+        queueUpdateForFieldAddress(mapcodeLocation)
     }
 
 
@@ -254,7 +274,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             useMapcode(theMapcodeLocal.text!)
 
         default:
-            print("Unknown text field: \(textField.tag)")
+            print("textFieldShouldReturn: Unknown text field, tag=\(textField.tag)")
         }
         return true
     }
@@ -275,7 +295,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // Reset address field; need to do a new reverse geocode as previous text is lost.
                 dispatch_async(dispatch_get_main_queue()) {
-                    self.updateFieldsLatLonAddress(self.mapcodeLocation)
+                    self.queueUpdateForFieldAddress(self.mapcodeLocation)
                 }
             }
             else {
@@ -287,8 +307,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     // Update location.
                     self.mapcodeLocation = coordinate
                     self.theMap.setCenterCoordinate(coordinate, animated: false)
-                    self.updateFieldsMapcodes(coordinate)
-                    self.updateFieldsLatLonAddress(coordinate)
+                    self.updateFieldsLatLon(coordinate)
+                    self.queueUpdateForFieldMapcode(coordinate)
+                    self.queueUpdateForFieldAddress(coordinate)
                 }
             }
         })
@@ -311,8 +332,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Update location.
         mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
         theMap.setCenterCoordinate(mapcodeLocation, animated: false)
-        updateFieldsMapcodes(mapcodeLocation)
-        updateFieldsLatLonAddress(mapcodeLocation)
+        updateFieldsLatLon(mapcodeLocation)
+        queueUpdateForFieldMapcode(mapcodeLocation)
+        queueUpdateForFieldAddress(mapcodeLocation)
     }
 
 
@@ -331,7 +353,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let encodedMapcode = fullMapcode.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
         let url = "\(host)/mapcode/coords/\(encodedMapcode)?client=\(client)&allowLog=\(allowLog)"
         guard let rest = RestController.createFromURLString(url) else {
-            print("Found bad URL: \(url)")
+            print("useMapcode: Bad URL, url=\(url)")
             return
         }
 
@@ -358,22 +380,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     // Update location and set map center.
                     dispatch_async(dispatch_get_main_queue()) {
                         self.mapcodeLocation = coordinate
-                        self.updateFieldsMapcodes(coordinate)
-                        self.updateFieldsLatLonAddress(coordinate)
                         self.theMap.setCenterCoordinate(coordinate, animated: false)
+                        self.updateFieldsLatLon(coordinate)
+                        self.queueUpdateForFieldMapcode(coordinate)
+                        self.queueUpdateForFieldAddress(coordinate)
                     }
                 }
                 else {
-                    print("Find mapcode failed: url=\(url), status=\(httpResponse?.statusCode), json=\(json)")
+                    print("useMapcode: Find mapcode failed, url=\(url), status=\(httpResponse?.statusCode), json=\(json)")
 
                     // Revert to previous mapcode; need to call REST API because previous text is lost.
                     dispatch_async(dispatch_get_main_queue()) {
-                        self.updateFieldsMapcodes(self.mapcodeLocation)
+                        self.queueUpdateForFieldMapcode(self.mapcodeLocation)
                     }
                 }
 
             } catch {
-                print("API call failed: url=\(url), error=\(error)")
+                print("useMapcode: API call failed, url=\(url), error=\(error)")
             }
         }
     }
@@ -384,9 +407,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func mapView(mapView: MKMapView,
                  regionDidChangeAnimated animated: Bool) {
-        print("regionDidChangeAnimated: \(mapView.centerCoordinate)")
-//        updateFieldsLatLonAddress(mapView.centerCoordinate);
-//        updateFieldsMapcodes(mapView.centerCoordinate)
+
+        // Stop auto-move.
+        moveMapToUserLocation = false;
+
+        // Update fields.
+        mapcodeLocation = mapView.centerCoordinate
+        updateFieldsLatLon(mapcodeLocation);
+        queueUpdateForFieldMapcode(mapcodeLocation)
+        queueUpdateForFieldAddress(mapcodeLocation)
     }
 
 
@@ -421,7 +450,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func findHere(sender: AnyObject) {
 
         // Invalidate timer.
-        timer.invalidate()
+        timerLocationUpdates.invalidate()
 
         // Set auto-move to user location and start collecting updates and update map.
         moveMapToUserLocation = true;
@@ -483,150 +512,193 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
-     * Call Apple reverse geocoding API to get coordinates from address.
+     * Update latitude and logitude fields.
      */
-    func updateFieldsLatLonAddress(coordinate: CLLocationCoordinate2D) {
+    func updateFieldsLatLon(coordinate: CLLocationCoordinate2D) {
 
         // Update latitude and longitude.
         theLat.text = String(format: "%3.5f", coordinate.latitude)
         theLon.text = String(format: "%3.5f", coordinate.longitude)
-        theAddress.text = "Searching..."
+    }
 
-        // Get address from reverse geocode.
-        CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude), completionHandler: {
-            (placemarks, error) -> Void in
-            if error != nil {
 
-                // Print an message to console, but don't show a user dialog (not an error).
-                print("No reverse geocode info for \(coordinate), error=\(error!.localizedDescription)")
-                return
-            }
+    /**
+     * Queue reverse geocode request (to a max of 1 in the queue).
+     */
+    func queueUpdateForFieldAddress(coordinate: CLLocationCoordinate2D) {
 
-            // Construct address
-            if placemarks!.count > 0 {
-                let pm = placemarks![0] as CLPlacemark
-                var address: String = "";
-                if pm.thoroughfare != nil {
-                    address = pm.thoroughfare!
-                    if pm.subThoroughfare != nil {
-                        if (self.useStreetThenNumber()) {
-                            address = "\(address) \(pm.subThoroughfare!)";
+        // Keep only the last coordinate.
+        queuedCoordinateForReverseGeocode = coordinate;
+    }
+
+
+    /**
+     * This method limits the calls to the Apple API to once every x secs.
+     */
+    func periodicCheckToUpdateFieldAddress() {
+
+        // Check if there is a pending request.
+        if let coordinate = queuedCoordinateForReverseGeocode {
+
+            // Clear the request.
+            queuedCoordinateForReverseGeocode = nil
+
+            // Clear address.
+            theAddress.text = ""
+
+            // Get address from reverse geocode.
+            CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude), completionHandler: {
+                (placemarks, error) -> Void in
+                if error != nil {
+
+                    // Print an message to console, but don't show a user dialog (not an error).
+                    print("updateFieldsLatLonAddress: No reverse geocode info, coordinate=\(coordinate), error=\(error!.localizedDescription)")
+                    return
+                }
+
+                // Construct address
+                if placemarks!.count > 0 {
+                    let pm = placemarks![0] as CLPlacemark
+                    var address: String = "";
+                    if pm.thoroughfare != nil {
+                        address = pm.thoroughfare!
+                        if pm.subThoroughfare != nil {
+                            if (self.useStreetThenNumber()) {
+                                address = "\(address) \(pm.subThoroughfare!)";
+                            }
+                            else {
+                                address = "\(pm.subThoroughfare!) \(address)";
+                            }
                         }
-                        else {
-                            address = "\(pm.subThoroughfare!) \(address)";
+                    }
+                    if pm.locality != nil {
+                        if (!address.isEmpty) {
+                            address = "\(address), ";
                         }
+                        address = "\(address)\(pm.locality!)";
                     }
-                }
-                if pm.locality != nil {
-                    if (!address.isEmpty) {
-                        address = "\(address), ";
+                    if pm.ISOcountryCode != nil {
+                        if (!address.isEmpty) {
+                            address = "\(address), ";
+                        }
+                        address = "\(address)\(pm.ISOcountryCode!)";
                     }
-                    address = "\(address)\(pm.locality!)";
-                }
-                if pm.ISOcountryCode != nil {
-                    if (!address.isEmpty) {
-                        address = "\(address), ";
-                    }
-                    address = "\(address)\(pm.ISOcountryCode!)";
-                }
 
-                // Update address fields.
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.theAddress.text = address;
+                    // Update address fields.
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.theAddress.text = address;
+                    }
+                } else {
+                    print("updateFieldsLatLonAddress: No placemarks, coordinate=\(coordinate)")
                 }
-            } else {
-                print("No placemarks for \(coordinate)")
-            }
-        })
+            })
+        }
+    }
+
+
+    /**
+     * Queue Mapcode REST API request (to a max of 1 in the queue).
+     */
+    func queueUpdateForFieldMapcode(coordinate: CLLocationCoordinate2D) {
+
+        // Keep only the last coordinate.
+        queuedCoordinateForMapcodeLookup = coordinate;
     }
 
 
     /**
      * Call Mapcode REST API to get mapcode codes from latitude, longitude.
      */
-    func updateFieldsMapcodes(coordinate: CLLocationCoordinate2D) {
+    func periodicCheckToUpdateFieldMapcode() {
 
-        // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
-        let encodedLatLon = "\(coordinate.latitude),\(coordinate.longitude)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
-        let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
+        // Check if there is a pending request.
+        if let coordinate = queuedCoordinateForMapcodeLookup {
 
-        guard let rest = RestController.createFromURLString(url) else {
-            print("Found bad URL: \(url)")
-            theMapcodeLocal.text = ""
-            theMapcodeInternational.text = ""
-            return
-        }
+            // Clear the request.
+            queuedCoordinateForMapcodeLookup = nil
 
-        // Get mapcodes from REST API.
-        rest.get {
-            result, httpResponse in
-            do {
-                var territory: String! = nil
-                var mcInternational = ""
-                var mcLocal = ""
+            // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
+            let encodedLatLon = "\(coordinate.latitude),\(coordinate.longitude)".stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
+            let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
-                // Get JSON response.
-                let json = try result.value()
+            guard let rest = RestController.createFromURLString(url) else {
+                print("updateFieldsMapcodes: Bad URL, url=\(url)")
+                theMapcodeLocal.text = ""
+                theMapcodeInternational.text = ""
+                return
+            }
 
-                // The JSON response indicated an error, territory is set to nil.
-                if json["errors"] != nil {
-                    print("Can get mapcode for: \(coordinate)")
-                }
+            // Get mapcodes from REST API.
+            rest.get {
+                result, httpResponse in
+                do {
+                    var territory: String! = nil
+                    var mcInternational = ""
+                    var mcLocal = ""
 
-                // Get international mapcode.
-                if json["international"] != nil {
-                    if json["international"]?["mapcode"] != nil {
-                        mcInternational = (json["international"]?["mapcode"]?.stringValue)!
+                    // Get JSON response.
+                    let json = try result.value()
+
+                    // The JSON response indicated an error, territory is set to nil.
+                    if json["errors"] != nil {
+                        print("updateFieldsMapcodes: Can get mapcode, coordinate=\(coordinate)")
                     }
-                }
 
-                // Get shortest local mapcode.
-                if json["local"] != nil {
-                    if (json["local"]?["territory"] != nil) && (json["local"]?["mapcode"] != nil) {
-                        mcLocal = "\((json["local"]?["territory"]?.stringValue)!) \((json["local"]?["mapcode"]?.stringValue)!)"
-                        territory = json["local"]?["territory"]?.stringValue
+                    // Get international mapcode.
+                    if json["international"] != nil {
+                        if json["international"]?["mapcode"] != nil {
+                            mcInternational = (json["international"]?["mapcode"]?.stringValue)!
+                        }
                     }
-                }
 
-                // Reset alternative mapcodes.
-                var altMapcodes = [String]()
+                    // Get shortest local mapcode.
+                    if json["local"] != nil {
+                        if (json["local"]?["territory"] != nil) && (json["local"]?["mapcode"] != nil) {
+                            mcLocal = "\((json["local"]?["territory"]?.stringValue)!) \((json["local"]?["mapcode"]?.stringValue)!)"
+                            territory = json["local"]?["territory"]?.stringValue
+                        }
+                    }
 
-                // Get alternative mapcodes.
-                if (json["mapcodes"] != nil) && (json["mapcodes"]?.jsonArray != nil) {
-                    let alt = (json["mapcodes"]?.jsonArray)!
+                    // Reset alternative mapcodes.
+                    var altMapcodes = [String]()
 
-                    // The international code is always there and must not be used here.
-                    if alt.count >= 2 {
+                    // Get alternative mapcodes.
+                    if (json["mapcodes"] != nil) && (json["mapcodes"]?.jsonArray != nil) {
+                        let alt = (json["mapcodes"]?.jsonArray)!
 
-                        // Add the shortest local one (which should exist now).
-                        altMapcodes.append(mcLocal)
+                        // The international code is always there and must not be used here.
+                        if alt.count >= 2 {
 
-                        // Add the alternatives.
-                        for i in 0...alt.count - 2 {
-                            let mapcode = "\((alt[i]!["territory"]?.stringValue)!) \((alt[i]!["mapcode"]?.stringValue)!)"
-                            if (mapcode != mcLocal) {
-                                altMapcodes.append(mapcode)
+                            // Add the shortest local one (which should exist now).
+                            altMapcodes.append(mcLocal)
+
+                            // Add the alternatives.
+                            for i in 0...alt.count - 2 {
+                                let mapcode = "\((alt[i]!["territory"]?.stringValue)!) \((alt[i]!["mapcode"]?.stringValue)!)"
+                                if (mapcode != mcLocal) {
+                                    altMapcodes.append(mapcode)
+                                }
                             }
                         }
                     }
-                }
 
-                // Update mapcode fields on main thread.
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.theMapcodeInternational.text = mcInternational
-                    self.theMapcodeLocal.text = mcLocal
-                    self.prevTerritory = territory
-                    self.currentAlternativeMapcode = 0
-                    self.alternativeMapcodes = altMapcodes
-                    self.showAlternativeMapcode(self)
-                }
-            } catch {
-                print("API call failed: url=\(url), error=\(error)")
-
-                // Something went wrong, discard mapcodes.
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.theMapcodeInternational.text = ""
-                    self.theMapcodeLocal.text = ""
+                    // Update mapcode fields on main thread.
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.theMapcodeInternational.text = mcInternational
+                        self.theMapcodeLocal.text = mcLocal
+                        self.prevTerritory = territory
+                        self.currentAlternativeMapcode = 0
+                        self.alternativeMapcodes = altMapcodes
+                        self.showAlternativeMapcode(self)
+                    }
+                } catch {
+                    print("updateFieldsMapcodes: API call failed, url=\(url), error=\(error)")
+                    
+                    // Something went wrong, discard mapcodes.
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.theMapcodeInternational.text = ""
+                        self.theMapcodeLocal.text = ""
+                    }
                 }
             }
         }
@@ -669,15 +741,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 theMap.setRegion(newRegion, animated: true)
 
                 // Update text fields.
-                updateFieldsMapcodes(mapcodeLocation)
-                updateFieldsLatLonAddress(mapcodeLocation)
+                updateFieldsLatLon(mapcodeLocation)
+                queueUpdateForFieldMapcode(mapcodeLocation)
+                queueUpdateForFieldAddress(mapcodeLocation)
             }
 
             // Stop receiving updates after we get a first (decent) user location.
             locationManager.stopUpdatingLocation()
 
             // Schedule updating the location again in some time.
-            timer = NSTimer.scheduledTimerWithTimeInterval(scheduleUpdateLocationsSecs, target: self,
+            timerLocationUpdates = NSTimer.scheduledTimerWithTimeInterval(scheduleUpdateLocationsSecs, target: self,
                                                            selector: #selector(turnOnLocationManagerUpdates),
                                                            userInfo: nil, repeats: false)
         }
@@ -699,7 +772,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                          didFailWithError error: NSError) {
 
         // Code 0 is returned when during debugging anyhow.
-        print("LocationManager: didFailWithError: \(error.localizedDescription)")
+        if (error.code != 0) {
+            print("LocationManager:didFailWithError, error=\(error)")
+        }
     }
 
 
@@ -708,7 +783,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func locationManager(locationManager: CLLocationManager,
                          didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-        print("locationManager: didChangeAuthorizationStatus: \(status)")
+        print("locationManager:didChangeAuthorizationStatus, status=\(status)")
 
         let allow: Bool!
         switch status {
@@ -812,6 +887,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        print("Low memory warning")
+        print("didReceiveMemoryWarning: Low memory warning")
     }
 }
