@@ -45,7 +45,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let ERROR = 4
     let WARNING = 8
 
-    let zoomFactor = 3.5                            // Factor for zoom in/out.
+    let zoomFactor = 2.5                            // Factor for zoom in/out.
 
     let host: String = "http:/api.mapcode.com";     // Host name of REST API.
     let allowLog: String = "true";                  // Log requests.
