@@ -45,7 +45,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let ERROR = 4
     let WARNING = 8
 
-    let zoomFactor = 3.0                            // Factor for zoom in/out.
+    let zoomFactor = 3.5                            // Factor for zoom in/out.
 
     let host: String = "http:/api.mapcode.com";     // Host name of REST API.
     let allowLog: String = "true";                  // Log requests.
@@ -521,7 +521,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "Show a mapcode on the map by entering it in one of the mapcode input boxes. If you omit " +
             "the territory for a local mapcode, the current territory is automatically assumed.\n\n" +
 
-            "Plan a route to a mapcode by enter it and then tapping on the 'map' icon at the bottom right of the map.\n\n" +
+            "Plan a route to a mapcode by entering it and then tapping on the 'map' icon at the bottom right of the map.\n\n" +
 
             "For more info on mapcodes in general, visit us at: http://mapcode.com\n\n________\n" +
 
