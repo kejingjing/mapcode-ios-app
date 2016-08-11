@@ -46,14 +46,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let WARNING = 8
 
     let mapcodeTerritoryFont = "HelveticaNeue"      // Font definitions.
-    let mapcodeCodeFont = "HelveticaNeue-Bold"
+    let mapcodeCodeFont = "HelveticaNeue-Medium"
     let mapcodeInternationalFont = "HelveticaNeue"
     let contextFont = "HelveticaNeue-Medium"
     let mapcodeTerritoryFontSize: CGFloat = 12.0;
-    let mapcodeCodeFontSize: CGFloat = 16.0;
+    let mapcodeCodeFontSize: CGFloat = 14.0;
     let mapcodeInternationalFontSize: CGFloat = 12.0;
-    let contextFontSize: CGFloat = 16.0;
-    let mapcodeFontKern = 1.0
+    let contextFontSize: CGFloat = 14.0;
+    let mapcodeFontKern = 0.75
     let mapcodeTerritoryColor = UIColor.grayColor()
     let mapcodeInternationalColor = UIColor.grayColor()
 
@@ -166,6 +166,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.addGestureRecognizer(tap2)
         theMap.addGestureRecognizer(tap3)
 
+        // Recognize tap on mapcode.
+        let tapMapcode = UITapGestureRecognizer(target: self, action: #selector(handleMapcodeTap))
+        theMapcode.addGestureRecognizer(tapMapcode)
+
         // Setup our Location Manager: high accuracy, but stopping location updates whenever possible.
         // The distance filter is to reduce double updates even further, as they lead to more REST calls.
         locationManager = CLLocationManager()
@@ -175,7 +179,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
 
-        updateFieldsLatLon(mapcodeLocation)
+        showLatLon(mapcodeLocation)
         queueUpdateForFieldMapcode(mapcodeLocation)
         queueUpdateForFieldAddress(mapcodeLocation)
 
@@ -233,7 +237,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             // Update fields.
             mapcodeLocation = mapView.centerCoordinate
-            updateFieldsLatLon(mapcodeLocation);
+            showLatLon(mapcodeLocation);
             queueUpdateForFieldMapcode(mapcodeLocation)
             queueUpdateForFieldAddress(mapcodeLocation)
         }
@@ -260,9 +264,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.setCenterCoordinate(mapcodeLocation, animated: true)
 
         // The map view will move and consequently fields get updated by regionDidChangeAnimated.
-        updateFieldsLatLon(mapcodeLocation);
+        showLatLon(mapcodeLocation);
         queueUpdateForFieldMapcode(mapcodeLocation)
         queueUpdateForFieldAddress(mapcodeLocation)
+    }
+    
+    
+    /**
+     * This method gets called when the user taps the mapcode.
+     */
+    func handleMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
+        UIPasteboard.generalPasteboard().string = theMapcode.text
     }
     
     
@@ -384,17 +396,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             }
 
         case theLat.tag:
-            useLatLon(theLat.text!, longitude: theLon.text!)
+            if Double(theLat.text!) != nil {
+                useLatLon(theLat.text!, longitude: theLon.text!)
+            }
+            else {
+                theLat.text = prevTextField
+            }
 
         case theLon.tag:
-            useLatLon(theLat.text!, longitude: theLon.text!)
-
-        case theContext.tag:
-            break
-            // TODO
-
-        case theMapcode.tag:
-            useMapcode(theMapcode.text!)
+            if Double(theLon.text!) != nil {
+                useLatLon(theLat.text!, longitude: theLon.text!)
+            }
+            else {
+                theLon.text = prevTextField
+            }
 
         default:
             print("textFieldShouldReturn: Unknown text field, tag=\(textField.tag)")
@@ -431,7 +446,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     // Update location.
                     self.mapcodeLocation = coordinate
                     self.theMap.setCenterCoordinate(coordinate, animated: false)
-                    self.updateFieldsLatLon(coordinate)
+                    self.showLatLon(coordinate)
                     self.queueUpdateForFieldMapcode(coordinate)
                     self.queueUpdateForFieldAddress(coordinate)
                 }
@@ -445,20 +460,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func useLatLon(latitude: String, longitude: String) {
         var lat = Double(latitude)
         var lon = Double(longitude)
-        if (lat == nil) || (lon == nil) {
-            return
+        if (lat != nil) && (lon != nil) {
+
+            // Limit range.
+            lat = truncLatitude(lat!)
+            lon = truncLongitude(lon!)
+
+            // Update location.
+            mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
+            theMap.setCenterCoordinate(mapcodeLocation, animated: false)
+            showLatLon(mapcodeLocation)
+            queueUpdateForFieldMapcode(mapcodeLocation)
+            queueUpdateForFieldAddress(mapcodeLocation)
         }
-
-        // Limit range.
-        lat = truncLatitude(lat!)
-        lon = truncLongitude(lon!)
-
-        // Update location.
-        mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
-        theMap.setCenterCoordinate(mapcodeLocation, animated: false)
-        updateFieldsLatLon(mapcodeLocation)
-        queueUpdateForFieldMapcode(mapcodeLocation)
-        queueUpdateForFieldAddress(mapcodeLocation)
     }
 
 
@@ -506,7 +520,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     dispatch_async(dispatch_get_main_queue()) {
                         self.mapcodeLocation = coordinate
                         self.theMap.setCenterCoordinate(coordinate, animated: false)
-                        self.updateFieldsLatLon(coordinate)
+                        self.showLatLon(coordinate)
                         self.queueUpdateForFieldMapcode(coordinate)
                         self.queueUpdateForFieldAddress(coordinate)
                     }
@@ -581,10 +595,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "Rijn Buve, Mapcode Foundation\n\n" +
 
             "Get a mapcode by entering an address or coordinate, or moving the map around. You can tap " +
-            "once to move directly to a location, twice to zoom in and three times to zoom out.\n\n" +
+            "the map to move directly to a location and show the mapcode. Copy it to the clipboard by " +
+            "tapping the mapcode box.\n\n" +
 
-            "Show a mapcode on the map by entering it in one of the mapcode input boxes. If you omit " +
-            "the territory for a local mapcode, the current territory is automatically assumed.\n\n" +
+            "Show a mapcode on the map by entering it in the address box. If you omit " +
+            "the context for a local mapcode, the current context is automatically assumed.\n\n" +
 
             "Plan a route to a mapcode by entering it and then tapping on the 'map' icon at the bottom right of the map.\n\n" +
 
@@ -732,7 +747,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         else {
             theAltMapcode.hidden = false
             if currentMapcodeIndex == 0 {
-                theMapcodeLabel.text = "SHORTEST (1 OF \(count - 1))"
+                theMapcodeLabel.text = "SHORTEST (+\(count - 2) ALT.)"
             }
             else if currentMapcodeIndex == (count - 1) {
                 theMapcodeLabel.text = "INTERNATIONAL"
@@ -780,27 +795,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
         else {
             theAltContext.hidden = false
-            theContextLabel.text = "CONT. \(currentContextIndex + 1) OF \(allContexts.count)"
-        }
-    }
-
-
-    /**
-     * This method gets called when a "copy to clipboard" icon is pressed.
-     */
-    @IBAction func copyToClipboard(sender: AnyObject) {
-        var copytext: String!
-        switch sender.tag {
-
-        case 1:
-            copytext = theMapcode.text
-
-        default:
-            copytext = nil
-
-        }
-        if copytext != nil {
-            UIPasteboard.generalPasteboard().string = copytext
+            theContextLabel.text = "CONTEXT \(currentContextIndex + 1) OF \(allContexts.count)"
         }
     }
 
@@ -808,7 +803,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Update latitude and logitude fields.
      */
-    func updateFieldsLatLon(coordinate: CLLocationCoordinate2D) {
+    func showLatLon(coordinate: CLLocationCoordinate2D) {
 
         // Update latitude and longitude.
         theLat.text = String(format: "%3.5f", coordinate.latitude)
@@ -847,7 +842,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 if error != nil {
 
                     // Print an message to console, but don't show a user dialog (not an error).
-                    print("updateFieldsLatLonAddress: No reverse geocode info, coordinate=\(coordinate), error=\(error!.localizedDescription)")
+                    print("periodicCheckToUpdateFieldAddress: No reverse geocode info, coordinate=\(coordinate), error=\(error!.localizedDescription)")
                     return
                 }
 
@@ -885,7 +880,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.theAddress.text = address;
                     }
                 } else {
-                    print("updateFieldsLatLonAddress: No placemarks, coordinate=\(coordinate)")
+                    print("periodicCheckToUpdateFieldAddress: No placemarks, coordinate=\(coordinate)")
                 }
             })
         }
@@ -1069,7 +1064,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 theMap.setRegion(newRegion, animated: true)
 
                 // Update text fields.
-                updateFieldsLatLon(mapcodeLocation)
+                showLatLon(mapcodeLocation)
                 queueUpdateForFieldMapcode(mapcodeLocation)
                 queueUpdateForFieldAddress(mapcodeLocation)
             }
