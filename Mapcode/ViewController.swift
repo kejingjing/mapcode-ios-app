@@ -92,12 +92,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     var colorWaitingForUpdate = UIColor.lightGrayColor()
 
+    var mapcodeRegex = NSRegularExpression()
+
 
     /**
      * This method gets called when the view loads.
      */
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // Create regex for mapcodes.
+        mapcodeRegex = try! NSRegularExpression(pattern: "\\A\\s*(?:[a-z0-9]{2,3}(?:[-][a-z0-9]{2,3})?\\s+)?[a-z0-9]{2,5}[.][a-z0-9]{2,4}(?:[-][0-9]{1,8})?\\s*\\Z", options: [])
 
         // Reset alternative mapcode index.
         currentAlternativeMapcode = 0
@@ -347,7 +352,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         switch textField.tag {
 
         case theAddress.tag:
-            useAddress(theAddress.text!)
+
+            // Check if the user entered a mapcode instead of an address.
+            let matches = mapcodeRegex.matchesInString(theAddress.text!, options: [], range: NSRange(location: 0, length: theAddress.text!.characters.count))
+            if matches.count == 1 {
+                useMapcode(theAddress.text!)
+            }
+            else {
+                useAddress(theAddress.text!)
+            }
 
         case theLat.tag:
             useLatLon(theLat.text!, longitude: theLon.text!)
