@@ -56,6 +56,22 @@ Normally, one of our developers should be able to comment on them and fix.
 
 # Release Notes
 
+### 1.0.3
+
+* Improved zooming and panning and finding first location.
+
+* Improved battery life: locations are only requested when you press the Find My Location button.
+
+* Improved battery life: web service requests are limited to once per secoond while moving the map.
+No calls when there is no action.
+
+* Shows alternative mapcodes.
+
+* Added satellite and hybrid views.
+
+* Improved lay-out, larger mapview.
+
+
 ### 1.0.2
 
 * Added sharing with other apps.

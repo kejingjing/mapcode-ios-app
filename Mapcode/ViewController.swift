@@ -32,16 +32,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theHere: UIButton!
     @IBOutlet weak var theCopyMapcodeInternational: UIButton!
     @IBOutlet weak var theCopyMapcodeLocal: UIButton!
-    @IBOutlet weak var theCopyLatitude: UIButton!
-    @IBOutlet weak var theCopyLongitude: UIButton!
-    @IBOutlet weak var theAlternative: UIButton!
+    @IBOutlet weak var theLabelMapcodeLocal: UILabel!
     @IBOutlet weak var theMapType: UISegmentedControl!
+    @IBOutlet weak var theAlternative: UIButton!
+    @IBOutlet weak var theShare: UIButton!
+    @IBOutlet weak var theZoomIn: UIButton!
+    @IBOutlet weak var theZoomOut: UIButton!
 
     let debugMask = 1
     let DEBUG = 1
     let INFO = 2
     let ERROR = 4
     let WARNING = 8
+
+    let zoomFactor = 3.0                            // Factor for zoom in/out.
 
     let host: String = "http:/api.mapcode.com";     // Host name of REST API.
     let allowLog: String = "true";                  // Log requests.
@@ -118,7 +122,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMapcodeInternational.delegate = self
         theMapcodeLocal.delegate = self
 
-        // Recognize tap on map.
+        // Clear the input boxes.
+        theAddress.text = ""
+        theMapcodeInternational.text = ""
+        theMapcodeLocal.text = ""
+        theLat.text = ""
+        theLon.text = ""
+        theLabelMapcodeLocal.text = "SHORTEST"
+        theShare.hidden = true      // Not activated yet.
+
+        // Recognize taps on map.
         let tap1 = UITapGestureRecognizer(target: self, action: #selector(handleMapTap1))
         tap1.numberOfTapsRequired = 1
         let tap2 = UITapGestureRecognizer(target: self, action: #selector(handleMapTap2))
@@ -259,9 +272,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         case 0:
             theMap.mapType = .Standard
-
-        case 1:
-            theMap.mapType = .Satellite
 
         default:
             theMap.mapType = .Hybrid
@@ -405,8 +415,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
 
         // Limit range.
-        lat = max(-90.0, min(90.0, lat!))
-        lon = max(-180.0, min(180.0, lon!))
+        lat = truncLatitude(lat!)
+        lon = truncLongitude(lon!)
 
         // Update location.
         mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
@@ -521,8 +531,34 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Turn on location updates.
         turnOnLocationManagerUpdates()
     }
+    
+    
+    /**
+     * This method gets called when the "zoom in" icon is pressed.
+     */
+    @IBAction func zoomIn(sender: AnyObject) {
+        var region = theMap.region
+        let lat = region.span.latitudeDelta / zoomFactor
+        let lon = region.span.longitudeDelta / zoomFactor
+        region.span.latitudeDelta  = max(0.0, lat)
+        region.span.longitudeDelta = max(0.0, lon)
+        theMap.setRegion(region, animated: true)
+    }
 
 
+    /**
+     * This method gets called when the "zoom out" icon is pressed.
+     */
+    @IBAction func zoomOut(sender: AnyObject) {
+        var region = theMap.region
+        let lat = region.span.latitudeDelta * zoomFactor
+        let lon = region.span.longitudeDelta * zoomFactor
+        region.span.latitudeDelta  = min(120.0, lat)
+        region.span.longitudeDelta = min(160,0, lon)
+        theMap.setRegion(region, animated: true)
+    }
+
+    
     /**
      * This method gets called when the "other territory" button is pressed.
      */
@@ -531,16 +567,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             theAlternative.hidden = false
             theMapcodeLocal.text = alternativeMapcodes[currentAlternativeMapcode]
             if currentAlternativeMapcode == 0 {
-                title = "Shortest (+ \(alternativeMapcodes.count - 1) alternatives)"
+                theLabelMapcodeLocal.text = "SHORTEST (OF \(alternativeMapcodes.count))"
             }
             else {
-                title = "Alternative \(currentAlternativeMapcode) of \(alternativeMapcodes.count - 1)"
+                theLabelMapcodeLocal.text = "ALT. \(currentAlternativeMapcode) OF \(alternativeMapcodes.count)"
             }
-            theAlternative.setTitle(title, forState: UIControlState.Normal)
+
+            // Move to next alternative next time we press the button.
             currentAlternativeMapcode = (currentAlternativeMapcode + 1) % alternativeMapcodes.count
         }
         else {
             theAlternative.hidden = true
+            theLabelMapcodeLocal.text = "SHORTEST"
         }
     }
 
@@ -895,6 +933,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             name = theMapcodeInternational.text!
         }
         return name
+    }
+
+
+    /**
+     * Truncate latitude to [-90, 90].
+     */
+    func truncLatitude(latitude: Double) -> CLLocationDegrees {
+        return max(-90.0, min(90.0, latitude))
+    }
+
+
+    /**
+     * Truncate latitude to [-180, 180].
+     */
+    func truncLongitude(latitude: Double) -> CLLocationDegrees {
+        return max(-180.0, min(180.0 - 1.0e-12, latitude))
     }
 
 
