@@ -24,26 +24,38 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     UIGestureRecognizerDelegate {
 
     @IBOutlet weak var theMap: MKMapView!
-    @IBOutlet weak var theMapcodeInternational: UITextField!
-    @IBOutlet weak var theMapcodeLocal: UITextField!
     @IBOutlet weak var theLat: UITextField!
     @IBOutlet weak var theLon: UITextField!
     @IBOutlet weak var theAddress: UITextField!
     @IBOutlet weak var theHere: UIButton!
-    @IBOutlet weak var theCopyMapcodeInternational: UIButton!
-    @IBOutlet weak var theCopyMapcodeLocal: UIButton!
-    @IBOutlet weak var theLabelMapcodeLocal: UILabel!
     @IBOutlet weak var theMapType: UISegmentedControl!
-    @IBOutlet weak var theAlternative: UIButton!
     @IBOutlet weak var theShare: UIButton!
     @IBOutlet weak var theZoomIn: UIButton!
     @IBOutlet weak var theZoomOut: UIButton!
+    @IBOutlet weak var theAltMapcode: UIButton!
+    @IBOutlet weak var theAltContext: UIButton!
+    @IBOutlet weak var theContextLabel: UILabel!
+    @IBOutlet weak var theMapcodeLabel: UILabel!
+    @IBOutlet weak var theContext: UITextView!
+    @IBOutlet weak var theMapcode: UITextView!
 
     let debugMask = 1
     let DEBUG = 1
     let INFO = 2
     let ERROR = 4
     let WARNING = 8
+
+    let mapcodeTerritoryFont = "HelveticaNeue"      // Font definitions.
+    let mapcodeCodeFont = "HelveticaNeue-Bold"
+    let mapcodeInternationalFont = "HelveticaNeue"
+    let contextFont = "HelveticaNeue-Medium"
+    let mapcodeTerritoryFontSize: CGFloat = 12.0;
+    let mapcodeCodeFontSize: CGFloat = 16.0;
+    let mapcodeInternationalFontSize: CGFloat = 12.0;
+    let contextFontSize: CGFloat = 16.0;
+    let mapcodeFontKern = 1.0
+    let mapcodeTerritoryColor = UIColor.grayColor()
+    let mapcodeInternationalColor = UIColor.grayColor()
 
     let zoomFactor = 2.5                            // Factor for zoom in/out.
 
@@ -76,10 +88,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     var firstLocationSinceStarted = true            // First time fix is different.
     var moveMapToUserLocation = false               // True if map should auto-move to user location.
     var prevTextField: String!                      // Undo edits if something went wrong.
-    var prevTerritory: String!                      // Previous territory, serves as default.
 
-    var currentAlternativeMapcode = 0               // Index of current alternative; 0 = shortest
-    var alternativeMapcodes = [String]()            // List of alternative mapcodes.
+    var currentMapcodeIndex = 0                     // Index of current alternative; 0 = shortest
+    var allMapcodes = [String]()                    // List of alternative mapcodes.
+
+    var currentContextIndex = 0                     // Index of current context
+    var allContexts = [String]()                    // List of alternative contexts.
+
+    var territories = [String: String]()            // Map of country codes/names.
 
     var mapChangedFromUserInteraction = false       // True if map was panned by user.
 
@@ -105,8 +121,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         mapcodeRegex = try! NSRegularExpression(pattern: "\\A\\s*(?:[a-z0-9]{2,3}(?:[-][a-z0-9]{2,3})?\\s+)?[a-z0-9]{2,5}[.][a-z0-9]{2,4}(?:[-][0-9]{1,8})?\\s*\\Z", options: [])
 
         // Reset alternative mapcode index.
-        currentAlternativeMapcode = 0
-        theAlternative.hidden = true
+        currentMapcodeIndex = 0
 
         // Setup our Map View.
         theMap.delegate = self
@@ -124,17 +139,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theAddress.delegate = self
         theLat.delegate = self
         theLon.delegate = self
-        theMapcodeInternational.delegate = self
-        theMapcodeLocal.delegate = self
 
-        // Clear the input boxes.
+        // Set fields.
         theAddress.text = ""
-        theMapcodeInternational.text = ""
-        theMapcodeLocal.text = ""
+        theContext.text = ""
+        theContextLabel.text = "CONTEXT"
         theLat.text = ""
         theLon.text = ""
-        theLabelMapcodeLocal.text = "SHORTEST"
-        theShare.hidden = true      // Not activated yet.
+        theMapcode.text = ""
+        theMapcodeLabel.text = "SHORTEST"
+        theAltContext.hidden = true
+        theAltMapcode.hidden = true
+
+        // Not activated yet.
+        theShare.hidden = true
 
         // Recognize taps on map.
         let tap1 = UITapGestureRecognizer(target: self, action: #selector(handleMapTap1))
@@ -171,6 +189,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             limitMapcodeLookupSecs, target: self,
             selector: #selector(periodicCheckToUpdateFieldMapcode),
             userInfo: nil, repeats: true)
+
+        // Get the territories.
+        getTerritoryNames()
     }
 
 
@@ -368,11 +389,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         case theLon.tag:
             useLatLon(theLat.text!, longitude: theLon.text!)
 
-        case theMapcodeInternational.tag:
-            useMapcode(theMapcodeInternational.text!)
+        case theContext.tag:
+            break
+            // TODO
 
-        case theMapcodeLocal.tag:
-            useMapcode(theMapcodeLocal.text!)
+        case theMapcode.tag:
+            useMapcode(theMapcode.text!)
 
         default:
             print("textFieldShouldReturn: Unknown text field, tag=\(textField.tag)")
@@ -393,7 +415,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             (placemarks, error) -> Void in
             if (error != nil) || (placemarks == nil) || (placemarks?.first == nil) || (placemarks?.first?.location == nil) {
                 print("useAddress: Geocode failed, address=\(address), error=\(error)")
-                self.showAlert("Incorrect address", message: "Can't find a location for\n'\(address)'", button: "OK")
+                self.showAlert("Incorrect address", message: "Can't find a location for\n'\(address)'", button: "Dismiss")
 
                 // Reset address field; need to do a new reverse geocode as previous text is lost.
                 dispatch_async(dispatch_get_main_queue()) {
@@ -447,8 +469,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Prefix previous territory for local mapcodes.
         var fullMapcode = mapcode;
-        if (prevTerritory != nil) && (mapcode.characters.count < 10) && !mapcode.containsString(" "){
-            fullMapcode = "\(prevTerritory) \(mapcode)"
+        if (mapcode.characters.count < 10) && !mapcode.containsString(" ") && !allContexts.isEmpty {
+            fullMapcode = "\(allContexts[currentContextIndex]) \(mapcode)"
         }
 
         // Create URL for REST API call to get mapcodes.
@@ -468,7 +490,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 let status = httpResponse?.statusCode
                 if (status != 200) || (json["errors"] != nil) {
-                    self.showAlert("Incorrect mapcode", message: "Mapcode '\(mapcode)' does not exist", button: "OK")
+                    self.showAlert("Incorrect mapcode", message: "Mapcode '\(mapcode)' does not exist", button: "Dismiss")
                 }
 
                 // Check status OK
@@ -506,6 +528,49 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
+     * Call Mapcode REST API to get territory names.
+     */
+    func getTerritoryNames() {
+        let url = "\(host)/mapcode/territories/?client=\(client)&allowLog=\(allowLog)"
+        guard let rest = RestController.createFromURLString(url) else {
+            print("useMapcode: Bad URL, url=\(url)")
+            return
+        }
+
+        // Get territories.
+        debug(INFO, msg: "Call Mapcode API: url=\(url)")
+        rest.get {
+            result, httpResponse in
+            do {
+                // Get JSON response.
+                let json = try result.value()
+
+                // The JSON response indicated an error, territory is set to nil.
+                if (json["errors"] != nil) || (json["territories"] == nil) || ((json["territories"]?.jsonArray == nil)) {
+                    print("getTerritoryNames: Can get territories from server")
+                }
+
+                // Get territories and add to our map.
+                var newTerritories = [String: String]()
+                let territories = (json["territories"]?.jsonArray)!
+                for territory in territories {
+                    let alphaCode = territory["alphaCode"]?.stringValue
+                    let fullName = territory["fullName"]?.stringValue
+                    newTerritories[alphaCode!] = fullName!
+                }
+
+                // Update mapcode fields on main thread.
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.territories = newTerritories
+                }
+            } catch {
+                print("getTerritoryNames: API call failed, url=\(url), error=\(error)")
+            }
+        }
+    }
+
+
+    /**
      * This method gets called when the "info" icon is pressed.
      */
     @IBAction func showInfo(sender: AnyObject) {
@@ -526,7 +591,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "For more info on mapcodes in general, visit us at: http://mapcode.com\n\n________\n" +
 
             "Note that some usage data may be collected to improve the Mapcode REST API service " +
-            "(not used for commercial purposes).", button: "OK")
+            "(not used for commercial purposes).", button: "Dismiss")
     }
 
 
@@ -571,31 +636,155 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.setRegion(region, animated: true)
     }
 
-    
-    /**
-     * This method gets called when the "other territory" button is pressed.
-     */
-    @IBAction func showAlternativeMapcode(sender: AnyObject) {
-        if alternativeMapcodes.count > 1 {
-            theAlternative.hidden = false
-            theMapcodeLocal.text = alternativeMapcodes[currentAlternativeMapcode]
-            if currentAlternativeMapcode == 0 {
-                theLabelMapcodeLocal.text = "SHORTEST (OF \(alternativeMapcodes.count))"
-            }
-            else {
-                theLabelMapcodeLocal.text = "ALT. \(currentAlternativeMapcode) OF \(alternativeMapcodes.count)"
-            }
 
-            // Move to next alternative next time we press the button.
-            currentAlternativeMapcode = (currentAlternativeMapcode + 1) % alternativeMapcodes.count
-        }
-        else {
-            theAlternative.hidden = true
-            theLabelMapcodeLocal.text = "SHORTEST"
-        }
+    /**
+     * This method gets called when the "toggle mapcode" button is pressed.
+     */
+    @IBAction func toggleMapcode(sender: AnyObject) {
+
+        // Move to next alternative next time we press the button.
+        currentMapcodeIndex += 1
+
+        // Show current mapcode.
+        showMapcode()
     }
 
     
+    /**
+     * This method gets called when the "toggle mapcode" button is pressed.
+     */
+    @IBAction func toggleContext(sender: AnyObject) {
+
+        // Move to next alternative next time we press the button.
+        if !allContexts.isEmpty {
+            currentContextIndex = (currentContextIndex + 1) % allContexts.count
+        }
+        else {
+            currentContextIndex = 0
+        }
+        currentMapcodeIndex = 0
+
+        // Show current mapcode.
+        showContext()
+
+        // Show mapcodes for context.
+        showMapcode()
+    }
+    
+    
+    /**
+     * This method shows the current mapcode.
+     */
+    func showMapcode() -> Int {
+
+        // Selected context.
+        var context: String!
+        if !allContexts.isEmpty {
+            context = allContexts[currentContextIndex]
+        }
+
+        // Add mapcodes in territory only.
+        var selection = [String]()
+        for m in allMapcodes {
+            if (context == nil) || m.containsString("\(context) ") {
+                selection.append(m)
+            }
+        }
+
+        // Always add international.
+        selection.append(allMapcodes[allMapcodes.count - 1])
+        let count = selection.count
+        if currentMapcodeIndex >= count {
+            currentMapcodeIndex = 0
+        }
+        let mapcode = selection[currentMapcodeIndex]
+
+        // Set the mapcode text.
+        let attributedText = NSMutableAttributedString(string: mapcode)
+
+        // Set defaults.
+        let fullRange = NSMakeRange(0, mapcode.characters.startIndex.distanceTo(mapcode.characters.endIndex))
+        attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeCodeFont, size: mapcodeCodeFontSize)!], range: fullRange)
+        attributedText.addAttributes([NSKernAttributeName: mapcodeFontKern], range: fullRange)
+
+        // Make territory different.
+        let index = mapcode.characters.indexOf(Character(" "))
+        if index != nil {
+            let count = mapcode.characters.startIndex.distanceTo(index!)
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeTerritoryColor], range: NSMakeRange(0, count))
+            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, count))
+        }
+        else {
+            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeInternationalColor], range: fullRange)
+        }
+        theMapcode.attributedText = attributedText
+
+        // Set the mapcode label text.
+        if count == 1 {
+            theAltMapcode.hidden = true
+            theMapcodeLabel.text = "INTERNATIONAL"
+        }
+        else if count == 2 {
+            theAltMapcode.hidden = true
+            theMapcodeLabel.text = "SHORTEST"
+        }
+        else {
+            theAltMapcode.hidden = false
+            if currentMapcodeIndex == 0 {
+                theMapcodeLabel.text = "SHORTEST (1 OF \(count - 1))"
+            }
+            else if currentMapcodeIndex == (count - 1) {
+                theMapcodeLabel.text = "INTERNATIONAL"
+            }
+            else {
+                theMapcodeLabel.text = "ALTERNATIVE \(currentMapcodeIndex)"
+            }
+        }
+        return count
+    }
+
+
+    /**
+     * This method shows the current context.
+     */
+    func showContext() {
+        var context: String!
+        if !allContexts.isEmpty {
+            let alphaCode = allContexts[currentContextIndex]
+            context = territories[alphaCode]
+            if context == nil {
+                debug(DEBUG, msg: "showContext: Territory not found, alphaCode=\(alphaCode)")
+            }
+        }
+        if context != nil {
+            let attributedText = NSMutableAttributedString(string: context!)
+            let fullRange = NSMakeRange(0, context!.characters.startIndex.distanceTo(context!.characters.endIndex))
+            let font = UIFont(name: contextFont, size: contextFontSize)!
+            attributedText.addAttributes([NSFontAttributeName: font], range: fullRange)
+            theContext.attributedText = attributedText
+        }
+        else {
+            let text = "No territories found"
+            let attributedText = NSMutableAttributedString(string: text)
+            let fullRange = NSMakeRange(0, text.characters.startIndex.distanceTo(text.characters.endIndex))
+            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeTerritoryColor], range: fullRange)
+            theContext.attributedText = attributedText
+        }
+
+        // Set the mapcode label text.
+        if allContexts.count <= 1 {
+            theAltContext.hidden = true
+            theContextLabel.text = "CONTEXT"
+        }
+        else {
+            theAltContext.hidden = false
+            theContextLabel.text = "CONT. \(currentContextIndex + 1) OF \(allContexts.count)"
+        }
+    }
+
+
     /**
      * This method gets called when a "copy to clipboard" icon is pressed.
      */
@@ -604,16 +793,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         switch sender.tag {
 
         case 1:
-            copytext = theMapcodeInternational.text
-
-        case 2:
-            copytext = theMapcodeLocal.text
-
-        case 3:
-            copytext = theLat.text
-
-        case 4:
-            copytext = theLon.text
+            copytext = theMapcode.text
 
         default:
             copytext = nil
@@ -718,8 +898,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func queueUpdateForFieldMapcode(coordinate: CLLocationCoordinate2D) {
 
         // Dim text.
-        theMapcodeInternational.textColor = colorWaitingForUpdate
-        theMapcodeLocal.textColor = colorWaitingForUpdate
+        theContext.textColor = colorWaitingForUpdate
+        theContext.textColor = colorWaitingForUpdate
 
         // Keep only the last coordinate.
         queuedCoordinateForMapcodeLookup = coordinate;
@@ -743,17 +923,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             guard let rest = RestController.createFromURLString(url) else {
                 print("updateFieldsMapcodes: Bad URL, url=\(url)")
-                theMapcodeLocal.text = ""
-                theMapcodeInternational.text = ""
+                theMapcode.text = ""
+                theContext.text = ""
                 return
             }
 
             // Get mapcodes from REST API.
-            debug(INFO, msg: "Call Mapcode API: \(url)")
+            debug(INFO, msg: "Call Mapcode API: url=\(url)")
             rest.get {
                 result, httpResponse in
                 do {
-                    var territory: String! = nil
                     var mcInternational = ""
                     var mcLocal = ""
 
@@ -776,12 +955,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     if json["local"] != nil {
                         if (json["local"]?["territory"] != nil) && (json["local"]?["mapcode"] != nil) {
                             mcLocal = "\((json["local"]?["territory"]?.stringValue)!) \((json["local"]?["mapcode"]?.stringValue)!)"
-                            territory = json["local"]?["territory"]?.stringValue
                         }
                     }
 
                     // Reset alternative mapcodes.
-                    var altMapcodes = [String]()
+                    var newAllMapcodes = [String]()
+                    var newAllContextsSet = Set<String>()
+
+                    // Try to match previous context.
+                    var prevContext: String!
+                    if !self.allContexts.isEmpty {
+                        prevContext = self.allContexts[self.currentContextIndex]
+                    }
 
                     // Get alternative mapcodes.
                     if (json["mapcodes"] != nil) && (json["mapcodes"]?.jsonArray != nil) {
@@ -790,37 +975,57 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         // The international code is always there and must not be used here.
                         if alt.count >= 2 {
 
-                            // Add the shortest local one (which should exist now).
-                            altMapcodes.append(mcLocal)
+                            // Add the shortest as the first one (which should exist now).
+                            newAllMapcodes.append(mcLocal)
 
                             // Add the alternatives.
                             for i in 0...alt.count - 2 {
-                                let mapcode = "\((alt[i]!["territory"]?.stringValue)!) \((alt[i]!["mapcode"]?.stringValue)!)"
-                                if (mapcode != mcLocal) {
-                                    altMapcodes.append(mapcode)
+                                let territory = (alt[i]!["territory"]?.stringValue)!
+                                let mapcode = (alt[i]!["mapcode"]?.stringValue)!
+                                let fullMapcode = "\(territory) \(mapcode)"
+
+                                // We wanted the shortest as the first, so don't add twice.
+                                if (fullMapcode != mcLocal) {
+                                    newAllMapcodes.append(fullMapcode)
                                 }
+
+                                // And keep the territories.
+                                newAllContextsSet.insert(territory)
                             }
                         }
                     }
 
+                    // Convert set to list and find previous context in list.
+                    var newContextIndex = 0
+                    var newAllContexts = [String]()
+                    var i = 0
+                    for context in newAllContextsSet {
+                        newAllContexts.append(context)
+                        if (prevContext != nil) && (context == prevContext) {
+                            newContextIndex = i
+                        }
+                        i += 1
+                    }
+
+                    // Always append the international code.
+                    newAllMapcodes.append(mcInternational)
+
                     // Update mapcode fields on main thread.
                     dispatch_async(dispatch_get_main_queue()) {
-                        self.theMapcodeInternational.textColor = UIColor.blackColor()
-                        self.theMapcodeLocal.textColor = UIColor.blackColor()
-                        self.theMapcodeInternational.text = mcInternational
-                        self.theMapcodeLocal.text = mcLocal
-                        self.prevTerritory = territory
-                        self.currentAlternativeMapcode = 0
-                        self.alternativeMapcodes = altMapcodes
-                        self.showAlternativeMapcode(self)
+                        self.allContexts = newAllContexts
+                        self.currentContextIndex = newContextIndex
+                        self.allMapcodes = newAllMapcodes
+                        self.currentMapcodeIndex = 0
+                        self.showContext()
+                        self.showMapcode()
                     }
                 } catch {
                     print("updateFieldsMapcodes: API call failed, url=\(url), error=\(error)")
                     
                     // Something went wrong, discard mapcodes.
                     dispatch_async(dispatch_get_main_queue()) {
-                        self.theMapcodeInternational.text = ""
-                        self.theMapcodeLocal.text = ""
+                        self.theContext.text = ""
+                        self.theMapcode.text = ""
                     }
                 }
             }
@@ -938,14 +1143,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Method to return mapcode name based on input fields.
      */
     func getCurrentMapcodeName() -> String {
-        let name: String
-        if (theMapcodeLocal.text != nil) && !(theMapcodeLocal.text?.isEmpty)! {
-            name = theMapcodeLocal.text!
-        }
-        else {
-            name = theMapcodeInternational.text!
-        }
-        return name
+        return theMapcode.text!
     }
 
 
