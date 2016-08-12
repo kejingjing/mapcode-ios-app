@@ -203,404 +203,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             userInfo: nil, repeats: true)
     }
 
+
+    /**
+     * This method gets called when the view is displayed.
+     */
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
 
-        // Show initial what's new dialog.
+        // Show initial what's new dialog (if this is a new version).
         showWhatsNew()
-    }
-
-
-    /**
-     * Helper method to check if a gesture recognizer was used.
-     */
-    func mapViewRegionDidChangeFromUserInteraction() -> Bool {
-        let view = self.theMap.subviews[0]
-
-        // Look through gesture recognizers to determine whether this region change is from user interaction.
-        if let gestureRecognizers = view.gestureRecognizers {
-            for recognizer in gestureRecognizers {
-                if (recognizer.state == UIGestureRecognizerState.Began) || (recognizer.state == UIGestureRecognizerState.Ended) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-    
-
-    /**
-     * Helper method to record if the map change was by user interaction.
-     */
-    func mapView(mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
-        mapChangedFromUserInteraction = mapViewRegionDidChangeFromUserInteraction()
-    }
-
-
-    /**
-     * This method gets called whenever a location change is detected.
-     */
-    func mapView(mapView: MKMapView,
-                 regionDidChangeAnimated animated: Bool) {
-
-        // Stop auto-move.
-        moveMapToUserLocation = false;
-        if mapChangedFromUserInteraction {
-
-            // Update fields.
-            mapcodeLocation = mapView.centerCoordinate
-            showLatLon(mapcodeLocation);
-            queueUpdateForMapcode(mapcodeLocation)
-            queueUpdateForAddress(mapcodeLocation)
-        }
-        else {
-
-            // Fields were already updated.
-        }
-    }
-
-
-    /**
-     * This method gets called when the user taps the map.
-     */
-    func handleMapTap1(gestureRecognizer: UITapGestureRecognizer) {
-
-        // Don't auto-zoom to user location anymore.
-        waitingForFirstLocationSinceStarted = false
-
-        // Get location of tap.
-        let location = gestureRecognizer.locationInView(theMap)
-        mapcodeLocation = theMap.convertPoint(location, toCoordinateFromView: theMap)
-
-        // Set map center and update fields.
-        theMap.setCenterCoordinate(mapcodeLocation, animated: true)
-
-        // The map view will move and consequently fields get updated by regionDidChangeAnimated.
-        showLatLon(mapcodeLocation);
-        queueUpdateForMapcode(mapcodeLocation)
-        queueUpdateForAddress(mapcodeLocation)
-    }
-    
-    
-    /**
-     * This method gets called when the user taps the mapcode.
-     */
-    func handleMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
-        UIPasteboard.generalPasteboard().string = theMapcode.text
-        theMapcodeLabel.text = "COPIED TO CLIPBOARD"
-
-        // Do not advance next at next tap; just update field.
-        nextMapcodeTapAdvances = false;
-    }
-    
-    
-    /**
-     * This method gets called when the user double taps the map.
-     */
-    func handleMapTap2(gestureRecognizer: UITapGestureRecognizer) {
-
-        // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
-        let newRegion = MKCoordinateRegion(center: mapcodeLocation,
-                                           span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
-        theMap.setRegion(newRegion, animated: true)
-    }
-
-    
-    /**
-     * This gets called whenever the use switches between map types.
-     */
-    @IBAction func segmentedControlAction(sender: UISegmentedControl!) {
-        switch sender.selectedSegmentIndex {
-
-        case 0:
-            theMap.mapType = .Standard
-
-        default:
-            theMap.mapType = .Hybrid
-        }
-    }
-
-
-    /**
-     * This method moves the screen up or down when a field gets edited.
-     */
-    func animateTextField(textField: UITextField, up: Bool) {
-        let movementDistance: CGFloat = -250
-        let movementDuration: Double = 0.3
-
-        var movement: CGFloat = 0
-        if up {
-            movement = movementDistance
-        }
-        else {
-            movement = -movementDistance
-        }
-        UIView.beginAnimations("animateTextField", context: nil)
-        UIView.setAnimationBeginsFromCurrentState(true)
-        UIView.setAnimationDuration(movementDuration)
-        self.view.frame = CGRectOffset(self.view.frame, 0, movement)
-        UIView.commitAnimations()
-    }
-
-
-    /**
-     * This method moves the screen up or down when a field gets edited.
-     */
-    func textFieldDidBeginEditing(textField: UITextField) {
-        self.animateTextField(textField, up: true)
-    }
-
-    func textFieldDidEndEditing(textField: UITextField) {
-        self.animateTextField(textField, up: false)
-    }
-
-    
-    /**
-     * This method gets called when user starts editing the address.
-     */
-    @IBAction func beginEdit(textField: UITextField) {
-        dispatch_async(dispatch_get_main_queue()) {
-            textField.becomeFirstResponder()
-            textField.selectedTextRange = textField.textRangeFromPosition(textField.beginningOfDocument, toPosition: textField.endOfDocument)
-            self.undoTextFieldEdit = textField.text
-        }
-    }
-
-
-    /**
-     * This method gets called when the Return key is pressed in a text edit field.
-     */
-    func textFieldShouldReturn(textField: UITextField) -> Bool {
-
-        // Hide keyboard.
-        textField.resignFirstResponder()
-
-        // Do not process empty fields.
-        if (textField.text == nil) || (textField.text?.isEmpty)! {
-
-            // Restore contents of field.
-            textField.text = undoTextFieldEdit
-            return true
-        }
-
-        // Don't auto-zoom to user location anymore.
-        waitingForFirstLocationSinceStarted = false
-
-        switch textField.tag {
-
-        case theAddress.tag:
-
-            // Check if the user entered a mapcode instead of an address.
-            let matches = mapcodeRegex.matchesInString(theAddress.text!, options: [], range: NSRange(location: 0, length: theAddress.text!.characters.count))
-            if matches.count == 1 {
-                debug(DEBUG, msg: "textFieldShouldReturn: Mapcode lookup, mapcode=\(theAddress.text!)")
-                useMapcode(theAddress.text!)
-            }
-            else {
-                debug(DEBUG, msg: "textFieldShouldReturn: Address lookup, address=\(theAddress.text!)")
-                useAddress(theAddress.text!)
-            }
-
-        case theLat.tag:
-            if Double(theLat.text!) != nil {
-                useLatLon(theLat.text!, longitude: theLon.text!)
-            }
-            else {
-                theLat.text = undoTextFieldEdit
-            }
-
-        case theLon.tag:
-            if Double(theLon.text!) != nil {
-                useLatLon(theLat.text!, longitude: theLon.text!)
-            }
-            else {
-                theLon.text = undoTextFieldEdit
-            }
-
-        default:
-            print("textFieldShouldReturn: Unknown text field, tag=\(textField.tag)")
-        }
-        return true
-    }
-
-
-    /**
-     * Address box was edited.
-     */
-    func useAddress(address: String) {
-
-        // Geocode address.
-        debug(INFO, msg: "Call Forward Geocoding API: \(address)")
-        let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(address, completionHandler: {
-            (placemarks, error) -> Void in
-            if (error != nil) || (placemarks == nil) || (placemarks?.first == nil) || (placemarks?.first?.location == nil) {
-                self.debug(self.INFO, msg: "useAddress: Geocode failed, address=\(address), error=\(error)")
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.showAlert("Incorrect address", message: "Can't find a location for\n'\(address)'", button: "Dismiss")
-                }
-
-                // Reset address field; need to do a new reverse geocode as previous text is lost.
-                dispatch_async(dispatch_get_main_queue()) {
-
-                    // Force call.
-                    self.prevQueuedCoordinateForReverseGeocode = nil
-                    self.queueUpdateForAddress(self.mapcodeLocation)
-                }
-            }
-            else {
-
-                // Found location.
-                let coordinate = (placemarks?.first!.location!.coordinate)!
-                dispatch_async(dispatch_get_main_queue()) {
-
-                    // Update location.
-                    self.mapcodeLocation = coordinate
-                    self.theMap.setCenterCoordinate(coordinate, animated: false)
-                    self.showLatLon(coordinate)
-                    self.queueUpdateForMapcode(coordinate)
-                    self.queueUpdateForAddress(coordinate)
-                }
-            }
-        })
-    }
-
-    /**
-     * Lat or lon box was edited.
-     */
-    func useLatLon(latitude: String, longitude: String) {
-        var lat = Double(latitude)
-        var lon = Double(longitude)
-        if (lat != nil) && (lon != nil) {
-
-            // Limit range.
-            lat = truncLatitude(lat!)
-            lon = truncLongitude(lon!)
-
-            // Update location.
-            mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
-            theMap.setCenterCoordinate(mapcodeLocation, animated: false)
-            showLatLon(mapcodeLocation)
-            queueUpdateForMapcode(mapcodeLocation)
-            queueUpdateForAddress(mapcodeLocation)
-        }
-    }
-
-
-    /**
-     * Call Mapcode REST API to get coordinate from mapcode.
-     */
-    func useMapcode(mapcode: String) {
-
-        // Prefix previous territory for local mapcodes.
-        var fullMapcode = mapcode;
-        if (mapcode.characters.count < 10) && !mapcode.containsString(" ") && !allContexts.isEmpty {
-            fullMapcode = "\(allContexts[currentContextIndex]) \(mapcode)"
-        }
-
-        // Create URL for REST API call to get mapcodes.
-        let encodedMapcode = fullMapcode.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
-        let url = "\(host)/mapcode/coords/\(encodedMapcode)?client=\(client)&allowLog=\(allowLog)"
-        guard let rest = RestController.createFromURLString(url) else {
-            debug(INFO, msg: "useMapcode: Bad URL, url=\(url)")
-            return
-        }
-
-        // Get coordinate.
-        debug(INFO, msg: "Call Mapcode API: url=\(url)")
-        rest.get {
-            result, httpResponse in
-            do {
-                let json = try result.value()
-
-                let status = httpResponse?.statusCode
-                if (status != 200) || (json["errors"] != nil) {
-                    self.debug(self.INFO, msg: "useMapcode: Incorrect mapcode=\(mapcode)")
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.showAlert("Incorrect mapcode", message: "Mapcode '\(mapcode)' does not exist", button: "Dismiss")
-                    }
-                }
-
-                // Check status OK
-                if (status == 200) &&
-                    (json["errors"] == nil) &&
-                    (json["latDeg"] != nil) && (json["latDeg"]?.doubleValue != nil) &&
-                    (json["lonDeg"] != nil) && (json["lonDeg"]?.doubleValue != nil) {
-                    let lat = (json["latDeg"]?.doubleValue)!
-                    let lon = (json["lonDeg"]?.doubleValue)!
-                    let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-
-                    // Update location and set map center.
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.mapcodeLocation = coordinate
-                        self.theMap.setCenterCoordinate(coordinate, animated: false)
-                        self.showLatLon(coordinate)
-                        self.queueUpdateForMapcode(coordinate)
-                        self.queueUpdateForAddress(coordinate)
-                    }
-                }
-                else {
-                    self.debug(self.INFO, msg: "useMapcode: Find mapcode failed, url=\(url), status=\(httpResponse?.statusCode), json=\(json)")
-
-                    // Revert to previous address; need to call REST API because previous text is lost.
-                    dispatch_async(dispatch_get_main_queue()) {
-
-                        // Force call.
-                        self.prevQueuedCoordinateForReverseGeocode = nil
-                        self.queueUpdateForAddress(self.mapcodeLocation)
-                    }
-                }
-
-            } catch {
-                self.debug(self.WARN, msg: "useMapcode: API call failed, url=\(url), error=\(error)")
-            }
-        }
-    }
-
-
-    /**
-     * Call Mapcode REST API to get territory names.
-     */
-    func getTerritoryNames() {
-        let url = "\(host)/mapcode/territories/?client=\(client)&allowLog=\(allowLog)"
-        guard let rest = RestController.createFromURLString(url) else {
-            debug(WARN, msg: "useMapcode: Bad URL, url=\(url)")
-            return
-        }
-
-        // Get territories.
-        debug(INFO, msg: "Call Mapcode API: url=\(url)")
-        rest.get {
-            result, httpResponse in
-            do {
-                // Get JSON response.
-                let json = try result.value()
-
-                // The JSON response indicated an error, territory is set to nil.
-                if (json["errors"] != nil) || (json["territories"] == nil) || ((json["territories"]?.jsonArray == nil)) {
-                    self.debug(self.WARN, msg: "getTerritoryNames: Can get territories from server")
-                }
-
-                // Get territories and add to our map.
-                var newTerritoryFullNames = [String: String]()
-                let territories = (json["territories"]?.jsonArray)!
-                for territory in territories {
-                    let alphaCode = territory["alphaCode"]?.stringValue
-                    let fullName = territory["fullName"]?.stringValue
-                    newTerritoryFullNames[alphaCode!] = fullName!
-                }
-
-                // Update mapcode fields on main thread.
-                dispatch_async(dispatch_get_main_queue()) {
-
-                    // Pass territories to main and update context field.
-                    self.territoryFullNames = newTerritoryFullNames
-                    self.showContext()
-                }
-            } catch {
-                self.debug(self.WARN, msg: "getTerritoryNames: API call failed, url=\(url), error=\(error)")
-            }
-        }
     }
 
 
@@ -661,11 +272,419 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     
     
     /**
+     * Helper method to check if a gesture recognizer was used.
+     */
+    func mapViewRegionDidChangeFromUserInteraction() -> Bool {
+        let view = self.theMap.subviews[0]
+
+        // Look through gesture recognizers to determine whether this region change is from user interaction.
+        if let gestureRecognizers = view.gestureRecognizers {
+            for recognizer in gestureRecognizers {
+                if (recognizer.state == UIGestureRecognizerState.Began) || (recognizer.state == UIGestureRecognizerState.Ended) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
+
+    /**
+     * Delegate method to record if the map change was by user interaction.
+     */
+    func mapView(mapView: MKMapView,
+                 regionWillChangeAnimated animated: Bool) {
+        mapChangedFromUserInteraction = mapViewRegionDidChangeFromUserInteraction()
+    }
+
+
+    /**
+     * Delegate method gets called whenever a location change is detected.
+     */
+    func mapView(mapView: MKMapView,
+                 regionDidChangeAnimated animated: Bool) {
+
+        // Stop auto-move, we don't want to keep auto-moving.
+        moveMapToUserLocation = false;
+        if mapChangedFromUserInteraction {
+
+            // Update fields.
+            mapcodeLocation = mapView.centerCoordinate
+            showLatLon(mapcodeLocation);
+            queueUpdateForMapcode(mapcodeLocation)
+            queueUpdateForAddress(mapcodeLocation)
+        }
+        else {
+
+            // Fields were already updated, this map movement is a result of that.
+        }
+    }
+
+
+    /**
+     * Gesture recognizer: this method gets called when the user taps the map once.
+     */
+    func handleMapTap1(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Don't auto-zoom to user location anymore.
+        waitingForFirstLocationSinceStarted = false
+
+        // Get location of tap.
+        let location = gestureRecognizer.locationInView(theMap)
+        mapcodeLocation = theMap.convertPoint(location, toCoordinateFromView: theMap)
+
+        // Set map center and update fields.
+        theMap.setCenterCoordinate(mapcodeLocation, animated: true)
+
+        // The map view will move and consequently fields get updated by regionDidChangeAnimated.
+        showLatLon(mapcodeLocation);
+        queueUpdateForMapcode(mapcodeLocation)
+        queueUpdateForAddress(mapcodeLocation)
+    }
+    
+    
+    /**
+     * Gesture recognizer: this method gets called when the user taps the map twice. Mind you:
+     * The first tap has already been handled by the "tap once" recognizer.
+     */
+    func handleMapTap2(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
+        let newRegion = MKCoordinateRegion(center: mapcodeLocation,
+                                           span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
+        theMap.setRegion(newRegion, animated: true)
+    }
+
+    
+    /**
+     * Gesture recognizer: this method gets called when the user taps the mapcode.
+     */
+    func handleMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
+        UIPasteboard.generalPasteboard().string = theMapcode.text
+        theMapcodeLabel.text = "COPIED TO CLIPBOARD"
+
+        // Do not advance next at next tap; just update field.
+        nextMapcodeTapAdvances = false;
+    }
+
+    
+    /**
+     * This gets called whenever the use switches between nromal and hybrid map types.
+     */
+    @IBAction func segmentedControlAction(sender: UISegmentedControl!) {
+        switch sender.selectedSegmentIndex {
+
+        case 0:
+            theMap.mapType = .Standard
+
+        default:
+            theMap.mapType = .Hybrid
+        }
+    }
+
+
+    /**
+     * This method moves the screen up or down when a field gets edited.
+     */
+    func animateTextField(textField: UITextField, up: Bool) {
+        let movementDistance: CGFloat = -250
+        let movementDuration: Double = 0.3
+
+        var movement: CGFloat = 0
+        if up {
+            movement = movementDistance
+        }
+        else {
+            movement = -movementDistance
+        }
+        UIView.beginAnimations("animateTextField", context: nil)
+        UIView.setAnimationBeginsFromCurrentState(true)
+        UIView.setAnimationDuration(movementDuration)
+        self.view.frame = CGRectOffset(self.view.frame, 0, movement)
+        UIView.commitAnimations()
+    }
+
+
+    /**
+     * This method moves the screen up when editing starts.
+     */
+    func textFieldDidBeginEditing(textField: UITextField) {
+        self.animateTextField(textField, up: true)
+    }
+
+
+    /**
+     * This method moves the screen down when editing is done.
+     */
+    func textFieldDidEndEditing(textField: UITextField) {
+        self.animateTextField(textField, up: false)
+    }
+
+    
+    /**
+     * This method gets called when user starts editing a text field. Keep the previous
+     * value for undo. Careful though: the undo text is shared for all fields.
+     */
+    @IBAction func beginEdit(textField: UITextField) {
+        dispatch_async(dispatch_get_main_queue()) {
+            textField.becomeFirstResponder()
+            textField.selectedTextRange = textField.textRangeFromPosition(
+                textField.beginningOfDocument, toPosition: textField.endOfDocument)
+            self.undoTextFieldEdit = textField.text
+        }
+    }
+
+
+    /**
+     * Delegate method gets called when the Return key is pressed in a text edit field.
+     */
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+
+        // Hide keyboard.
+        textField.resignFirstResponder()
+
+        // Do not process empty fields.
+        if (textField.text == nil) || (textField.text?.isEmpty)! {
+
+            // Restore contents of field.
+            textField.text = undoTextFieldEdit
+            return true
+        }
+
+        // Don't auto-zoom to user location anymore.
+        waitingForFirstLocationSinceStarted = false
+
+        // Determine which field we're in.
+        switch textField.tag {
+
+        case theAddress.tag:
+
+            // Check if the user entered a mapcode instead of an address.
+            let matches = mapcodeRegex.matchesInString(
+                theAddress.text!, options: [],
+                range: NSRange(location: 0, length: theAddress.text!.characters.count))
+            if matches.count == 1 {
+                debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode, mapcode=\(theAddress.text!)")
+                mapcodeWasEntered(theAddress.text!)
+            }
+            else {
+                debug(DEBUG, msg: "textFieldShouldReturn: Entered address, address=\(theAddress.text!)")
+                addressWasEntered(theAddress.text!)
+            }
+
+        case theLat.tag:
+
+            // Check if we can actually convert this to a double.
+            if Double(theLat.text!) != nil {
+                coordinateWasEntered(theLat.text!, longitude: theLon.text!)
+            }
+            else {
+                theLat.text = undoTextFieldEdit
+            }
+
+        case theLon.tag:
+
+            // Check if we can actually convert this to a double.
+            if Double(theLon.text!) != nil {
+                coordinateWasEntered(theLat.text!, longitude: theLon.text!)
+            }
+            else {
+                theLon.text = undoTextFieldEdit
+            }
+
+        default:
+            debug(ERROR, msg: "textFieldShouldReturn: Unknown text field, tag=\(textField.tag)")
+        }
+        return true
+    }
+
+
+    /**
+     * This method gets called when an address was entered.
+     */
+    func addressWasEntered(address: String) {
+
+        // Geocode address.
+        debug(INFO, msg: "addressWasEntered: Call Forward Geocoding API: \(address)")
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(address, completionHandler: {
+            (placemarks, error) -> Void in
+
+            if (error != nil) || (placemarks == nil) || (placemarks?.first == nil) || (placemarks?.first?.location == nil) {
+                self.debug(self.INFO, msg: "addressWasEntered: Geocode failed, address=\(address), error=\(error)")
+
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.showAlert("Incorrect address", message: "Can't find a location for\n'\(address)'", button: "Dismiss")
+
+                    // Force call to reset address field; need to do a new reverse geocode as previous text is lost.
+                    self.prevQueuedCoordinateForReverseGeocode = nil
+                    self.queueUpdateForAddress(self.mapcodeLocation)
+                }
+            }
+            else {
+
+                // Found location.
+                let coordinate = (placemarks?.first!.location!.coordinate)!
+                dispatch_async(dispatch_get_main_queue()) {
+
+                    // Update location.
+                    self.mapcodeLocation = coordinate
+                    self.theMap.setCenterCoordinate(coordinate, animated: false)
+                    self.showLatLon(coordinate)
+                    self.queueUpdateForMapcode(coordinate)
+                    self.queueUpdateForAddress(coordinate)
+                }
+            }
+        })
+    }
+
+    /**
+     * This method gets called when a mapcode was entered.
+     */
+    func mapcodeWasEntered(mapcode: String) {
+
+        // Prefix previous territory for local mapcodes.
+        var fullMapcode = mapcode;
+        if (mapcode.characters.count < 10) && !mapcode.containsString(" ") && !allContexts.isEmpty {
+            fullMapcode = "\(allContexts[currentContextIndex]) \(mapcode)"
+        }
+
+        // Create URL for REST API call to get mapcodes.
+        let encodedMapcode = fullMapcode.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
+        let url = "\(host)/mapcode/coords/\(encodedMapcode)?client=\(client)&allowLog=\(allowLog)"
+        guard let rest = RestController.createFromURLString(url) else {
+            debug(ERROR, msg: "mapcodeWasEntered: Bad URL, url=\(url)")
+            return
+        }
+
+        // Get coordinate.
+        debug(INFO, msg: "Call Mapcode API: url=\(url)")
+        rest.get {
+            result, httpResponse in
+            do {
+                let json = try result.value()
+
+                let status = httpResponse?.statusCode
+                if (status != 200) || (json["errors"] != nil) {
+                    self.debug(self.INFO, msg: "mapcodeWasEntered: Incorrect mapcode=\(mapcode)")
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.showAlert("Incorrect mapcode", message: "Mapcode '\(mapcode)' does not exist", button: "Dismiss")
+                    }
+                }
+
+                // Check status OK
+                if (status == 200) &&
+                    (json["errors"] == nil) &&
+                    (json["latDeg"] != nil) && (json["latDeg"]?.doubleValue != nil) &&
+                    (json["lonDeg"] != nil) && (json["lonDeg"]?.doubleValue != nil) {
+                    let lat = (json["latDeg"]?.doubleValue)!
+                    let lon = (json["lonDeg"]?.doubleValue)!
+                    let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+
+                    // Update location and set map center.
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.mapcodeLocation = coordinate
+                        self.theMap.setCenterCoordinate(coordinate, animated: false)
+                        self.showLatLon(coordinate)
+                        self.queueUpdateForMapcode(coordinate)
+                        self.queueUpdateForAddress(coordinate)
+                    }
+                }
+                else {
+                    self.debug(self.INFO, msg: "mapcodeWasEntered: Find mapcode failed, url=\(url), status=\(httpResponse?.statusCode), json=\(json)")
+
+                    // Revert to previous address; need to call REST API because previous text is lost.
+                    dispatch_async(dispatch_get_main_queue()) {
+
+                        // Force call.
+                        self.prevQueuedCoordinateForReverseGeocode = nil
+                        self.queueUpdateForAddress(self.mapcodeLocation)
+                    }
+                }
+
+            } catch {
+                self.debug(self.WARN, msg: "mapcodeWasEntered: API call failed, url=\(url), error=\(error)")
+            }
+        }
+    }
+    
+    
+    /**
+     * This method gets called when the lat or lon box was edited.
+     */
+    func coordinateWasEntered(latitude: String, longitude: String) {
+        var lat = Double(latitude)
+        var lon = Double(longitude)
+        if (lat != nil) && (lon != nil) {
+
+            // Limit range.
+            lat = truncLatitude(lat!)
+            lon = truncLongitude(lon!)
+
+            // Update location.
+            mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
+            theMap.setCenterCoordinate(mapcodeLocation, animated: false)
+            showLatLon(mapcodeLocation)
+            queueUpdateForMapcode(mapcodeLocation)
+            queueUpdateForAddress(mapcodeLocation)
+        }
+    }
+
+
+    /**
+     * Call Mapcode REST API to get territory names.
+     */
+    func fetchTerritoryNamesFromServer() {
+
+        // Fetch territory information from server.
+        let url = "\(host)/mapcode/territories/?client=\(client)&allowLog=\(allowLog)"
+        guard let rest = RestController.createFromURLString(url) else {
+            debug(ERROR, msg: "fetchTerritoryNamesFromServer: Bad URL, url=\(url)")
+            return
+        }
+
+        // Get territories.
+        debug(INFO, msg: "Call Mapcode API: url=\(url)")
+        rest.get {
+            result, httpResponse in
+            do {
+                // Get JSON response.
+                let json = try result.value()
+
+                // The JSON response indicated an error, territory is set to nil.
+                if (json["errors"] != nil) || (json["territories"] == nil) || ((json["territories"]?.jsonArray == nil)) {
+                    self.debug(self.WARN, msg: "fetchTerritoryNamesFromServer: Can get territories from server, errors=\(json["errors"])")
+                }
+
+                // Get territories and add to our map.
+                var newTerritoryFullNames = [String: String]()
+                let territories = (json["territories"]?.jsonArray)!
+                for territory in territories {
+                    let alphaCode = territory["alphaCode"]?.stringValue
+                    let fullName = territory["fullName"]?.stringValue
+                    newTerritoryFullNames[alphaCode!] = fullName!
+                }
+
+                // Update mapcode fields on main thread.
+                dispatch_async(dispatch_get_main_queue()) {
+
+                    // Pass territories to main and update context field.
+                    self.territoryFullNames = newTerritoryFullNames
+                    self.updateContext()
+                }
+            } catch {
+                self.debug(self.WARN, msg: "fetchTerritoryNamesFromServer: API call failed, url=\(url), error=\(error)")
+            }
+        }
+    }
+
+
+    /**
      * This method gets called when the "find here" icon is pressed.
      */
     @IBAction func findHere(sender: AnyObject) {
 
-        // Invalidate timer.
+        // Invalidate timer: cancels next scheduled update. Will automatically be-rescheduled.
         timerLocationUpdates.invalidate()
 
         // Set auto-move to user location and start collecting updates and update map.
@@ -703,7 +722,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
-     * This method gets called when the user taps the context label.
+     * This method gets called when the user taps the context label, which means: next item.
      */
     func handleContextLabelTap(gestureRecognizer: UITapGestureRecognizer) {
         nextContext(self)
@@ -716,24 +735,30 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func nextContext(sender: AnyObject) {
 
         // Move to next alternative next time we press the button.
-        if !allContexts.isEmpty {
-            currentContextIndex = (currentContextIndex + 1) % allContexts.count
-        }
-        else {
+        if allContexts.isEmpty {
+
+            // There are no contexts. Reset index for next time there are contexts.
             currentContextIndex = 0
         }
+        else {
+
+            // Wrap when counting.
+            currentContextIndex = (currentContextIndex + 1) % allContexts.count
+        }
+
+        // Reset mapcode index when changing context.
         currentMapcodeIndex = 0
 
         // Show current mapcode.
-        showContext()
+        updateContext()
 
         // Show mapcodes for context.
-        showMapcode()
+        updateMapcode()
     }
     
     
     /**
-     * This method gets called when the user taps the mapcode label.
+     * This method gets called when the user taps the mapcode label, which means: next item.
      */
     func handleMapcodeLabelTap(gestureRecognizer: UITapGestureRecognizer) {
         nextMapcode(self)
@@ -753,19 +778,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
         else {
 
-            // Only update. Always reset flag after a tap.
+            // Only update (e.g. after copied to clipboard). Always reset flag after a tap.
             nextMapcodeTapAdvances = true;
         }
 
-        // Show current mapcode.
-        showMapcode()
+        // Show current mapcode, no need to update context field.
+        updateMapcode()
     }
 
     
     /**
-     * This method shows the current mapcode.
+     * This method updates the mapcode and mapcode label fields.
      */
-    func showMapcode() -> Int {
+    func updateMapcode() {
 
         // Selected context.
         var context: String!
@@ -832,35 +857,43 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 theMapcodeLabel.text = "ALTERNATIVE \(currentMapcodeIndex)"
             }
         }
-        return count
     }
 
 
     /**
-     * This method shows the current context.
+     * This method udpates the context and context label fields.
      */
-    func showContext() {
-        var context: String!
+    func updateContext() {
+
+        // Get current context.
+        var fullName: String!
         if !allContexts.isEmpty {
+
+            // Find its full name.
             let alphaCode = allContexts[currentContextIndex]
-            context = territoryFullNames[alphaCode]
-            if context == nil {
-                debug(DEBUG, msg: "showContext: Territory not found, alphaCode=\(alphaCode)")
+            fullName = territoryFullNames[alphaCode]
+            if fullName == nil {
+                debug(ERROR, msg: "updateContext: Territory not found, alphaCode=\(alphaCode)")
             }
         }
-        if context != nil {
-            let attributedText = NSMutableAttributedString(string: context!)
-            let fullRange = NSMakeRange(0, context!.characters.startIndex.distanceTo(context!.characters.endIndex))
+
+        // Check if full name was found. Normally it is only not found if either the territories were
+        // not loaded yet, or there are no contexts for this location.
+        if fullName != nil {
+
+            // Show full name.
+            let attributedText = NSMutableAttributedString(string: fullName!)
+            let fullRange = NSMakeRange(0, fullName!.characters.startIndex.distanceTo(fullName!.characters.endIndex))
             let font = UIFont(name: contextFont, size: contextFontSize)!
             attributedText.addAttributes([NSFontAttributeName: font], range: fullRange)
             theContext.attributedText = attributedText
         }
         else {
 
-            // Context is nil. This may be because the territories weren't loaded yet.
-            var text = "No territories found"
+            // Context is nil. This may be because the territories weren't loaded yet or there are no contexts.
+            var text = "No context found"
             if territoryFullNames.isEmpty {
-                text = "Loading territories..."
+                text = "Loading contexts..."
             }
             let attributedText = NSMutableAttributedString(string: text)
             let fullRange = NSMakeRange(0, text.characters.startIndex.distanceTo(text.characters.endIndex))
@@ -886,7 +919,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func showLatLon(coordinate: CLLocationCoordinate2D) {
 
-        // Update latitude and longitude.
+        // Update latitude and longitude, strip to microdegree precision.
         theLat.text = String(format: "%3.5f", coordinate.latitude)
         theLon.text = String(format: "%3.5f", coordinate.longitude)
     }
@@ -925,7 +958,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let now = NSDate().timeIntervalSince1970
         let timePassed = now - prevTimeForReverseGeocodeSecs
         if timePassed < limitReverseGeocodingSecs {
-            debug(DEBUG, msg: "periodicCheckToUpdateAddress: Too soon, timePassed=\(timePassed)")
+            debug(DEBUG, msg: "periodicCheckToUpdateAddress: Filtered (too soon), timePassed=\(timePassed)")
             return
         }
 
@@ -940,7 +973,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         queuedCoordinateForReverseGeocode = nil
 
         // Get address from reverse geocode.
-        debug(INFO, msg: "Call Reverse Geocoding API: \(coordinate)")
+        debug(INFO, msg: "periodicCheckToUpdateAddress: Call Reverse Geocoding API: \(coordinate)")
         CLGeocoder().reverseGeocodeLocation(CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude), completionHandler: {
             (placemarks, error) -> Void in
             if error != nil {
@@ -954,9 +987,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             if placemarks!.count > 0 {
                 let pm = placemarks![0] as CLPlacemark
                 var address: String = "";
+
+                // Streetname and housenumber.
                 if pm.thoroughfare != nil {
                     address = pm.thoroughfare!
                     if pm.subThoroughfare != nil {
+
+                        // User 'normal' or 'reverse' form of address.
                         if (self.useStreetThenNumber()) {
                             address = "\(address) \(pm.subThoroughfare!)";
                         }
@@ -965,12 +1002,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         }
                     }
                 }
+
+                // City.
                 if pm.locality != nil {
                     if (!address.isEmpty) {
                         address = "\(address), ";
                     }
                     address = "\(address)\(pm.locality!)";
                 }
+
+                // Country.
                 if pm.ISOcountryCode != nil {
                     if (!address.isEmpty) {
                         address = "\(address), ";
@@ -983,7 +1024,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.theAddress.textColor = UIColor.blackColor()
                     self.theAddress.text = address;
                 }
-            } else {
+            }
+            else {
                 self.debug(self.INFO, msg: "periodicCheckToUpdateAddress: No placemarks, coordinate=\(coordinate)")
             }
         })
@@ -1010,7 +1052,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Check if the territories were loaded yet from the Mapcode REST API.
         if territoryFullNames.isEmpty {
-            getTerritoryNames()
+            fetchTerritoryNamesFromServer()
         }
 
         // Bail out if nothing changed.
@@ -1047,19 +1089,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
         guard let rest = RestController.createFromURLString(url) else {
-            debug(INFO, msg: "updateFieldsMapcodes: Bad URL, url=\(url)")
-            theMapcode.text = ""
-            theContext.text = ""
+            debug(ERROR, msg: "updateFieldsMapcodes: Bad URL, url=\(url)")
             return
         }
 
         // Get mapcodes from REST API.
-        debug(INFO, msg: "Call Mapcode API: url=\(url)")
+        debug(INFO, msg: "periodicCheckToUpdateMapcode: Call Mapcode API: url=\(url)")
         rest.get {
             result, httpResponse in
             do {
-                var mcInternational = ""
-                var mcLocal = ""
+                var mcInternational = ""        // The international mapcode.
+                var mcShortestLocal = ""        // The shortest code.
 
                 // Get JSON response.
                 let json = try result.value()
@@ -1079,7 +1119,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 // Get shortest local mapcode.
                 if json["local"] != nil {
                     if (json["local"]?["territory"] != nil) && (json["local"]?["mapcode"] != nil) {
-                        mcLocal = "\((json["local"]?["territory"]?.stringValue)!) \((json["local"]?["mapcode"]?.stringValue)!)"
+                        mcShortestLocal = "\((json["local"]?["territory"]?.stringValue)!) \((json["local"]?["mapcode"]?.stringValue)!)"
                     }
                 }
 
@@ -1101,7 +1141,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     if alt.count >= 2 {
 
                         // Add the shortest as the first one (which should exist now).
-                        newAllMapcodes.append(mcLocal)
+                        newAllMapcodes.append(mcShortestLocal)
 
                         // Add the alternatives.
                         for i in 0...alt.count - 2 {
@@ -1110,7 +1150,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                             let fullMapcode = "\(territory) \(mapcode)"
 
                             // We wanted the shortest as the first, so don't add twice.
-                            if (fullMapcode != mcLocal) {
+                            if (fullMapcode != mcShortestLocal) {
                                 newAllMapcodes.append(fullMapcode)
                             }
 
@@ -1120,7 +1160,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     }
                 }
 
-                // Convert set to list and find previous context in list.
+                // Convert set of contexts into list and find previous context in list.
                 var newContextIndex = 0
                 var newAllContexts = [String]()
                 var i = 0
@@ -1141,17 +1181,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.currentContextIndex = newContextIndex
                     self.allMapcodes = newAllMapcodes
                     self.currentMapcodeIndex = 0
-                    self.showContext()
-                    self.showMapcode()
+                    self.updateContext()
+                    self.updateMapcode()
                 }
-            } catch {
+            }
+            catch {
                 self.debug(self.WARN, msg: "updateFieldsMapcodes: API call failed, url=\(url), error=\(error)")
-
-                // Something went wrong, discard mapcodes.
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.theContext.text = ""
-                    self.theMapcode.text = ""
-                }
             }
         }
     }
@@ -1225,7 +1260,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Code 0 is returned when during debugging anyhow.
         if (error.code != 0) {
-            debug(INFO, msg: "LocationManager:didFailWithError, error=\(error)")
+            debug(WARN, msg: "LocationManager:didFailWithError, error=\(error)")
         }
     }
 
@@ -1259,31 +1294,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the "open in maps" icon is pressed.
      */
     @IBAction func openInMapApplication(sender: AnyObject) {
-        openMapApplication(mapcodeLocation, name: getCurrentMapcodeName())
-    }
-
-
-    /**
-     * Method to return mapcode name based on input fields.
-     */
-    func getCurrentMapcodeName() -> String {
-        return theMapcode.text!
-    }
-
-
-    /**
-     * Truncate latitude to [-90, 90].
-     */
-    func truncLatitude(latitude: Double) -> CLLocationDegrees {
-        return max(-90.0, min(90.0, latitude))
-    }
-
-
-    /**
-     * Truncate latitude to [-180, 180].
-     */
-    func truncLongitude(latitude: Double) -> CLLocationDegrees {
-        return max(-180.0, min(180.0 - 1.0e-12, latitude))
+        openMapApplication(mapcodeLocation, name: theMapcode.text!)
     }
 
 
@@ -1305,6 +1316,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let mapItem = MKMapItem(placemark: placemark)
         mapItem.name = name
         mapItem.openInMapsWithLaunchOptions(options)
+    }
+    
+    
+    /**
+     * Truncate latitude to [-90, 90].
+     */
+    func truncLatitude(latitude: Double) -> CLLocationDegrees {
+        return max(-90.0, min(90.0, latitude))
+    }
+
+
+    /**
+     * Truncate latitude to [-180, 180].
+     */
+    func truncLongitude(latitude: Double) -> CLLocationDegrees {
+        return max(-180.0, min(180.0 - 1.0e-12, latitude))
     }
 
 
@@ -1398,11 +1425,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
     }
 
+    
     /**
      * This method gets called when on low memory.
      */
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        print("didReceiveMemoryWarning: Low memory warning")
+        debug(WARN, msg: "didReceiveMemoryWarning: Low memory warning")
     }
 }
