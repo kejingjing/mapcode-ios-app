@@ -259,7 +259,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 "* Increased font size of text fields.\n" +
                 "* Fixed a bug which prevented international code showing up sometimes.\n" +
                 "* New icon to move to next territory or mapcode (should be clearer now).\n" +
-                "* Changed context to territory and added explanation in info-box on territories.",
+                "* Changed context to territory and added explanation in info-box on territories.\n" +
+                "* Fixed airplane mode.",
                            button: "Dismiss")
         }
     }
