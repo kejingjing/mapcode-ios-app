@@ -179,13 +179,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.addGestureRecognizer(tapMap2)
 
         // Recognize 1 tap on mapcode.
-        let tapMapcode = UITapGestureRecognizer(target: self, action: #selector(handleMapcodeTap))
+        let tapMapcode = UITapGestureRecognizer(target: self, action: #selector(handleCopyMapcodeTap))
         theMapcode.addGestureRecognizer(tapMapcode)
 
-        // Recognize 1 tap on context and mapcode label
-        let tapContextLabel = UITapGestureRecognizer(target: self, action: #selector(handleContextLabelTap))
+        // Recognize 1 tap on context, context label and mapcode label
+        let tapContextLabel = UITapGestureRecognizer(target: self, action: #selector(handleNextContextTap))
         theContextLabel.addGestureRecognizer(tapContextLabel)
-        let tapMapcodeLabel = UITapGestureRecognizer(target: self, action: #selector(handleMapcodeLabelTap))
+        let tapContext = UITapGestureRecognizer(target: self, action: #selector(handleNextContextTap))
+        theContext.addGestureRecognizer(tapContext)
+        let tapMapcodeLabel = UITapGestureRecognizer(target: self, action: #selector(handleNextMapcodeTap))
         theMapcodeLabel.addGestureRecognizer(tapMapcodeLabel)
 
         // Setup our Location Manager. Only 1 location update is requested when the user presses
@@ -254,7 +256,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 "* Improved battery life, optimized location updates and web service calls.\n" +
                 "* Increased font size of text fields.\n" +
                 "* Fixed a bug which prevented international code showing up sometimes.\n" +
-                "* New icon to move to next territory or mapcode (should be clearer now).",
+                "* New icon to move to next territory or mapcode (should be clearer now).\n" +
+                "* Changed context to territory and added explanation in info-box on territories.",
                            button: "Dismiss")
         }
     }
@@ -272,13 +275,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "Get a mapcode by entering an address or coordinate, or moving the map around. You can tap " +
             "the map to move directly to a location and show the mapcode. Tap twice to zoom in really deep.\n\n" +
 
-            "Move to the next territory or mapcode by clicking on the fast-forward icon or simply on the label. " +
+            "Move to the next territory or mapcode by clicking on the fast-forward icon or on the label. " +
             "Copy the mapcode to the clipboard by tapping the mapcode box.\n\n" +
 
             "Show a mapcode on the map by entering it in the address box. Tip: If you omit " +
             "the territory for a local mapcode, the current territory is automatically assumed.\n\n" +
 
             "Plan a route to a mapcode by entering it and then tapping on the 'map' icon at the bottom right of the map.\n\n" +
+
+            "Important to know: A single location can have mapcodes with different territory codes. " +
+            "The 'correct' territory is always included, but another territory may be presented first. " +
+            "If this occurs, please select the correct territory by tapping once on the territory.\n\n" +
 
             "For more info on mapcodes in general, visit us at: http://mapcode.com\n\n________\n" +
 
@@ -375,7 +382,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Gesture recognizer: this method gets called when the user taps the mapcode.
      */
-    func handleMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
+    func handleCopyMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
         UIPasteboard.generalPasteboard().string = theMapcode.text
         theMapcodeLabel.text = textCopiedToClipboard
 
@@ -741,7 +748,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the user taps the context label, which means: next item.
      */
-    func handleContextLabelTap(gestureRecognizer: UITapGestureRecognizer) {
+    func handleNextContextTap(gestureRecognizer: UITapGestureRecognizer) {
         nextContext(self)
     }
 
@@ -777,7 +784,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the user taps the mapcode label, which means: next item.
      */
-    func handleMapcodeLabelTap(gestureRecognizer: UITapGestureRecognizer) {
+    func handleNextMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
         nextMapcode(self)
     }
 
