@@ -216,6 +216,35 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
+     * This method presents the 'What's new" box.
+     */
+    func showWhatsNew() {
+        let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
+        let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
+        let versionBuild = "\(version, build)"
+
+        let defaults = NSUserDefaults.standardUserDefaults()
+        let prevVersionBuild = defaults.stringForKey(keyVersionBuild)
+
+        // Check if the app was updated.
+        if (prevVersionBuild == nil) || (prevVersionBuild != versionBuild) {
+
+            defaults.setValue(versionBuild, forKey: keyVersionBuild)
+            defaults.synchronize()
+
+            self.showAlert("What's New", message: "Improvements in version \(version)\n(build \(build))\n" +
+                "* Tap on the mapcode field to copy it to clipboard.\n" +
+                "* Tap on icon or label to show next context or mapcode.\n" +
+                "* Zoom buttons have larger touch areas.\n" +
+                "* Improved responsiveness to get address/mapcode.\n" +
+                "* Improved battery life, optimized location updates and web service calls.\n" +
+                "* Increased font size of text fields.\n",
+                           button: "Dismiss")
+        }
+    }
+
+
+    /**
      * This method gets called when the "info" icon is pressed.
      */
     @IBAction func showInfo(sender: AnyObject) {
@@ -241,35 +270,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "(not used for commercial purposes).", button: "Dismiss")
     }
 
-
-    /**
-     * This method presents the 'What's new" box.
-     */
-    func showWhatsNew() {
-        let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
-        let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
-        let versionBuild = "\(version, build)"
-
-        let defaults = NSUserDefaults.standardUserDefaults()
-        let prevVersionBuild = defaults.stringForKey(keyVersionBuild)
-
-        // Check if the app was updated.
-        if (prevVersionBuild == nil) || (prevVersionBuild != versionBuild) {
-
-            defaults.setValue(versionBuild, forKey: keyVersionBuild)
-            defaults.synchronize()
-
-            self.showAlert("What's New", message: "Improvements in version \(version)\n(build \(build))\n" +
-                "* Tap on the mapcode field to copy it to clipboard.\n" +
-                "* Tap on icon or label to show nexty context or mapcode.\n" +
-                "* Zoom buttons have larger touch areas.\n" +
-                "* Improved responsiveness to get address/mapcode.\n" +
-                "* Improved battery life, optimized location updates and web service calls.\n" +
-                "* Increased font size of text fields.\n",
-                           button: "Dismiss")
-        }
-    }
-    
     
     /**
      * Helper method to check if a gesture recognizer was used.
@@ -1425,7 +1425,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
     }
 
-    
+
     /**
      * This method gets called when on low memory.
      */
