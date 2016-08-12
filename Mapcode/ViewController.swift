@@ -42,7 +42,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLat: UITextField!
     @IBOutlet weak var theLon: UITextField!
 
-    let debugMask = 0xFF    // Current debug messages mask.
+    // Current debug messages mask.
+    let debugMask = 0xFF
     let DEBUG = 1
     let INFO = 2
     let WARN = 4
