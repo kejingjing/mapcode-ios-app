@@ -43,7 +43,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLon: UITextField!
 
     // Current debug messages mask.
-    let debugMask = 0xFF
+    let debugMask = 0
     let DEBUG = 1
     let INFO = 2
     let WARN = 4
@@ -132,6 +132,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textAlternativeShort = "ALT."
     let textNoTerritoriesFound = "No territories found"
     let textLoadingTerritories = "Loading territories..."
+    let textNoInternet = "No internet connection?"
 
 
     /**
@@ -626,8 +627,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     }
                 }
 
-            } catch {
+            }
+            catch {
                 self.debug(self.WARN, msg: "mapcodeWasEntered: API call failed, url=\(url), error=\(error)")
+                dispatch_async(dispatch_get_main_queue()) {
+
+                    // Reset to backup.
+                    self.prevQueuedCoordinateForMapcodeLookup = nil
+                    self.prevQueuedCoordinateForReverseGeocode = nil
+                    self.queuedCoordinateForMapcodeLookup = self.mapcodeLocation
+                    self.queuedCoordinateForReverseGeocode = self.mapcodeLocation
+                    self.theAddress.text = self.textNoInternet
+                }
             }
         }
     }
@@ -697,7 +708,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.territoryFullNames = newTerritoryFullNames
                     self.updateContext()
                 }
-            } catch {
+            }
+            catch {
                 self.debug(self.WARN, msg: "fetchTerritoryNamesFromServer: API call failed, url=\(url), error=\(error)")
             }
         }
@@ -965,6 +977,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Bail out if nothing changed.
         if isEqualOrNil(queuedCoordinateForReverseGeocode, prevCoordinate: prevQueuedCoordinateForReverseGeocode) {
+            debug(DEBUG, msg: "periodicCheckToUpdateAddress: Filtered (no change), coordinate=\(queuedCoordinateForReverseGeocode)")
             return
         }
 
@@ -1077,6 +1090,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Bail out if nothing changed.
         if isEqualOrNil(queuedCoordinateForMapcodeLookup, prevCoordinate: prevQueuedCoordinateForMapcodeLookup) {
+            debug(DEBUG, msg: "periodicCheckToUpdateMapcode: Filtered (no change), coordinate=\(queuedCoordinateForMapcodeLookup)")
             return
         }
 
@@ -1101,7 +1115,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Keep the coordinate local.
         let coordinate = queuedCoordinateForMapcodeLookup
 
-        // Clear the request.
+        // Clear the request, keep a backup when an error occurs.
         queuedCoordinateForMapcodeLookup = nil
 
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
@@ -1109,7 +1123,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
         guard let rest = RestController.createFromURLString(url) else {
-            debug(ERROR, msg: "updateFieldsMapcodes: Bad URL, url=\(url)")
+            debug(ERROR, msg: "periodicCheckToUpdateMapcode: Bad URL, url=\(url)")
             return
         }
 
@@ -1126,7 +1140,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // The JSON response indicated an error, territory is set to nil.
                 if json["errors"] != nil {
-                    self.debug(self.WARN, msg: "updateFieldsMapcodes: Can get mapcode, coordinate=\(coordinate)")
+                    self.debug(self.WARN, msg: "periodicCheckToUpdateMapcode: Can get mapcode, coordinate=\(coordinate)")
                 }
 
                 // Get international mapcode.
@@ -1211,7 +1225,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 }
             }
             catch {
-                self.debug(self.WARN, msg: "updateFieldsMapcodes: API call failed, url=\(url), error=\(error)")
+                self.debug(self.WARN, msg: "periodicCheckToUpdateMapcode: API call failed, url=\(url), error=\(error)")
+                dispatch_async(dispatch_get_main_queue()) {
+
+                    // Reset to backup.
+                    self.prevQueuedCoordinateForMapcodeLookup = nil
+                    self.prevQueuedCoordinateForReverseGeocode = nil
+                    self.queuedCoordinateForMapcodeLookup = coordinate
+                    self.queuedCoordinateForReverseGeocode = coordinate
+                    self.theAddress.text = self.textNoInternet
+                }
             }
         }
     }
