@@ -118,6 +118,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         pattern: "\\A\\s*(?:[a-zA-Z0-9]{2,3}(?:[-][a-zA-Z0-9]{2,3})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
         options: [])
 
+    let territoryInternationalAlphaCode = "AAA"         // Territory code for international context.
+    let territoryInternationalFullName = "Earth"        // Territory full name for international context.
+
+    // Texts in dialogs.
+    let textCopiedToClipboard = "COPIED TO CLIPBOARD"
+    let textShortest = "SHORTEST"
+    let textAlternative = "ALTERNATIVE"
+    let textTerritory = "TERRITORY"
+    let textInternational = "INTERNATIONAL"
+    let textOf = "OF"
+    let textAlternativeShort = "ALT."
+    let textNoTerritoriesFound = "No territories found"
+    let textLoadingTerritories = "Loading territories..."
+
 
     /**
      * This method gets called when the view loads. It is called exactly once.
@@ -145,7 +159,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Set text fields.
         theAddress.text = ""
         theContext.text = ""
-        theContextLabel.text = "CONTEXT"
+        theContextLabel.text = "TERRITORY"
         theNextContext.hidden = true
         theMapcode.text = ""
         theMapcodeLabel.text = "SHORTEST"
@@ -234,11 +248,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             self.showAlert("What's New", message: "Improvements in version \(version)\n(build \(build))\n" +
                 "* Tap on the mapcode field to copy it to clipboard.\n" +
-                "* Tap on icon or label to show next context or mapcode.\n" +
+                "* Tap on icon or label to show next territory or mapcode.\n" +
                 "* Zoom buttons have larger touch areas.\n" +
                 "* Improved responsiveness to get address/mapcode.\n" +
                 "* Improved battery life, optimized location updates and web service calls.\n" +
-                "* Increased font size of text fields.\n",
+                "* Increased font size of text fields.\n" +
+                "* Fixed a bug which prevented international code showing up sometimes.\n" +
+                "* New icon to move to next territory or mapcode (should be clearer now).",
                            button: "Dismiss")
         }
     }
@@ -256,11 +272,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             "Get a mapcode by entering an address or coordinate, or moving the map around. You can tap " +
             "the map to move directly to a location and show the mapcode. Tap twice to zoom in really deep.\n\n" +
 
-            "Move to the next context or mapcode by clicking on the fast-forward icon or simply on the label. " +
+            "Move to the next territory or mapcode by clicking on the fast-forward icon or simply on the label. " +
             "Copy the mapcode to the clipboard by tapping the mapcode box.\n\n" +
 
-            "Show a mapcode on the map by entering it in the address box. If you omit " +
-            "the context for a local mapcode, the current context is automatically assumed.\n\n" +
+            "Show a mapcode on the map by entering it in the address box. Tip: If you omit " +
+            "the territory for a local mapcode, the current territory is automatically assumed.\n\n" +
 
             "Plan a route to a mapcode by entering it and then tapping on the 'map' icon at the bottom right of the map.\n\n" +
 
@@ -361,7 +377,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func handleMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
         UIPasteboard.generalPasteboard().string = theMapcode.text
-        theMapcodeLabel.text = "COPIED TO CLIPBOARD"
+        theMapcodeLabel.text = textCopiedToClipboard
 
         // Do not advance next at next tap; just update field.
         nextMapcodeTapAdvances = false;
@@ -664,6 +680,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     let fullName = territory["fullName"]?.stringValue
                     newTerritoryFullNames[alphaCode!] = fullName!
                 }
+                newTerritoryFullNames[self.territoryInternationalAlphaCode] = self.territoryInternationalFullName
 
                 // Update mapcode fields on main thread.
                 dispatch_async(dispatch_get_main_queue()) {
@@ -794,20 +811,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Selected context.
         var context: String!
-        if !allContexts.isEmpty {
+        if !allContexts.isEmpty && (currentContextIndex < (allContexts.count - 1)) {
             context = allContexts[currentContextIndex]
         }
 
         // Add mapcodes in territory only.
         var selection = [String]()
         for m in allMapcodes {
-            if (context == nil) || m.containsString("\(context) ") {
+
+            // Add the code if the territory is OK, or the context is international and 
+            // it's the international code.
+            if m.containsString("\(context) ") ||
+                ((context == nil) && !m.containsString(" ")) {
                 selection.append(m)
             }
         }
 
-        // Always add international.
-        selection.append(allMapcodes[allMapcodes.count - 1])
+        // Limit index to a place in this list.
         let count = selection.count
         if currentMapcodeIndex >= count {
             currentMapcodeIndex = 0
@@ -822,7 +842,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeCodeFont, size: mapcodeCodeFontSize)!], range: fullRange)
         attributedText.addAttributes([NSKernAttributeName: mapcodeFontKern], range: fullRange)
 
-        // Make territory different.
+        // If the code has a territory, make it look different.
         let index = mapcode.characters.indexOf(Character(" "))
         if index != nil {
             let count = mapcode.characters.startIndex.distanceTo(index!)
@@ -830,6 +850,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, count))
         }
         else {
+
+            // If the code has no territory, it is the international code.
             attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
             attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeInternationalColor], range: fullRange)
         }
@@ -838,23 +860,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Set the mapcode label text.
         if count == 1 {
             theNextMapcode.hidden = true
-            theMapcodeLabel.text = "INTERNATIONAL"
+            if mapcode.containsString(" ") {
+                theMapcodeLabel.text = textShortest
+            }
+            else {
+                theMapcodeLabel.text = textInternational
+            }
         }
         else {
             theNextMapcode.hidden = false
             if currentMapcodeIndex == 0 {
-                if count == 2 {
-                    theMapcodeLabel.text = "SHORTEST"
-                }
-                else {
-                    theMapcodeLabel.text = "SHORTEST (+\(count - 2) ALT.)"
-                }
-            }
-            else if currentMapcodeIndex == (count - 1) {
-                theMapcodeLabel.text = "INTERNATIONAL"
+                theMapcodeLabel.text = "\(textShortest) (+\(count - 1) \(textAlternativeShort))"
             }
             else {
-                theMapcodeLabel.text = "ALTERNATIVE \(currentMapcodeIndex)"
+                theMapcodeLabel.text = "\(textAlternative) \(currentMapcodeIndex)"
             }
         }
     }
@@ -879,37 +898,30 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Check if full name was found. Normally it is only not found if either the territories were
         // not loaded yet, or there are no contexts for this location.
-        if fullName != nil {
 
-            // Show full name.
-            let attributedText = NSMutableAttributedString(string: fullName!)
-            let fullRange = NSMakeRange(0, fullName!.characters.startIndex.distanceTo(fullName!.characters.endIndex))
-            let font = UIFont(name: contextFont, size: contextFontSize)!
-            attributedText.addAttributes([NSFontAttributeName: font], range: fullRange)
-            theContext.attributedText = attributedText
+        if fullName == nil {
+            fullName = textLoadingTerritories
         }
-        else {
 
-            // Context is nil. This may be because the territories weren't loaded yet or there are no contexts.
-            var text = "No context found"
-            if territoryFullNames.isEmpty {
-                text = "Loading contexts..."
-            }
-            let attributedText = NSMutableAttributedString(string: text)
-            let fullRange = NSMakeRange(0, text.characters.startIndex.distanceTo(text.characters.endIndex))
-            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeTerritoryColor], range: fullRange)
-            theContext.attributedText = attributedText
+        // Show full name.
+        let attributedText = NSMutableAttributedString(string: fullName!)
+        let fullRange = NSMakeRange(0, fullName!.characters.startIndex.distanceTo(fullName!.characters.endIndex))
+        attributedText.addAttributes([NSFontAttributeName: UIFont(name: contextFont, size: contextFontSize)!], range: fullRange)
+
+        // Use different color for international conext.
+        if currentContextIndex == allContexts.count - 1 {
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeInternationalColor], range: fullRange)
         }
+        theContext.attributedText = attributedText
 
         // Set the mapcode label text.
         if allContexts.count <= 1 {
             theNextContext.hidden = true
-            theContextLabel.text = "CONTEXT"
+            theContextLabel.text = textTerritory
         }
         else {
             theNextContext.hidden = false
-            theContextLabel.text = "CONTEXT \(currentContextIndex + 1) OF \(allContexts.count)"
+            theContextLabel.text = "\(textTerritory) \(currentContextIndex + 1) \(textOf) \(allContexts.count)"
         }
     }
 
@@ -1123,33 +1135,35 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     }
                 }
 
-                // Reset alternative mapcodes.
-                var newAllMapcodes = [String]()
-                var newAllContextsSet = Set<String>()
-
-                // Try to match previous context.
+                // Try to match existing context with 1 from the new list.
                 var prevContext: String!
                 if !self.allContexts.isEmpty {
                     prevContext = self.allContexts[self.currentContextIndex]
                 }
 
+                // Create a new list of mapcodes and contexts.
+                var newAllMapcodes = [String]()
+                var newAllContextsSet = Set<String>()
+
                 // Get alternative mapcodes.
                 if (json["mapcodes"] != nil) && (json["mapcodes"]?.jsonArray != nil) {
                     let alt = (json["mapcodes"]?.jsonArray)!
 
-                    // The international code is always there and must not be used here.
+                    // The international code is always there.
                     if alt.count >= 2 {
 
-                        // Add the shortest as the first one (which should exist now).
+                        // Add the shortest one (which must exist as there are 2+ codes).
                         newAllMapcodes.append(mcShortestLocal)
 
-                        // Add the alternatives.
+                        // Add the alternatives, including the international (which is last).
                         for i in 0...alt.count - 2 {
+
+                            // Create the full mapcode.
                             let territory = (alt[i]!["territory"]?.stringValue)!
                             let mapcode = (alt[i]!["mapcode"]?.stringValue)!
                             let fullMapcode = "\(territory) \(mapcode)"
 
-                            // We wanted the shortest as the first, so don't add twice.
+                            // Don't add the already added local code.
                             if (fullMapcode != mcShortestLocal) {
                                 newAllMapcodes.append(fullMapcode)
                             }
@@ -1171,6 +1185,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     }
                     i += 1
                 }
+
+                // Always append the international context at the end.
+                newAllContexts.append(self.territoryInternationalAlphaCode)
 
                 // Always append the international code.
                 newAllMapcodes.append(mcInternational)
