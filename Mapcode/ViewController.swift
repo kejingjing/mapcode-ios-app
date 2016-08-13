@@ -43,7 +43,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLon: UITextField!
 
     // Current debug messages mask.
-    let debugMask = 0
+    let debugMask = -1
     let DEBUG = 1
     let INFO = 2
     let WARN = 4
@@ -119,20 +119,32 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         pattern: "\\A\\s*(?:[a-zA-Z0-9]{2,3}(?:[-][a-zA-Z0-9]{2,3})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
         options: [])
 
-    let territoryInternationalAlphaCode = "AAA"         // Territory code for international context.
-    let territoryInternationalFullName = "Earth"        // Territory full name for international context.
+    let territoryInternationalAlphaCode = "AAA"      // Territory code for international context.
+    let territoryInternationalFullName = "Earth"     // Territory full name for international context.
+
+    let alphaEnabled: CGFloat = 1.0                  // Transparency of enabled button.
+    let alphaDisabled: CGFloat = 0.5                 // Transparency of disabled button.
 
     // Texts in dialogs.
     let textCopiedToClipboard = "COPIED TO CLIPBOARD"
-    let textShortest = "SHORTEST"
-    let textAlternative = "ALTERNATIVE"
+    let textShortest = "MAPCODE"
+    let textAlternative = "MAPCODE"
     let textTerritory = "TERRITORY"
-    let textInternational = "INTERNATIONAL"
+    let textInternational = "MAPCODE"
     let textOf = "OF"
     let textAlternativeShort = "ALT."
     let textNoTerritoriesFound = "No territories found"
     let textLoadingTerritories = "Loading territories..."
     let textNoInternet = "No internet connection?"
+
+
+    /**
+     * Errors that may be thrown when talking to an API.
+     */
+    enum ApiError: ErrorType {
+        case ApiReturnsErrors(json: JSONValue!)
+        case ApiUnexpectedMessageFormat(json: JSONValue!)
+    }
 
 
     /**
@@ -162,10 +174,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theAddress.text = ""
         theContext.text = ""
         theContextLabel.text = "TERRITORY"
-        theNextContext.hidden = true
+        theNextContext.enabled = false
         theMapcode.text = ""
         theMapcodeLabel.text = "SHORTEST"
-        theNextMapcode.hidden = true
+        theNextMapcode.enabled = false
         theLat.text = ""
         theLon.text = ""
 
@@ -250,7 +262,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             defaults.setValue(versionBuild, forKey: keyVersionBuild)
             defaults.synchronize()
 
-            self.showAlert("What's New", message: "Improvements in version \(version)\n(build \(build))\n" +
+            self.showAlert("What's New", message: "---- v\(version)\n(build \(build)): ----\n" +
+                "* Fixed sorting of territories; better match is now first.\n\n" +
+                "* Removed clutter from layout.\n" +
+                
+                "---- v1.0.3 (build 20160812007): ----" +
                 "* Tap on the mapcode field to copy it to clipboard.\n" +
                 "* Tap on icon or label to show next territory or mapcode.\n" +
                 "* Zoom buttons have larger touch areas.\n" +
@@ -880,7 +896,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set the mapcode label text.
         if count == 1 {
-            theNextMapcode.hidden = true
+            theNextMapcode.enabled = false
+            theNextMapcode.alpha = alphaDisabled
             if mapcode.containsString(" ") {
                 theMapcodeLabel.text = textShortest
             }
@@ -889,12 +906,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             }
         }
         else {
-            theNextMapcode.hidden = false
+            theNextMapcode.enabled = true
+            theNextMapcode.alpha = alphaEnabled
             if currentMapcodeIndex == 0 {
                 theMapcodeLabel.text = "\(textShortest) (+\(count - 1) \(textAlternativeShort))"
             }
             else {
-                theMapcodeLabel.text = "\(textAlternative) \(currentMapcodeIndex)"
+                theMapcodeLabel.text = "\(textAlternative) (\(textAlternativeShort)\(currentMapcodeIndex))"
             }
         }
     }
@@ -937,11 +955,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set the mapcode label text.
         if allContexts.count <= 1 {
-            theNextContext.hidden = true
+            theNextContext.enabled = false
+            theNextContext.alpha = alphaDisabled
             theContextLabel.text = textTerritory
         }
         else {
-            theNextContext.hidden = false
+            theNextContext.enabled = true
+            theNextContext.alpha = alphaEnabled
             theContextLabel.text = "\(textTerritory) \(currentContextIndex + 1) \(textOf) \(allContexts.count)"
         }
     }
@@ -1133,29 +1153,30 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         rest.get {
             result, httpResponse in
             do {
-                var mcInternational = ""        // The international mapcode.
-                var mcShortestLocal = ""        // The shortest code.
-
                 // Get JSON response.
                 let json = try result.value()
 
                 // The JSON response indicated an error, territory is set to nil.
                 if json["errors"] != nil {
-                    self.debug(self.WARN, msg: "periodicCheckToUpdateMapcode: Can get mapcode, coordinate=\(coordinate)")
+                    throw ApiError.ApiReturnsErrors(json: json["errors"])
                 }
 
-                // Get international mapcode.
-                if json["international"] != nil {
-                    if json["international"]?["mapcode"] != nil {
-                        mcInternational = (json["international"]?["mapcode"]?.stringValue)!
-                    }
+                // Get international mapcode (must exist).
+                if (json["international"] == nil) || (json["international"]?["mapcode"] == nil) {
+                    throw ApiError.ApiUnexpectedMessageFormat(json: json.jsonValue)
                 }
+                let mapcodeInternational = (json["international"]?["mapcode"]?.stringValue)!
 
-                // Get shortest local mapcode.
+
+                // Get shortest local mapcode (optional).
+                var mapcodeLocal = ""
+                var territoryLocal = ""
                 if json["local"] != nil {
-                    if (json["local"]?["territory"] != nil) && (json["local"]?["mapcode"] != nil) {
-                        mcShortestLocal = "\((json["local"]?["territory"]?.stringValue)!) \((json["local"]?["mapcode"]?.stringValue)!)"
+                    if (json["local"]?["territory"] == nil) || (json["local"]?["mapcode"] == nil) {
+                        throw ApiError.ApiUnexpectedMessageFormat(json: json["local"])
                     }
+                    territoryLocal = (json["local"]?["territory"]?.stringValue)!
+                    mapcodeLocal = (json["local"]?["mapcode"]?.stringValue)!
                 }
 
                 // Try to match existing context with 1 from the new list.
@@ -1164,56 +1185,67 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     prevContext = self.allContexts[self.currentContextIndex]
                 }
 
+                // The new index; nil means: no matching territory found yet.
+                var newContextIndex: Int!
+
                 // Create a new list of mapcodes and contexts.
                 var newAllMapcodes = [String]()
-                var newAllContextsSet = Set<String>()
+                var newAllContexts = [String]()
 
-                // Get alternative mapcodes.
-                if (json["mapcodes"] != nil) && (json["mapcodes"]?.jsonArray != nil) {
-                    let alt = (json["mapcodes"]?.jsonArray)!
+                // Get list of all mapcodes (must exist and must contain at least the international mapcode).
+                if (json["mapcodes"] == nil) || (json["mapcodes"]?.jsonArray == nil) {
+                    throw ApiError.ApiUnexpectedMessageFormat(json: json.jsonValue)
+                }
 
-                    // The international code is always there.
-                    if alt.count >= 2 {
+                // Store the list of mapcodes (must include the international mapcode).
+                let alt = (json["mapcodes"]?.jsonArray)!
+                if alt.count == 0 {
+                    throw ApiError.ApiUnexpectedMessageFormat(json: json["mapcodes"])
+                }
 
-                        // Add the shortest one (which must exist as there are 2+ codes).
-                        newAllMapcodes.append(mcShortestLocal)
+                // If there are other mapcodes besides the international one, process them.
+                if alt.count >= 2 {
 
-                        // Add the alternatives, including the international (which is last).
-                        for i in 0...alt.count - 2 {
+                    // Add the shortest one at front (which only exists if there are 2+ mapcodes).
+                    newAllMapcodes.append("\(territoryLocal) \(mapcodeLocal)")
+                    newAllContexts.append(territoryLocal)
+                    if (prevContext != nil) && (prevContext == territoryLocal) {
+                        newContextIndex = 0
+                    }
 
-                            // Create the full mapcode.
-                            let territory = (alt[i]!["territory"]?.stringValue)!
-                            let mapcode = (alt[i]!["mapcode"]?.stringValue)!
-                            let fullMapcode = "\(territory) \(mapcode)"
+                    // Add the alternatives, NOT including the international (which is last and has no territory).
+                    for i in 0...alt.count - 2 {
 
-                            // Don't add the already added local code.
-                            if (fullMapcode != mcShortestLocal) {
-                                newAllMapcodes.append(fullMapcode)
+                        // Create the full mapcode.
+                        let territory = (alt[i]!["territory"]?.stringValue)!
+                        let mapcode = (alt[i]!["mapcode"]?.stringValue)!
+
+                        // Don't add the already added local mapcode (or its territory).
+                        if (territory != territoryLocal) || (mapcode != mapcodeLocal) {
+                            newAllMapcodes.append("\(territory) \(mapcode)")
+
+                            // Keep the territories (no doubles).
+                            if (!newAllContexts.contains(territory)) {
+                                newAllContexts.append(territory)
+
+                                // Update the new index only if it didn't have a value yet.
+                                if (newContextIndex == nil) && (prevContext != nil) && (prevContext == territory) {
+                                    newContextIndex = newAllContexts.count - 1
+                                }
                             }
-
-                            // And keep the territories.
-                            newAllContextsSet.insert(territory)
                         }
                     }
                 }
 
-                // Convert set of contexts into list and find previous context in list.
-                var newContextIndex = 0
-                var newAllContexts = [String]()
-                var i = 0
-                for context in newAllContextsSet {
-                    newAllContexts.append(context)
-                    if (prevContext != nil) && (context == prevContext) {
-                        newContextIndex = i
-                    }
-                    i += 1
-                }
-
-                // Always append the international context at the end.
+                // Special case: Always append the international mapcode and context at the end. 
+                // Do NOT match the previous context - we rather have it snap to something else than international.
                 newAllContexts.append(self.territoryInternationalAlphaCode)
+                newAllMapcodes.append(mapcodeInternational)
 
-                // Always append the international code.
-                newAllMapcodes.append(mcInternational)
+                // Now, if we still didn't find a matching territory, fall back to the first one.
+                if newContextIndex == nil {
+                    newContextIndex = 0
+                }
 
                 // Update mapcode fields on main thread.
                 dispatch_async(dispatch_get_main_queue()) {
@@ -1334,8 +1366,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             allow = false
             locationManager.stopUpdatingLocation()
         }
-        theHere.enabled = allow
-        theHere.hidden = !allow
+        if allow! {
+            theHere.enabled = true
+            theHere.alpha = alphaEnabled
+        }
+        else {
+            theHere.enabled = false
+            theHere.alpha = alphaDisabled
+        }
+        theHere.hidden = !allow // TODO
     }
 
 
