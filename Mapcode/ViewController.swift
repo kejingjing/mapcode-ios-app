@@ -65,7 +65,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let contextFontSize: CGFloat = 16.0;
     let mapcodeFontKern = 0.75
     let mapcodeTerritoryColor = UIColor.grayColor()
-    let mapcodeInternationalColor = UIColor.darkGrayColor()
+    let mapcodeImportantColor = UIColor.blackColor()
+    let mapcodeLessImportantColor = UIColor.darkGrayColor()
 
     var colorWaitingForUpdate = UIColor.lightGrayColor()    // Color for 'outdated' fields, waiting for update.
 
@@ -143,7 +144,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     // Texts in dialogs.
     let textCopiedToClipboard = "COPIED TO CLIPBOARD"
     let textShortest = "MAPCODE"
-    let textAlternative = "MAPCODE"
+    let textAlternative = "ALTERNATIVE"
     let textTerritory = "TERRITORY"
     let textInternational = "MAPCODE"
     let textOf = "OF"
@@ -908,21 +909,31 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set defaults.
         let fullRange = NSMakeRange(0, mapcode.characters.startIndex.distanceTo(mapcode.characters.endIndex))
+
+        // Use different color for alternative.
+        if (currentMapcodeIndex == 0) {
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeImportantColor], range: fullRange)
+        }
+        else {
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeLessImportantColor], range: fullRange)
+        }
+
+        // Set font.
         attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeCodeFont, size: mapcodeCodeFontSize)!], range: fullRange)
         attributedText.addAttributes([NSKernAttributeName: mapcodeFontKern], range: fullRange)
 
         // If the code has a territory, make it look different.
         let index = mapcode.characters.indexOf(Character(" "))
         if index != nil {
-            let count = mapcode.characters.startIndex.distanceTo(index!)
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeTerritoryColor], range: NSMakeRange(0, count))
-            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, count))
+            let n = mapcode.characters.startIndex.distanceTo(index!)
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeTerritoryColor], range: NSMakeRange(0, n))
+            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, n))
         }
         else {
 
             // If the code has no territory, it is the international code.
             attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeInternationalColor], range: fullRange)
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeLessImportantColor], range: fullRange)
         }
         theMapcode.attributedText = attributedText
 
@@ -944,7 +955,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 theMapcodeLabel.text = "\(textShortest) (+\(count - 1) \(textAlternativeShort))"
             }
             else {
-                theMapcodeLabel.text = "\(textAlternative) (\(textAlternativeShort) \(currentMapcodeIndex))"
+                theMapcodeLabel.text = "\(textAlternative) \(currentMapcodeIndex)"
             }
         }
     }
@@ -981,7 +992,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Use different color for international conext.
         if currentContextIndex == allContexts.count - 1 {
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeInternationalColor], range: fullRange)
+            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeLessImportantColor], range: fullRange)
         }
         theContext.attributedText = attributedText
 
