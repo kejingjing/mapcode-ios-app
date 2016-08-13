@@ -41,6 +41,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theNextMapcode: UIButton!
     @IBOutlet weak var theLat: UITextField!
     @IBOutlet weak var theLon: UITextField!
+    @IBOutlet weak var theLatLabel: UILabel!
+    @IBOutlet weak var theLonLabel: UILabel!
 
     // Current debug messages mask.
     let debugMask = -1
@@ -59,14 +61,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let mapcodeCodeFont = "HelveticaNeue-Bold"
     let mapcodeInternationalFont = "HelveticaNeue-Bold"
     let contextFont = "HelveticaNeue-Medium"
-    let mapcodeTerritoryFontSize: CGFloat = 14.0;
+    let mapcodeTerritoryFontSize: CGFloat = 12.0;
     let mapcodeCodeFontSize: CGFloat = 16.0;
+    let mapcodeCodeFontSizeSmall: CGFloat = 12.0;
     let mapcodeInternationalFontSize: CGFloat = 16.0;
     let contextFontSize: CGFloat = 16.0;
-    let mapcodeFontKern = 0.75
-    let mapcodeTerritoryColor = UIColor.grayColor()
+    let mapcodeFontKern = 0.65
+    let mapcodeTerritoryColor = UIColor(hue: 0.6, saturation: 0.7, brightness: 0.5, alpha: 1.0)
     let mapcodeImportantColor = UIColor.blackColor()
-    let mapcodeLessImportantColor = UIColor.darkGrayColor()
+    let mapcodeLessImportantColor = UIColor.blackColor()
 
     var colorWaitingForUpdate = UIColor.lightGrayColor()    // Color for 'outdated' fields, waiting for update.
 
@@ -115,6 +118,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     var timerReverseGeocoding = NSTimer()           // Timer to schedule/limit reverse geocoding.
     var timerLocationUpdates = NSTimer()            // Timer to schedule/limit location updates.
+    var timerResetCoordinateLabels = NSTimer()      // Timer to reset labels.
 
     var mapcodeRegex = try! NSRegularExpression(    // Pattern to match mapcodes: XXX[-XXX] XXXXX.XXXX[-XXXXXXXX]
         pattern: "\\A\\s*(?:[a-zA-Z0-9]{2,3}(?:[-][a-zA-Z0-9]{2,3})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
@@ -127,6 +131,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let alphaDisabled: CGFloat = 0.5                 // Transparency of disabled button.
 
     let movementDurationSecs = 0.3                  // Move up/down time.
+
+    let resetCoordinateLabelsSecs = 3.0             // Reset coordinate labels after copy to clipboard.
 
     var movementDistanceAddress: CGFloat = 0.0      // Distance to move screen up/down when typing.
     var movementDistanceCoordinate: CGFloat = 0.0
@@ -152,7 +158,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textNoTerritoriesFound = "No territories found"
     let textLoadingTerritories = "Loading territories..."
     let textNoInternet = "No internet connection?"
+    let textLatLabel = "LATITUDE (Y)"
+    let textLonLabel = "LONGITUDE (X)"
 
+    // Special mapcodes.
+    let longestMapcode = "MX-GRO MWWW.WWWW"
+    let mostMapcodesCoordinate = CLLocationCoordinate2D(latitude: 52.0505, longitude: 113.4686)
+    let mostMapcodesCoordinateCount = 21
 
     /**
      * Errors that may be thrown when talking to an API.
@@ -221,6 +233,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Recognize 1 tap on mapcode.
         let tapMapcode = UITapGestureRecognizer(target: self, action: #selector(handleCopyMapcodeTap))
         theMapcode.addGestureRecognizer(tapMapcode)
+
+        // Recognize 1 tap on latitude.
+        let tapLatitude = UITapGestureRecognizer(target: self, action: #selector(handleCopyLatitudeTap))
+        theLatLabel.addGestureRecognizer(tapLatitude)
+
+        // Recognize 1 tap on longitude.
+        let tapLongitude = UITapGestureRecognizer(target: self, action: #selector(handleCopyLongitudeTap))
+        theLonLabel.addGestureRecognizer(tapLongitude)
 
         // Recognize 1 tap on context, context label and mapcode label
         let tapContextLabel = UITapGestureRecognizer(target: self, action: #selector(handleNextContextTap))
@@ -291,7 +311,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             self.showAlert("What's New", message: "v\(version)\n(build \(build)):\n" +
                 "* Fixed sorting of territories; better match is now first.\n" +
                 "* Fixed keyboard issue.\n" +
-                "* Removed clutter from layout.\n\n" +
+                "* Removed clutter from layout.\n" +
+                "* Added copy-to-clipboard of lat/lon fields.\n" +
+                "* Fixed mapcode field width to support 'MX-GRO MWWWW.WWWW'\n\n" +
 
                 "v1.0.3 (build 20160812007):\n" +
                 "* Tap on the mapcode field to copy it to clipboard.\n" +
@@ -436,6 +458,47 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         nextMapcodeTapAdvances = false;
     }
 
+    
+    /**
+     * Gesture recognizer: this method gets called when the user taps the latitude.
+     */
+    func handleCopyLatitudeTap(gestureRecognizer: UITapGestureRecognizer) {
+        UIPasteboard.generalPasteboard().string = theLat.text
+        theLatLabel.text = textCopiedToClipboard
+
+        // Schedule reset of label.
+        timerResetCoordinateLabels.invalidate()
+        timerResetCoordinateLabels = NSTimer.scheduledTimerWithTimeInterval(
+            resetCoordinateLabelsSecs, target: self,
+            selector: #selector(ResetCoordinateLabels),
+            userInfo: nil, repeats: false)
+    }
+
+
+    /**
+     * Gesture recognizer: this method gets called when the user taps the longitude.
+     */
+    func handleCopyLongitudeTap(gestureRecognizer: UITapGestureRecognizer) {
+        UIPasteboard.generalPasteboard().string = theLon.text
+        theLonLabel.text = textCopiedToClipboard
+
+        // Schedule reset of label.
+        timerResetCoordinateLabels.invalidate()
+        timerResetCoordinateLabels = NSTimer.scheduledTimerWithTimeInterval(
+            resetCoordinateLabelsSecs, target: self,
+            selector: #selector(ResetCoordinateLabels),
+            userInfo: nil, repeats: false)
+    }
+
+
+    /**
+     * This method reset the latitude and longitude labels to their default values.
+     */
+    func ResetCoordinateLabels() {
+         self.theLatLabel.text = self.textLatLabel
+         self.theLonLabel.text = self.textLonLabel
+    }
+    
     
     /**
      * This gets called whenever the use switches between nromal and hybrid map types.
@@ -918,8 +981,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeLessImportantColor], range: fullRange)
         }
 
-        // Set font.
-        attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeCodeFont, size: mapcodeCodeFontSize)!], range: fullRange)
+        // Set font size, reduce size for really large mapcodes.
+        var fontSize = mapcodeCodeFontSize
+        if mapcode.characters.count >= longestMapcode.characters.count  {
+            fontSize = mapcodeCodeFontSizeSmall
+        }
+        attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeCodeFont, size: fontSize)!], range: fullRange)
         attributedText.addAttributes([NSKernAttributeName: mapcodeFontKern], range: fullRange)
 
         // If the code has a territory, make it look different.
