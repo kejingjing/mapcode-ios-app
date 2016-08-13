@@ -125,6 +125,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let alphaEnabled: CGFloat = 1.0                  // Transparency of enabled button.
     let alphaDisabled: CGFloat = 0.5                 // Transparency of disabled button.
 
+    let movementDurationSecs = 0.3                  // Move up/down time.
+
+    var movementDistanceAddress: CGFloat = 0.0      // Distance to move screen up/down when typing.
+    var movementDistanceCoordinate: CGFloat = 0.0
+
+    let iPhoneMovementDistanceAddress: CGFloat = 125.0
+    let iPhoneMovementDistanceCoordinate: CGFloat = 250.0
+
+    let iPadMovementDistanceAddress: CGFloat = 270.0
+    let iPadMovementDistanceCoordinate: CGFloat = 400.0
+
+    let tagTextFieldAddress = 1                     // Tags of text fields.
+    let tagTextFieldLatitude = 2
+    let tagTextFieldLongitude = 3
+
     // Texts in dialogs.
     let textCopiedToClipboard = "COPIED TO CLIPBOARD"
     let textShortest = "MAPCODE"
@@ -183,6 +198,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Disabled the "share" button.
         theShare.hidden = true
+
+        // Work-around to move screen sufficiently high on iPad.
+        if UIDevice().model.containsString("iPad") {
+            movementDistanceAddress = iPadMovementDistanceAddress
+            movementDistanceCoordinate = iPadMovementDistanceCoordinate
+        }
+        else {
+            movementDistanceAddress = iPhoneMovementDistanceAddress
+            movementDistanceCoordinate = iPhoneMovementDistanceCoordinate
+        }
 
         // Recognize 1 or 2 taps on map.
         let tapMap1 = UITapGestureRecognizer(target: self, action: #selector(handleMapTap1))
@@ -262,11 +287,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             defaults.setValue(versionBuild, forKey: keyVersionBuild)
             defaults.synchronize()
 
-            self.showAlert("What's New", message: "---- v\(version)\n(build \(build)): ----\n" +
-                "* Fixed sorting of territories; better match is now first.\n\n" +
-                "* Removed clutter from layout.\n" +
-                
-                "---- v1.0.3 (build 20160812007): ----" +
+            self.showAlert("What's New", message: "v\(version)\n(build \(build)):\n" +
+                "* Fixed sorting of territories; better match is now first.\n" +
+                "* Removed clutter from layout.\n\n" +
+
+                "v1.0.3 (build 20160812007):\n" +
                 "* Tap on the mapcode field to copy it to clipboard.\n" +
                 "* Tap on icon or label to show next territory or mapcode.\n" +
                 "* Zoom buttons have larger touch areas.\n" +
@@ -429,15 +454,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method moves the screen up or down when a field gets edited.
      */
     func animateTextField(textField: UITextField, up: Bool) {
-        let movementDistance: CGFloat = -250
-        let movementDuration: Double = 0.3
-
-        var movement: CGFloat = 0
-        if up {
-            movement = movementDistance
+        let movementDuration = movementDurationSecs
+        var movementDistance: CGFloat = 0.0
+        if textField.tag == tagTextFieldAddress {
+            movementDistance = movementDistanceAddress
         }
         else {
+            movementDistance = movementDistanceCoordinate
+        }
+
+        var movement: CGFloat = 0.0
+        if up {
             movement = -movementDistance
+        }
+        else {
+            movement = movementDistance
         }
         UIView.beginAnimations("animateTextField", context: nil)
         UIView.setAnimationBeginsFromCurrentState(true)
@@ -912,7 +943,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 theMapcodeLabel.text = "\(textShortest) (+\(count - 1) \(textAlternativeShort))"
             }
             else {
-                theMapcodeLabel.text = "\(textAlternative) (\(textAlternativeShort)\(currentMapcodeIndex))"
+                theMapcodeLabel.text = "\(textAlternative) (\(textAlternativeShort) \(currentMapcodeIndex))"
             }
         }
     }
@@ -1374,7 +1405,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             theHere.enabled = false
             theHere.alpha = alphaDisabled
         }
-        theHere.hidden = !allow // TODO
     }
 
 
