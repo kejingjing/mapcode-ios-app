@@ -289,6 +289,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             self.showAlert("What's New", message: "v\(version)\n(build \(build)):\n" +
                 "* Fixed sorting of territories; better match is now first.\n" +
+                "* Fixed keyboard issue.\n" +
                 "* Removed clutter from layout.\n\n" +
 
                 "v1.0.3 (build 20160812007):\n" +
