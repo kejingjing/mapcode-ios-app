@@ -28,8 +28,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     @IBOutlet weak var theMap: MKMapView!
-    @IBOutlet weak var theHere: UIButton!
     @IBOutlet weak var theMapType: UISegmentedControl!
+    @IBOutlet weak var theFindMyLocation: UIButton!
     @IBOutlet weak var theZoomIn: UIButton!
     @IBOutlet weak var theZoomOut: UIButton!
     @IBOutlet weak var theShare: UIButton!
@@ -345,7 +345,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the "info" icon is pressed.
      */
-    @IBAction func showInfo(sender: AnyObject) {
+    @IBAction func showAbout(sender: AnyObject) {
         let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
         let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
         self.showAlert("Mapcode \(version)\nbuild \(build)", message: "Copyright (C) 2016\n" +
@@ -856,7 +856,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the "find here" icon is pressed.
      */
-    @IBAction func findHere(sender: AnyObject) {
+    @IBAction func findMyLocation(sender: AnyObject) {
 
         // Invalidate timer: cancels next scheduled update. Will automatically be-rescheduled.
         timerLocationUpdates.invalidate()
@@ -1499,12 +1499,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             locationManager.stopUpdatingLocation()
         }
         if allow! {
-            theHere.enabled = true
-            theHere.alpha = alphaEnabled
+            theFindMyLocation.enabled = true
+            theFindMyLocation.alpha = alphaEnabled
         }
         else {
-            theHere.enabled = false
-            theHere.alpha = alphaDisabled
+            theFindMyLocation.enabled = false
+            theFindMyLocation.alpha = alphaDisabled
         }
     }
 
@@ -1512,7 +1512,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the "open in maps" icon is pressed.
      */
-    @IBAction func openInMapApplication(sender: AnyObject) {
+    @IBAction func openInMapsApplication(sender: AnyObject) {
         openMapApplication(mapcodeLocation, name: theMapcode.text!)
     }
 
