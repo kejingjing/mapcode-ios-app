@@ -138,6 +138,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textCopiedToClipboard = "COPIED TO CLIPBOARD"
 
     // Special mapcodes.
+    let alphaCodeInternational = "AAA"
     let longestMapcode = "MX-GRO MWWW.WWWW"
     let mostMapcodesCoordinate = CLLocationCoordinate2D(latitude: 52.0505, longitude: 113.4686)
     let mostMapcodesCoordinateCount = 21
@@ -957,12 +958,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func getMapcodesForTerritory(territory: String!) -> [String] {
         var selection = [String]()
+        print("t=\(territory)")
         for m in allMapcodes {
 
             // Add the code if the territory is OK, or the context is international and
             // it's the international code.
-            if m.containsString("\(territory) ") ||
-                ((territory == nil) && !m.containsString(" ")) {
+            if m.containsString("\(territory) ") || (territory == nil) ||
+                ((territory == alphaCodeInternational) && !m.containsString(" ")) {
+            print("  add=\(m)")
                 selection.append(m)
             }
         }
@@ -1037,7 +1040,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set the mapcode label text. There's always a mapcode.
         let count = getMapcodesForTerritory(allContexts[currentContextIndex]).count
-        if count == 1 {
+        if count <= 1 {
             theNextMapcode.enabled = false
             theNextMapcode.alpha = alphaDisabled
             theMapcodeLabel.text = textMapcodeSingle
