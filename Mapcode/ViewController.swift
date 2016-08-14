@@ -50,7 +50,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-    let debugMask = -1
+    let debugMask = 0
     let DEBUG = 1
     let INFO = 2
     let WARN = 4
