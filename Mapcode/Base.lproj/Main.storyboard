@@ -388,6 +388,7 @@
                         <outlet property="theNextContext" destination="YvQ-0x-P0k" id="a7t-mo-XRg"/>
                         <outlet property="theNextMapcode" destination="ZKZ-a7-cYi" id="5Yq-2d-Mse"/>
                         <outlet property="theShare" destination="FzW-1u-A5W" id="IfE-U4-oAd"/>
+                        <outlet property="theView" destination="uKr-t6-5ok" id="2eX-Wy-A3R"/>
                         <outlet property="theZoomIn" destination="Qcm-6U-D1v" id="pn7-ex-rqu"/>
                         <outlet property="theZoomOut" destination="44y-Qs-BpH" id="6uQ-1F-w3V"/>
                     </connections>

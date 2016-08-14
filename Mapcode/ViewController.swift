@@ -44,6 +44,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLon: UITextField!
     @IBOutlet weak var theLatLabel: UILabel!
     @IBOutlet weak var theLonLabel: UILabel!
+    @IBOutlet weak var theView: UIView!
 
     /**
      * Constants.
@@ -324,18 +325,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 "* Fixed keyboard issue.\n" +
                 "* Removed clutter from layout.\n" +
                 "* Copy-to-clipboard improved.\n" +
+                "* Fixed bug for int'l mapcode.\n" +
                 "* Fixed bug for very long mapcodes.\n\n" +
 
                 "v1.0.3 (build 20160812007):\n" +
-                "* Tap on the mapcode field to copy it to clipboard.\n" +
-                "* Tap on icon or label to show next territory or mapcode.\n" +
-                "* Zoom buttons have larger touch areas.\n" +
-                "* Improved responsiveness to get address/mapcode.\n" +
+                "* Tap on mapcode to copy it to clipboard.\n" +
+                "* Tap on icon/label to show next territory or mapcode.\n" +
+                "* Zoom buttons have larger areas.\n" +
+                "* Improved responsiveness.\n" +
                 "* Improved battery life, optimized location updates and web service calls.\n" +
-                "* Increased font size of text fields.\n" +
+                "* Increased font size.\n" +
                 "* Fixed a bug which prevented international code showing up sometimes.\n" +
-                "* New icon to move to next territory or mapcode (should be clearer now).\n" +
-                "* Changed context to territory and added explanation in info-box on territories.\n" +
+                "* New UI and icons.\n" +
+                "* Added explanation in about box on territories.\n" +
                 "* Fixed airplane mode.",
                            button: "Dismiss")
         }
