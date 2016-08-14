@@ -26,6 +26,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * List of UI controls that we need to access from code.
      */
+
     @IBOutlet weak var theMap: MKMapView!
     @IBOutlet weak var theHere: UIButton!
     @IBOutlet weak var theMapType: UISegmentedControl!
@@ -44,6 +45,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLatLabel: UILabel!
     @IBOutlet weak var theLonLabel: UILabel!
 
+    /**
+     * Constants.
+     */
+
     // Current debug messages mask.
     let debugMask = -1
     let DEBUG = 1
@@ -55,7 +60,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let allowLog: String = "true";                  // API: Allow logging requests.
     let client: String = "ios";                     // API: Client ID.
 
-    let keyVersionBuild = "versionBuild"            // Version and build (for what's new).
+    let tagTextFieldAddress = 1                     // Tags of text fields.
+    let tagTextFieldLatitude = 2
+    let tagTextFieldLongitude = 3
 
     let mapcodeTerritoryFont = "HelveticaNeue"      // Font definitions.
     let mapcodeCodeFont = "HelveticaNeue-Bold"
@@ -67,14 +74,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let mapcodeInternationalFontSize: CGFloat = 16.0;
     let contextFontSize: CGFloat = 16.0;
     let mapcodeFontKern = 0.65
-    let mapcodeTerritoryColor = UIColor(hue: 0.6, saturation: 0.7, brightness: 0.5, alpha: 1.0)
-    let mapcodeImportantColor = UIColor.blackColor()
-    let mapcodeLessImportantColor = UIColor.blackColor()
 
-    var colorWaitingForUpdate = UIColor.lightGrayColor()    // Color for 'outdated' fields, waiting for update.
+    let colorMapcode = UIColor.blackColor()         // Colors of mapcode and its territory prefix.
+    let colorTerritoryPrefix = UIColor(hue: 0.6, saturation: 0.7, brightness: 0.5, alpha: 1.0)
 
-    // Provide a sensible screen if no user location is available (rather than mid Pacific).
-    var mapcodeLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
+    let colorWaitingForUpdate = UIColor.lightGrayColor()    // Color for 'outdated' fields, waiting for update.
+    let colorLabelNormal = UIColor.blackColor()             // Normal label.
+    let colorLabelCopiedToClipboard = UIColor(hue: 0.35, saturation: 0.8, brightness: 0.6, alpha: 1.0)
 
     let zoomFactor = 2.5                            // Factor for zoom in/out.
 
@@ -89,6 +95,60 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let scheduleUpdateLocationsSecs = 300.0         // Switch on update locations every x secs.
     let distanceFilterMeters = 10000.0              // Not interested in local position updates.
 
+    let limitReverseGeocodingSecs = 1.0             // Limit webservice API's to no
+    let limitMapcodeLookupSecs = 1.0                // more than x requests per second.
+
+    let mapcodeRegex = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
+
+        // _______START_[' ']XXx_____________[___-_XXx______________]' '___XXxxx____________.__XXxx___________[___-_Xxxxxxxx_________][' ']END
+        pattern: "\\A\\s*(?:[a-zA-Z0-9]{2,3}(?:[-][a-zA-Z0-9]{2,3})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
+        options: [])
+
+    let territoryInternationalAlphaCode = "AAA"      // Territory code for international context.
+    let territoryInternationalFullName = "Earth"     // Territory full name for international context.
+
+    let alphaEnabled: CGFloat = 1.0                  // Transparency of enabled button.
+    let alphaDisabled: CGFloat = 0.5                 // Transparency of disabled button.
+
+    let movementDurationSecs = 0.3                  // Move up/down time.
+    let resetLabelsAfterSecs = 2.5                  // Reset coordinate labels after copy to clipboard.
+
+    var movementDistanceAddress: CGFloat = 0.0              // Distance to move screen up/down when typing.
+    var movementDistanceCoordinate: CGFloat = 0.0           // These vars should be considered constants.
+    let iPhoneMovementDistanceAddress: CGFloat = 125.0      // The movement distance is set once to either
+    let iPhoneMovementDistanceCoordinate: CGFloat = 250.0   // iPhone or iPad movement.
+    let iPadMovementDistanceAddress: CGFloat = 270.0
+    let iPadMovementDistanceCoordinate: CGFloat = 400.0
+
+    let keyVersionBuild = "versionBuild"            // Version and build (for what's new).
+
+    // Texts in dialogs.
+    let textNoTerritoriesFound = "No territories found"
+    let textLoadingTerritories = "Loading territories..."
+    let textNoInternet = "No internet connection?"
+
+    // Labels.
+    let textTerritorySingle = "TERRITORY"
+    let textTerritoryXOfY = "TERRITORY %i OF %i"
+    let textMapcodeSingle = "MAPCODE"
+    let textMapcodeFirstOfN = "MAPCODE (+%i ALT.)"
+    let textMapcodeXOfY = "ALTERNATIVE %i"
+    let textLatLabel = "LATITUDE (Y)"
+    let textLonLabel = "LONGITUDE (X)"
+    let textCopiedToClipboard = "COPIED TO CLIPBOARD"
+
+    // Special mapcodes.
+    let longestMapcode = "MX-GRO MWWW.WWWW"
+    let mostMapcodesCoordinate = CLLocationCoordinate2D(latitude: 52.0505, longitude: 113.4686)
+    let mostMapcodesCoordinateCount = 21
+
+    /**
+     * Global state.
+     */
+
+    // Provide a sensible screen if no user location is available (rather than mid Pacific).
+    var mapcodeLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
+
     var waitingForFirstLocationSinceStarted = true  // First location is different: auto-move to it.
     var moveMapToUserLocation = false               // True if map should auto-move to user location.
 
@@ -97,7 +157,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     var allMapcodes = [String]()                    // List of all mapcodes for current location (cannot be empty).
     var currentMapcodeIndex = 0                     // Index of current alternative; 0 = shortest, last = int'l.
-    var nextMapcodeTapAdvances = true               // True if tapping advances through mapcodesor just tupdates field.
 
     var allContexts = [String]()                    // List of all contexts for current location (can be empty).
     var currentContextIndex = 0                     // Index of current context.
@@ -112,59 +171,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     var prevTimeForReverseGeocodeSecs: NSTimeInterval = 0.0   // Last time a request was made, to limit number of requests
     var prevTimeForMapcodeLookupSecs: NSTimeInterval = 0.0    // but react immediately after time of inactivity.
-
-    let limitReverseGeocodingSecs = 1.0             // Limit webservice API's to no
-    let limitMapcodeLookupSecs = 1.0                // more than x requests per second.
-
+    
     var timerReverseGeocoding = NSTimer()           // Timer to schedule/limit reverse geocoding.
     var timerLocationUpdates = NSTimer()            // Timer to schedule/limit location updates.
-    var timerResetCoordinateLabels = NSTimer()      // Timer to reset labels.
+    var timerResetLabels = NSTimer()                // Timer to reset labels.
 
-    var mapcodeRegex = try! NSRegularExpression(    // Pattern to match mapcodes: XXX[-XXX] XXXXX.XXXX[-XXXXXXXX]
-        pattern: "\\A\\s*(?:[a-zA-Z0-9]{2,3}(?:[-][a-zA-Z0-9]{2,3})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
-        options: [])
-
-    let territoryInternationalAlphaCode = "AAA"      // Territory code for international context.
-    let territoryInternationalFullName = "Earth"     // Territory full name for international context.
-
-    let alphaEnabled: CGFloat = 1.0                  // Transparency of enabled button.
-    let alphaDisabled: CGFloat = 0.5                 // Transparency of disabled button.
-
-    let movementDurationSecs = 0.3                  // Move up/down time.
-
-    let resetCoordinateLabelsSecs = 3.0             // Reset coordinate labels after copy to clipboard.
-
-    var movementDistanceAddress: CGFloat = 0.0      // Distance to move screen up/down when typing.
-    var movementDistanceCoordinate: CGFloat = 0.0
-
-    let iPhoneMovementDistanceAddress: CGFloat = 125.0
-    let iPhoneMovementDistanceCoordinate: CGFloat = 250.0
-
-    let iPadMovementDistanceAddress: CGFloat = 270.0
-    let iPadMovementDistanceCoordinate: CGFloat = 400.0
-
-    let tagTextFieldAddress = 1                     // Tags of text fields.
-    let tagTextFieldLatitude = 2
-    let tagTextFieldLongitude = 3
-
-    // Texts in dialogs.
-    let textCopiedToClipboard = "COPIED TO CLIPBOARD"
-    let textShortest = "MAPCODE"
-    let textAlternative = "ALTERNATIVE"
-    let textTerritory = "TERRITORY"
-    let textInternational = "MAPCODE"
-    let textOf = "OF"
-    let textAlternativeShort = "ALT."
-    let textNoTerritoriesFound = "No territories found"
-    let textLoadingTerritories = "Loading territories..."
-    let textNoInternet = "No internet connection?"
-    let textLatLabel = "LATITUDE (Y)"
-    let textLonLabel = "LONGITUDE (X)"
-
-    // Special mapcodes.
-    let longestMapcode = "MX-GRO MWWW.WWWW"
-    let mostMapcodesCoordinate = CLLocationCoordinate2D(latitude: 52.0505, longitude: 113.4686)
-    let mostMapcodesCoordinateCount = 21
 
     /**
      * Errors that may be thrown when talking to an API.
@@ -309,11 +320,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             defaults.synchronize()
 
             self.showAlert("What's New", message: "v\(version)\n(build \(build)):\n" +
-                "* Fixed sorting of territories; better match is now first.\n" +
+                "* Better first territory match.\n" +
                 "* Fixed keyboard issue.\n" +
                 "* Removed clutter from layout.\n" +
-                "* Added copy-to-clipboard of lat/lon fields.\n" +
-                "* Fixed mapcode field width to support 'MX-GRO MWWWW.WWWW'\n\n" +
+                "* Copy-to-clipboard improved.\n" +
+                "* Fixed bug for very long mapcodes.\n\n" +
 
                 "v1.0.3 (build 20160812007):\n" +
                 "* Tap on the mapcode field to copy it to clipboard.\n" +
@@ -337,28 +348,33 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func showInfo(sender: AnyObject) {
         let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
         let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
-        self.showAlert("Mapcode \(version) (build \(build))", message: "Copyright (C) 2016\n" +
+        self.showAlert("Mapcode \(version)\nbuild \(build)", message: "Copyright (C) 2016\n" +
             "Rijn Buve, Mapcode Foundation\n\n" +
 
-            "Get a mapcode by entering an address or coordinate, or moving the map around. You can tap " +
-            "the map to move directly to a location and show the mapcode. Tap twice to zoom in really deep.\n\n" +
+            "Enter an address or coordinate to get a mapcode, or move the map around. " +
+            "Tap twice to zoom in really deep.\n\n" +
 
-            "Move to the next territory or mapcode by clicking on the fast-forward icon or on the label. " +
-            "Copy the mapcode to the clipboard by tapping the mapcode box.\n\n" +
+            "Enter a mapcode in the address field to show it on the map. Tip: if you omit " +
+            "the territory for local mapcodes, the current territory is used.\n\n" +
 
-            "Show a mapcode on the map by entering it in the address box. Tip: If you omit " +
-            "the territory for a local mapcode, the current territory is automatically assumed.\n\n" +
+            "Tap the Next buttons to show next territory or mapcode. " +
+            "Tap the mapcode itself to copy it to the clipboard.\n\n" +
 
-            "Plan a route to a mapcode by entering it and then tapping on the 'map' icon at the bottom right of the map.\n\n" +
+            "Tap on the Maps icon to plan a route to it using the Maps app.\n\n" +
 
-            "Important to know: A single location can have mapcodes with different territory codes. " +
-            "The 'correct' territory is always included, but another territory may be presented first. " +
-            "If this occurs, please select the correct territory by tapping once on the territory.\n\n" +
+            "Note that a single location can have mapcodes with different territory codes. " +
+            "The 'correct' territory is always included, but other territories may be presented as well. " +
+            "You can select correct territory by tapping on the Next button.\n\n" +
 
-            "For more info on mapcodes in general, visit us at: http://mapcode.com\n\n________\n" +
+            "For questions, or more info on mapcodes in general, please visit us at: http://mapcode.com\n\n" +
 
-            "Note that some usage data may be collected to improve the Mapcode REST API service " +
-            "(not used for commercial purposes).", button: "Dismiss")
+            "Finally, a big thanks to our many beta-testers who have provided invaluable " +
+            "feedback during the development of this product!\n\n" +
+
+            "________\n" +
+
+            "NOTICE: Some usage data may be collected to improve the Mapcode REST API service. " +
+            "This data is used by the Mapcode Foundation only and not used for commercial purposes.", button: "Dismiss")
     }
 
     
@@ -452,10 +468,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func handleCopyMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
         UIPasteboard.generalPasteboard().string = theMapcode.text
+        theMapcodeLabel.textColor = colorLabelCopiedToClipboard
         theMapcodeLabel.text = textCopiedToClipboard
-
-        // Do not advance next at next tap; just update field.
-        nextMapcodeTapAdvances = false;
+        scheduleResetLabels()
     }
 
     
@@ -464,14 +479,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func handleCopyLatitudeTap(gestureRecognizer: UITapGestureRecognizer) {
         UIPasteboard.generalPasteboard().string = theLat.text
+        theLatLabel.textColor = colorLabelCopiedToClipboard
         theLatLabel.text = textCopiedToClipboard
-
-        // Schedule reset of label.
-        timerResetCoordinateLabels.invalidate()
-        timerResetCoordinateLabels = NSTimer.scheduledTimerWithTimeInterval(
-            resetCoordinateLabelsSecs, target: self,
-            selector: #selector(ResetCoordinateLabels),
-            userInfo: nil, repeats: false)
+        scheduleResetLabels()
     }
 
 
@@ -480,12 +490,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func handleCopyLongitudeTap(gestureRecognizer: UITapGestureRecognizer) {
         UIPasteboard.generalPasteboard().string = theLon.text
+        theLonLabel.textColor = colorLabelCopiedToClipboard
         theLonLabel.text = textCopiedToClipboard
+        scheduleResetLabels()
+    }
 
-        // Schedule reset of label.
-        timerResetCoordinateLabels.invalidate()
-        timerResetCoordinateLabels = NSTimer.scheduledTimerWithTimeInterval(
-            resetCoordinateLabelsSecs, target: self,
+
+    /**
+     * This method schedules a reset of the labels.
+     */
+    func scheduleResetLabels() {
+        timerResetLabels.invalidate()
+        timerResetLabels = NSTimer.scheduledTimerWithTimeInterval(
+            resetLabelsAfterSecs, target: self,
             selector: #selector(ResetCoordinateLabels),
             userInfo: nil, repeats: false)
     }
@@ -495,8 +512,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method reset the latitude and longitude labels to their default values.
      */
     func ResetCoordinateLabels() {
+
+        // Update coordinate labels.
+        theLatLabel.textColor = colorLabelNormal
+        theLonLabel.textColor = colorLabelNormal
          self.theLatLabel.text = self.textLatLabel
          self.theLonLabel.text = self.textLonLabel
+
+        // Update mapcode label.
+        updateMapcodeLabel()
     }
     
     
@@ -921,22 +945,31 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func nextMapcode(sender: AnyObject) {
 
         // Move to next alternative next time we press the button.
-        if nextMapcodeTapAdvances {
-
-            // Move to next mapcode.
-            currentMapcodeIndex += 1
-        }
-        else {
-
-            // Only update (e.g. after copied to clipboard). Always reset flag after a tap.
-            nextMapcodeTapAdvances = true;
-        }
+        currentMapcodeIndex += 1
 
         // Show current mapcode, no need to update context field.
         updateMapcode()
     }
 
-    
+
+    /**
+     * This method returns an array of all mapcodes for a specific territory.
+     */
+    func getMapcodesForTerritory(territory: String!) -> [String] {
+        var selection = [String]()
+        for m in allMapcodes {
+
+            // Add the code if the territory is OK, or the context is international and
+            // it's the international code.
+            if m.containsString("\(territory) ") ||
+                ((territory == nil) && !m.containsString(" ")) {
+                selection.append(m)
+            }
+        }
+        return selection
+    }
+
+
     /**
      * This method updates the mapcode and mapcode label fields.
      */
@@ -949,22 +982,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
 
         // Add mapcodes in territory only.
-        var selection = [String]()
-        for m in allMapcodes {
-
-            // Add the code if the territory is OK, or the context is international and 
-            // it's the international code.
-            if m.containsString("\(context) ") ||
-                ((context == nil) && !m.containsString(" ")) {
-                selection.append(m)
-            }
-        }
+        var selection = getMapcodesForTerritory(context)
 
         // Limit index to a place in this list.
         let count = selection.count
         if currentMapcodeIndex >= count {
             currentMapcodeIndex = 0
         }
+
+        // Get the mapcode from this selection.
         let mapcode = selection[currentMapcodeIndex]
 
         // Set the mapcode text.
@@ -973,13 +999,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Set defaults.
         let fullRange = NSMakeRange(0, mapcode.characters.startIndex.distanceTo(mapcode.characters.endIndex))
 
-        // Use different color for alternative.
-        if (currentMapcodeIndex == 0) {
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeImportantColor], range: fullRange)
-        }
-        else {
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeLessImportantColor], range: fullRange)
-        }
+        // Set color of mapcode itself.
+        attributedText.addAttributes([NSForegroundColorAttributeName: colorMapcode], range: fullRange)
 
         // Set font size, reduce size for really large mapcodes.
         var fontSize = mapcodeCodeFontSize
@@ -993,36 +1014,42 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let index = mapcode.characters.indexOf(Character(" "))
         if index != nil {
             let n = mapcode.characters.startIndex.distanceTo(index!)
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeTerritoryColor], range: NSMakeRange(0, n))
+            attributedText.addAttributes([NSForegroundColorAttributeName: colorTerritoryPrefix], range: NSMakeRange(0, n))
             attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, n))
         }
         else {
 
             // If the code has no territory, it is the international code.
             attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeLessImportantColor], range: fullRange)
         }
         theMapcode.attributedText = attributedText
+        updateMapcodeLabel()
+    }
 
-        // Set the mapcode label text.
+
+    /**
+     * This method updates the mapcode label text.
+     */
+    func updateMapcodeLabel() {
+
+        // Set the label color.
+        theMapcodeLabel.textColor = colorLabelNormal
+
+        // Set the mapcode label text. There's always a mapcode.
+        let count = getMapcodesForTerritory(allContexts[currentContextIndex]).count
         if count == 1 {
             theNextMapcode.enabled = false
             theNextMapcode.alpha = alphaDisabled
-            if mapcode.containsString(" ") {
-                theMapcodeLabel.text = textShortest
-            }
-            else {
-                theMapcodeLabel.text = textInternational
-            }
+            theMapcodeLabel.text = textMapcodeSingle
         }
         else {
             theNextMapcode.enabled = true
             theNextMapcode.alpha = alphaEnabled
             if currentMapcodeIndex == 0 {
-                theMapcodeLabel.text = "\(textShortest) (+\(count - 1) \(textAlternativeShort))"
+                theMapcodeLabel.text = String(format: textMapcodeFirstOfN, count - 1)
             }
             else {
-                theMapcodeLabel.text = "\(textAlternative) \(currentMapcodeIndex)"
+                theMapcodeLabel.text = String(format: textMapcodeXOfY, currentMapcodeIndex, count - 1)
             }
         }
     }
@@ -1056,23 +1083,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let attributedText = NSMutableAttributedString(string: fullName!)
         let fullRange = NSMakeRange(0, fullName!.characters.startIndex.distanceTo(fullName!.characters.endIndex))
         attributedText.addAttributes([NSFontAttributeName: UIFont(name: contextFont, size: contextFontSize)!], range: fullRange)
-
-        // Use different color for international conext.
-        if currentContextIndex == allContexts.count - 1 {
-            attributedText.addAttributes([NSForegroundColorAttributeName: mapcodeLessImportantColor], range: fullRange)
-        }
         theContext.attributedText = attributedText
 
-        // Set the mapcode label text.
-        if allContexts.count <= 1 {
+        // Set the mapcode label text. There's always a context.
+        if allContexts.count == 1 {
             theNextContext.enabled = false
             theNextContext.alpha = alphaDisabled
-            theContextLabel.text = textTerritory
+            theContextLabel.text = textTerritorySingle
         }
         else {
             theNextContext.enabled = true
             theNextContext.alpha = alphaEnabled
-            theContextLabel.text = "\(textTerritory) \(currentContextIndex + 1) \(textOf) \(allContexts.count)"
+            theContextLabel.text = String(format: textTerritoryXOfY, currentContextIndex + 1, allContexts.count)
         }
     }
 

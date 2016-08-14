@@ -96,7 +96,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="detailDisclosure" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tgm-Fn-qAP" userLabel="About">
-                                        <rect key="frame" x="288" y="61" width="22" height="22"/>
+                                        <rect key="frame" x="288" y="60" width="22" height="22"/>
                                         <connections>
                                             <action selector="showInfo:" destination="BYZ-38-t0r" eventType="touchDown" id="FiA-SL-t5j"/>
                                         </connections>
@@ -139,7 +139,7 @@
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="bottom" secondItem="PbS-qj-HqD" secondAttribute="bottom" constant="12" id="25X-wM-Bgl"/>
-                                    <constraint firstItem="Tgm-Fn-qAP" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" constant="61" id="33C-MV-yDc"/>
+                                    <constraint firstItem="Tgm-Fn-qAP" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" constant="60" id="33C-MV-yDc"/>
                                     <constraint firstAttribute="bottom" secondItem="rKN-zi-tQH" secondAttribute="bottom" constant="12" id="5h5-qR-hlw"/>
                                     <constraint firstAttribute="trailing" secondItem="Qcm-6U-D1v" secondAttribute="trailing" id="A8s-iT-4vA"/>
                                     <constraint firstAttribute="bottom" secondItem="FzW-1u-A5W" secondAttribute="bottom" constant="12" id="B54-Hq-EL8"/>
