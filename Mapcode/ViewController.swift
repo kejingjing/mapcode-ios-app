@@ -535,6 +535,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Gesture recognizer: this method gets called when the user taps the latitude.
      */
     func handleCopyLatitudeTap(gestureRecognizer: UITapGestureRecognizer) {
+        // Resign keyboard form text field when user taps map.
+        self.view.endEditing(true)
+
         UIPasteboard.generalPasteboard().string = theLat.text
         theLatLabel.textColor = colorLabelCopiedToClipboard
         theLatLabel.text = textCopiedToClipboard
@@ -546,6 +549,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Gesture recognizer: this method gets called when the user taps the longitude.
      */
     func handleCopyLongitudeTap(gestureRecognizer: UITapGestureRecognizer) {
+        // Resign keyboard form text field when user taps map.
+        self.view.endEditing(true)
+
         UIPasteboard.generalPasteboard().string = theLon.text
         theLonLabel.textColor = colorLabelCopiedToClipboard
         theLonLabel.text = textCopiedToClipboard
@@ -922,6 +928,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the user taps the context label, which means: next item.
      */
     func handleNextContextTap(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Resign keyboard form text field when user taps map.
+        self.view.endEditing(true)
+
         nextContext(self)
     }
 
@@ -958,6 +968,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the user taps the mapcode label, which means: next item.
      */
     func handleNextMapcodeTap(gestureRecognizer: UITapGestureRecognizer) {
+
+        // Resign keyboard form text field when user taps map.
+        self.view.endEditing(true)
+
         nextMapcode(self)
     }
 
