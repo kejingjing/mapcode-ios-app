@@ -373,7 +373,9 @@
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                     <connections>
+                        <outlet property="keyboardHeightLayoutConstraint" destination="rGL-jn-Bx9" id="4Xs-2q-DYL"/>
                         <outlet property="theAddress" destination="RV4-F7-Zd0" id="UPT-bI-4b8"/>
+                        <outlet property="theAddressLabel" destination="B9G-bC-hHA" id="qwh-b3-2tt"/>
                         <outlet property="theContext" destination="kLn-5n-hda" id="sdI-Ik-qBe"/>
                         <outlet property="theContextLabel" destination="4eD-gA-qlr" id="eIL-iG-MdA"/>
                         <outlet property="theFindMyLocation" destination="rKN-zi-tQH" id="sHo-7u-rLA"/>

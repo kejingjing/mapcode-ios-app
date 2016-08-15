@@ -34,6 +34,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theZoomOut: UIButton!
     @IBOutlet weak var theShare: UIButton!
     @IBOutlet weak var theAddress: UITextField!
+    @IBOutlet weak var theAddressLabel: UILabel!
     @IBOutlet weak var theContext: UITextView!
     @IBOutlet weak var theContextLabel: UILabel!
     @IBOutlet weak var theNextContext: UIButton!
@@ -45,6 +46,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLatLabel: UILabel!
     @IBOutlet weak var theLonLabel: UILabel!
     @IBOutlet weak var theView: UIView!
+    @IBOutlet weak var keyboardHeightLayoutConstraint: NSLayoutConstraint!
 
     /**
      * Constants.
@@ -81,6 +83,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     let colorWaitingForUpdate = UIColor.lightGrayColor()    // Color for 'outdated' fields, waiting for update.
     let colorLabelNormal = UIColor.blackColor()             // Normal label.
+    let colorLabelAlert = UIColor.redColor()                // Alert message.
     let colorLabelCopiedToClipboard = UIColor(hue: 0.35, saturation: 0.8, brightness: 0.6, alpha: 1.0)
 
     let zoomFactor = 2.5                            // Factor for zoom in/out.
@@ -101,18 +104,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     let mapcodeRegex = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
 
-        // _______START_[' ']XXx_____________[___-_XXx______________]' '___XXxxx____________.__XXxx___________[___-_Xxxxxxxx_________][' ']END
-        pattern: "\\A\\s*(?:[a-zA-Z0-9]{2,3}(?:[-][a-zA-Z0-9]{2,3})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
+        // _______START_[' ']XXx____________________[___-_XXx______________________]' '___XXxxx____________.__XXxx___________[___-_Xxxxxxxx_________][' ']END
+        pattern: "\\A\\s*(?:[a-zA-Z][a-zA-Z0-9]{1,2}(?:[-][a-zA-Z][a-zA-Z0-9]{1,2})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
         options: [])
 
-    let territoryInternationalAlphaCode = "AAA"      // Territory code for international context.
-    let territoryInternationalFullName = "Earth"     // Territory full name for international context.
+    let keyVersionBuild = "versionBuild"            // Version and build (for what's new).
 
-    let alphaEnabled: CGFloat = 1.0                  // Transparency of enabled button.
-    let alphaDisabled: CGFloat = 0.5                 // Transparency of disabled button.
+    let territoryInternationalAlphaCode = "AAA"     // Territory code for international context.
+    let territoryInternationalFullName = "Earth"    // Territory full name for international context.
 
-    let movementDurationSecs = 0.3                  // Move up/down time.
-    let resetLabelsAfterSecs = 2.5                  // Reset coordinate labels after copy to clipboard.
+    let alphaEnabled: CGFloat = 1.0                 // Transparency of enabled button.
+    let alphaDisabled: CGFloat = 0.5                // Transparency of disabled button.
+
+    let resetLabelsAfterSecs = 5.0                  // Reset coordinate labels after copy to clipboard.
+    let keyboardMinimumDistance: CGFloat = 4.0      // Default distance to bottom.
 
     var movementDistanceAddress: CGFloat = 0.0              // Distance to move screen up/down when typing.
     var movementDistanceCoordinate: CGFloat = 0.0           // These vars should be considered constants.
@@ -120,8 +125,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let iPhoneMovementDistanceCoordinate: CGFloat = 250.0   // iPhone or iPad movement.
     let iPadMovementDistanceAddress: CGFloat = 270.0
     let iPadMovementDistanceCoordinate: CGFloat = 400.0
-
-    let keyVersionBuild = "versionBuild"            // Version and build (for what's new).
 
     // Texts in dialogs.
     let textNoTerritoriesFound = "No territories found"
@@ -137,6 +140,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textLatLabel = "LATITUDE (Y)"
     let textLonLabel = "LONGITUDE (X)"
     let textCopiedToClipboard = "COPIED TO CLIPBOARD"
+    let textAddressLabel = "ENTER ADDRESS OR MAPCODE"
+    let textWrongAddress = "CANNOT FIND: "
+    let textWrongMapcode = "INCORRECT MAPCODE: "
 
     // Special mapcodes.
     let longestMapcode = "MX-GRO MWWW.WWWW"
@@ -262,6 +268,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let tapMapcodeLabel = UITapGestureRecognizer(target: self, action: #selector(handleNextMapcodeTap))
         theMapcodeLabel.addGestureRecognizer(tapMapcodeLabel)
 
+        // Subscribe to notification of keyboard show/hide.
+        NSNotificationCenter.defaultCenter().addObserver(self,
+                                                         selector: #selector(self.keyboardNotification(_:)),
+                                                         name: UIKeyboardWillChangeFrameNotification,
+                                                         object: nil)
+
         // Setup our Location Manager. Only 1 location update is requested when the user presses
         // the "Find My Location" button. Updates are switched off immediately after that. Only
         // once every couple of minutes it is switched on for a single event again (or finding your
@@ -289,6 +301,39 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             limitMapcodeLookupSecs, target: self,
             selector: #selector(periodicCheckToUpdateMapcode),
             userInfo: nil, repeats: true)
+    }
+
+
+    /**
+     * This gets called when the controlled is exited.
+     */
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+
+
+    /**
+     * This method gets called whenever the keyboard is about to show/hide. Nice solution from:
+     * http://stackoverflow.com/questions/25693130/move-textfield-when-keyboard-appears-swift
+     */
+    func keyboardNotification(notification: NSNotification) {
+        if let userInfo = notification.userInfo {
+            let endFrame = (userInfo[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.CGRectValue()
+            let duration: NSTimeInterval = (userInfo[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
+            let animationCurveRawNumber = userInfo[UIKeyboardAnimationCurveUserInfoKey] as? NSNumber
+            let animationCurveRaw = animationCurveRawNumber?.unsignedLongValue ?? UIViewAnimationOptions.CurveEaseInOut.rawValue
+            let animationCurve:UIViewAnimationOptions = UIViewAnimationOptions(rawValue: animationCurveRaw)
+            if endFrame?.origin.y >= UIScreen.mainScreen().bounds.size.height {
+                self.keyboardHeightLayoutConstraint?.constant = keyboardMinimumDistance
+            } else {
+                self.keyboardHeightLayoutConstraint?.constant = endFrame?.size.height ?? keyboardMinimumDistance
+            }
+            UIView.animateWithDuration(duration,
+                                       delay: NSTimeInterval(0),
+                                       options: animationCurve,
+                                       animations: { self.view.layoutIfNeeded() },
+                                       completion: nil)
+        }
     }
 
 
@@ -321,14 +366,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             defaults.synchronize()
 
             self.showAlert("What's New", message: "v\(version)\n(build \(build)):\n" +
+                "* Proper fix for keyboard show/hide.\n" +
+                "* Pinch no longer accidentally hits zoom or Find My Location.\n" +
+                "* Keyboard hides when users taps map.\n" +
+                "* Fixed issue with 3rd party keyboards.\n" +
+                "* Error dialogs removed, now less intrusive.\n" +
+                "\n" +
+                "v1.0.3\n(build 20160814015):\n" +
                 "* Better first territory match.\n" +
                 "* Fixed keyboard issue.\n" +
                 "* Removed clutter from layout.\n" +
                 "* Copy-to-clipboard improved.\n" +
                 "* Fixed bug for int'l mapcode.\n" +
-                "* Fixed bug for very long mapcodes.\n\n" +
-
-                "v1.0.3 (build 20160812007):\n" +
+                "* Fixed bug for very long mapcodes.\n" +
+                "\n" +
+                "v1.0.3\n(build 20160812007):\n" +
                 "* Tap on mapcode to copy it to clipboard.\n" +
                 "* Tap on icon/label to show next territory or mapcode.\n" +
                 "* Zoom buttons have larger areas.\n" +
@@ -435,6 +487,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func handleMapTap1(gestureRecognizer: UITapGestureRecognizer) {
 
+        // Resign keyboard form text field when user taps map.
+        self.view.endEditing(true)
+
         // Don't auto-zoom to user location anymore.
         waitingForFirstLocationSinceStarted = false
 
@@ -505,7 +560,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         timerResetLabels.invalidate()
         timerResetLabels = NSTimer.scheduledTimerWithTimeInterval(
             resetLabelsAfterSecs, target: self,
-            selector: #selector(ResetCoordinateLabels),
+            selector: #selector(ResetLabels),
             userInfo: nil, repeats: false)
     }
 
@@ -513,13 +568,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method reset the latitude and longitude labels to their default values.
      */
-    func ResetCoordinateLabels() {
+    func ResetLabels() {
 
         // Update coordinate labels.
+        theAddressLabel.textColor = colorLabelNormal
+        theAddressLabel.text = textAddressLabel
         theLatLabel.textColor = colorLabelNormal
+        theLatLabel.text = textLatLabel
         theLonLabel.textColor = colorLabelNormal
-         self.theLatLabel.text = self.textLatLabel
-         self.theLonLabel.text = self.textLonLabel
+        theLonLabel.text = textLonLabel
 
         // Update mapcode label.
         updateMapcodeLabel()
@@ -542,59 +599,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
-     * This method moves the screen up or down when a field gets edited.
-     */
-    func animateTextField(textField: UITextField, up: Bool) {
-        let movementDuration = movementDurationSecs
-        var movementDistance: CGFloat = 0.0
-        if textField.tag == tagTextFieldAddress {
-            movementDistance = movementDistanceAddress
-        }
-        else {
-            movementDistance = movementDistanceCoordinate
-        }
-
-        var movement: CGFloat = 0.0
-        if up {
-            movement = -movementDistance
-        }
-        else {
-            movement = movementDistance
-        }
-        UIView.beginAnimations("animateTextField", context: nil)
-        UIView.setAnimationBeginsFromCurrentState(true)
-        UIView.setAnimationDuration(movementDuration)
-        self.view.frame = CGRectOffset(self.view.frame, 0, movement)
-        UIView.commitAnimations()
-    }
-
-
-    /**
-     * This method moves the screen up when editing starts.
-     */
-    func textFieldDidBeginEditing(textField: UITextField) {
-        self.animateTextField(textField, up: true)
-    }
-
-
-    /**
-     * This method moves the screen down when editing is done.
-     */
-    func textFieldDidEndEditing(textField: UITextField) {
-        self.animateTextField(textField, up: false)
-    }
-
-    
-    /**
      * This method gets called when user starts editing a text field. Keep the previous
      * value for undo. Careful though: the undo text is shared for all fields.
      */
     @IBAction func beginEdit(textField: UITextField) {
         dispatch_async(dispatch_get_main_queue()) {
-            textField.becomeFirstResponder()
-            textField.selectedTextRange = textField.textRangeFromPosition(
-                textField.beginningOfDocument, toPosition: textField.endOfDocument)
             self.undoTextFieldEdit = textField.text
+            textField.selectAll(self)
         }
     }
 
@@ -602,17 +613,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Delegate method gets called when the Return key is pressed in a text edit field.
      */
-    func textFieldShouldReturn(textField: UITextField) -> Bool {
+     func textFieldShouldReturn(textField: UITextField) -> Bool {
 
         // Hide keyboard.
-        textField.resignFirstResponder()
+        self.view.endEditing(true)
 
         // Do not process empty fields.
         if (textField.text == nil) || (textField.text?.isEmpty)! {
 
             // Restore contents of field.
             textField.text = undoTextFieldEdit
-            return true
+            return false
         }
 
         // Don't auto-zoom to user location anymore.
@@ -659,7 +670,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         default:
             debug(ERROR, msg: "textFieldShouldReturn: Unknown text field, tag=\(textField.tag)")
         }
-        return true
+        return false
     }
 
 
@@ -678,11 +689,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 self.debug(self.INFO, msg: "addressWasEntered: Geocode failed, address=\(address), error=\(error)")
 
                 dispatch_async(dispatch_get_main_queue()) {
-                    self.showAlert("Incorrect address", message: "Can't find a location for\n'\(address)'", button: "Dismiss")
+                    self.theAddressLabel.textColor = self.colorLabelAlert
+                    self.theAddressLabel.text = "\(self.textWrongAddress) \(address.uppercaseString)"
 
                     // Force call to reset address field; need to do a new reverse geocode as previous text is lost.
                     self.prevQueuedCoordinateForReverseGeocode = nil
                     self.queueUpdateForAddress(self.mapcodeLocation)
+
+                    // Reset error label after some time.
+                    self.scheduleResetLabels()
                 }
             }
             else {
@@ -732,7 +747,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 if (status != 200) || (json["errors"] != nil) {
                     self.debug(self.INFO, msg: "mapcodeWasEntered: Incorrect mapcode=\(mapcode)")
                     dispatch_async(dispatch_get_main_queue()) {
-                        self.showAlert("Incorrect mapcode", message: "Mapcode '\(mapcode)' does not exist", button: "Dismiss")
+
+                        // Show error in label.
+                        self.theAddressLabel.textColor = self.colorLabelAlert
+                        self.theAddressLabel.text = "\(self.textWrongMapcode) \(mapcode.uppercaseString)"
+
+                        // Reset error label after some time.
+                        self.scheduleResetLabels()
                     }
                 }
 
