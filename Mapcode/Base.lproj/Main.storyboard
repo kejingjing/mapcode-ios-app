@@ -44,7 +44,7 @@
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="detailDisclosure" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tgm-Fn-qAP" userLabel="About">
                                         <rect key="frame" x="288" y="60" width="22" height="22"/>
                                         <connections>
-                                            <action selector="showAbout:" destination="BYZ-38-t0r" eventType="touchDown" id="qCh-2k-dJN"/>
+                                            <action selector="showAbout:" destination="BYZ-38-t0r" eventType="touchUpInside" id="pHz-HX-tvU"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Qcm-6U-D1v" userLabel="Zoom In">
@@ -64,7 +64,7 @@
                                             </mask>
                                         </variation>
                                         <connections>
-                                            <action selector="zoomIn:" destination="BYZ-38-t0r" eventType="touchDown" id="aJd-Rm-eno"/>
+                                            <action selector="zoomIn:" destination="BYZ-38-t0r" eventType="touchUpInside" id="aca-3L-45y"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="44y-Qs-BpH" userLabel="Zoom Out">
@@ -84,7 +84,7 @@
                                             </mask>
                                         </variation>
                                         <connections>
-                                            <action selector="zoomOut:" destination="BYZ-38-t0r" eventType="touchDown" id="j9m-rN-xSq"/>
+                                            <action selector="zoomOut:" destination="BYZ-38-t0r" eventType="touchUpInside" id="UKa-9h-hyA"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FzW-1u-A5W" userLabel="Share">
@@ -131,7 +131,7 @@
                                         <size key="titleShadowOffset" width="2.2250738585072014e-308" height="2.2250738585072014e-308"/>
                                         <state key="normal" image="HereIcon"/>
                                         <connections>
-                                            <action selector="findMyLocation:" destination="BYZ-38-t0r" eventType="touchDown" id="xbl-d7-ZQI"/>
+                                            <action selector="findMyLocation:" destination="BYZ-38-t0r" eventType="touchUpInside" id="U7Q-hg-PGu"/>
                                         </connections>
                                     </button>
                                 </subviews>
