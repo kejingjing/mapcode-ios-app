@@ -22,8 +22,6 @@ import UIKit
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate,
         UITextFieldDelegate, UIGestureRecognizerDelegate {
-    // @formatter:off
-
     /**
      * List of UI controls that we need to access from code.
      */
@@ -358,7 +356,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func showWhatsNew() {
         let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
         let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
-        let versionBuild = "\(version, build)"
+        let versionBuild = "\(version)\(build)"
 
         let defaults = NSUserDefaults.standardUserDefaults()
         let prevVersionBuild = defaults.stringForKey(keyVersionBuild)
@@ -901,7 +899,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let lat = region.span.latitudeDelta * zoomFactor
         let lon = region.span.longitudeDelta * zoomFactor
         region.span.latitudeDelta = min(120.0, lat)
-        region.span.longitudeDelta = min(160, 0, lon)
+        region.span.longitudeDelta = min(160.0, lon)
         theMap.setRegion(region, animated: true)
     }
 
