@@ -284,7 +284,7 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="mOi-tG-Hsn"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                 <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="alphabet"/>
                                 <connections>
                                     <action selector="beginEdit:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="XvG-G5-V5x"/>

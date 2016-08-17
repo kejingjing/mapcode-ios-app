@@ -19,6 +19,7 @@
 import CoreLocation
 import MapKit
 import UIKit
+import Contacts
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate,
         UITextFieldDelegate, UIGestureRecognizerDelegate {
@@ -60,6 +61,69 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let WARN = 4
     let ERROR = 8
 
+    // Help texts.
+    let textWhatsNew = "\n" +
+        "* Improved address formatting.\n" +
+        "* Improved auto-zoom level.\n" +
+        "\n" +
+        "1.0.3\n(build 20160816018):\n" +
+        "* Proper fix for keyboard show/hide.\n" +
+        "* Pinch no longer accidentally hits zoom or Find My Location.\n" +
+        "* Keyboard hides when users taps map.\n" +
+        "* Fixed issue with 3rd party keyboards.\n" +
+        "* Error dialogs removed, now less intrusive.\n" +
+        "\n" +
+        "1.0.3\n(build 20160814015):\n" +
+        "* Better first territory match.\n" +
+        "* Fixed keyboard issue.\n" +
+        "* Removed clutter from layout.\n" +
+        "* Copy-to-clipboard improved.\n" +
+        "* Fixed bug for int'l mapcode.\n" +
+        "* Fixed bug for very long mapcodes.\n" +
+        "\n" +
+        "1.0.3\n(build 20160812007):\n" +
+        "* Tap on mapcode to copy it to clipboard.\n" +
+        "* Tap on icon/label to show next territory or mapcode.\n" +
+        "* Zoom buttons have larger areas.\n" +
+        "* Improved responsiveness.\n" +
+        "* Improved battery life, optimized location updates and web service calls.\n" +
+        "* Increased font size.\n" +
+        "* Fixed a bug which prevented international code showing up sometimes.\n" +
+        "* New UI and icons.\n" +
+        "* Added explanation in about box on territories.\n" +
+        "* Fixed airplane mode."
+
+    let textAbout = "Copyright (C) 2016\n" +
+        "Rijn Buve, Mapcode Foundation\n\n" +
+
+        "Welcome the official Mapcode App from the Mapcode Foundation!\n\n" +
+
+        "Enter an address or coordinate to get a mapcode, or move the map around. " +
+        "Tap twice to zoom in really deep.\n\n" +
+
+        "Enter a mapcode in the address field to show it on the map. Tip: if you omit " +
+        "the territory for local mapcodes, the current territory is used.\n\n" +
+
+        "Tap the Next buttons to show next territory or mapcode. " +
+        "Tap the mapcode itself to copy it to the clipboard.\n\n" +
+
+        "Tap on the Maps icon to plan a route to it using the Maps app.\n\n" +
+
+        "Note that a single location can have mapcodes with different territory codes. " +
+        "The 'correct' territory is always included, but other territories may be presented as well. " +
+        "You can select correct territory by tapping on the Next button.\n\n" +
+
+        "For questions, or more info on mapcodes in general, please visit us at: http://mapcode.com\n\n" +
+
+        "Finally, a big thanks to our many beta-testers who have provided invaluable " +
+        "feedback during the development of this product!\n\n" +
+
+        "________\n" +
+
+        "NOTICE: Some usage data may be collected to improve the Mapcode REST API service. " +
+        "This data is used by the Mapcode Foundation only and not used for commercial purposes."
+
+    // Other constants.
     let host: String = "http:/api.mapcode.com";     // Host name of Mapcode REST API.
     let allowLog: String = "true";                  // API: Allow logging requests.
     let client: String = "ios";                     // API: Client ID.
@@ -89,11 +153,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     let zoomFactor = 2.5                            // Factor for zoom in/out.
 
-    let spanInitX = 1.0                             // Initial zoom, "country level".
-    let spanInitY = 1.0
-
-    let spanZoomedInX = 0.003                       // Zoomed in, after double tap.
-    let spanZoomedInY = 0.003
+    let spanInit = 8.0                              // Initial zoom, "country level".
+    let spanZoomedIn = 0.003                        // Zoomed in, after double tap.
+    let spanCountry = 8.0                           // Country level.
+    let spanCity = 0.1                              // City level.
+    let spanStreet = 0.01                           // Street level.
+    let spanHouseNumber = 0.003                     // House number level.
 
     var locationManager: CLLocationManager!         // Controls and receives location updates.
 
@@ -211,7 +276,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Set initial map and zoom. Pick a decent location to start with until a real location is found.
         let newRegion = MKCoordinateRegion(center: mapcodeLocation,
-                span: MKCoordinateSpanMake(spanInitX, spanInitY))
+                                           span: MKCoordinateSpanMake(spanInit, spanInit))
         theMap.setRegion(newRegion, animated: false)
 
         // Setup up delegates for text input boxes, so events are handled.
@@ -272,9 +337,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Subscribe to notification of keyboard show/hide.
         NSNotificationCenter.defaultCenter().addObserver(self,
-                selector: #selector(self.keyboardNotification(_:)),
-                name: UIKeyboardWillChangeFrameNotification,
-                object: nil)
+                                                         selector: #selector(self.keyboardNotification(_:)),
+                                                         name: UIKeyboardWillChangeFrameNotification,
+                                                         object: nil)
 
         // Setup our Location Manager. Only 1 location update is requested when the user presses
         // the "Find My Location" button. Updates are switched off immediately after that. Only
@@ -285,7 +350,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = distanceFilterMeters
-        locationManager.requestWhenInUseAuthorization()     // Only when app is active.
+        locationManager.requestWhenInUseAuthorization()     // Ask for permission - may show dialog.
         locationManager.startUpdatingLocation()             // Try to get the first location.
 
         // Show the current lat/lon and queue webservice calls for the location.
@@ -331,10 +396,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 self.keyboardHeightLayoutConstraint?.constant = endFrame?.size.height ?? keyboardMinimumDistance
             }
             UIView.animateWithDuration(duration,
-                    delay: NSTimeInterval(0),
-                    options: animationCurve,
-                    animations: { self.view.layoutIfNeeded() },
-                    completion: nil)
+                                       delay: NSTimeInterval(0),
+                                       options: animationCurve,
+                                       animations: { self.view.layoutIfNeeded() },
+                                       completion: nil)
         }
     }
 
@@ -346,14 +411,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         super.viewDidAppear(animated)
 
         // Show initial what's new dialog (if this is a new version).
-        showWhatsNew()
+        showStartUpText()
     }
 
 
     /**
      * This method presents the 'What's new" box.
      */
-    func showWhatsNew() {
+    func showStartUpText() {
         let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
         let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
         let versionBuild = "\(version)\(build)"
@@ -361,38 +426,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let defaults = NSUserDefaults.standardUserDefaults()
         let prevVersionBuild = defaults.stringForKey(keyVersionBuild)
 
-        // Check if the app was updated.
-        if (prevVersionBuild == nil) || (prevVersionBuild != versionBuild) {
-            defaults.setValue(versionBuild, forKey: keyVersionBuild)
-            defaults.synchronize()
+        // Update settings.
+        defaults.setValue(versionBuild, forKey: keyVersionBuild)
+        defaults.synchronize()
 
-            self.showAlert("What's New", message: "v\(version)\n(build \(build)):\n" +
-                    "* Proper fix for keyboard show/hide.\n" +
-                    "* Pinch no longer accidentally hits zoom or Find My Location.\n" +
-                    "* Keyboard hides when users taps map.\n" +
-                    "* Fixed issue with 3rd party keyboards.\n" +
-                    "* Error dialogs removed, now less intrusive.\n" +
-                    "\n" +
-                    "v1.0.3\n(build 20160814015):\n" +
-                    "* Better first territory match.\n" +
-                    "* Fixed keyboard issue.\n" +
-                    "* Removed clutter from layout.\n" +
-                    "* Copy-to-clipboard improved.\n" +
-                    "* Fixed bug for int'l mapcode.\n" +
-                    "* Fixed bug for very long mapcodes.\n" +
-                    "\n" +
-                    "v1.0.3\n(build 20160812007):\n" +
-                    "* Tap on mapcode to copy it to clipboard.\n" +
-                    "* Tap on icon/label to show next territory or mapcode.\n" +
-                    "* Zoom buttons have larger areas.\n" +
-                    "* Improved responsiveness.\n" +
-                    "* Improved battery life, optimized location updates and web service calls.\n" +
-                    "* Increased font size.\n" +
-                    "* Fixed a bug which prevented international code showing up sometimes.\n" +
-                    "* New UI and icons.\n" +
-                    "* Added explanation in about box on territories.\n" +
-                    "* Fixed airplane mode.",
-                    button: "Dismiss")
+        // Check if the app was updated.
+        if prevVersionBuild == nil {
+            self.showAbout(self)
+        } else if prevVersionBuild != versionBuild {
+            self.showAlert("What's New", message: "\(version)\n(build \(build)):" + textWhatsNew, button: "Dismiss")
         }
     }
 
@@ -403,33 +445,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func showAbout(sender: AnyObject) {
         let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
         let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
-        self.showAlert("Mapcode \(version)\nbuild \(build)", message: "Copyright (C) 2016\n" +
-                "Rijn Buve, Mapcode Foundation\n\n" +
-
-                "Enter an address or coordinate to get a mapcode, or move the map around. " +
-                "Tap twice to zoom in really deep.\n\n" +
-
-                "Enter a mapcode in the address field to show it on the map. Tip: if you omit " +
-                "the territory for local mapcodes, the current territory is used.\n\n" +
-
-                "Tap the Next buttons to show next territory or mapcode. " +
-                "Tap the mapcode itself to copy it to the clipboard.\n\n" +
-
-                "Tap on the Maps icon to plan a route to it using the Maps app.\n\n" +
-
-                "Note that a single location can have mapcodes with different territory codes. " +
-                "The 'correct' territory is always included, but other territories may be presented as well. " +
-                "You can select correct territory by tapping on the Next button.\n\n" +
-
-                "For questions, or more info on mapcodes in general, please visit us at: http://mapcode.com\n\n" +
-
-                "Finally, a big thanks to our many beta-testers who have provided invaluable " +
-                "feedback during the development of this product!\n\n" +
-
-                "________\n" +
-
-                "NOTICE: Some usage data may be collected to improve the Mapcode REST API service. " +
-                "This data is used by the Mapcode Foundation only and not used for commercial purposes.", button: "Dismiss")
+        self.showAlert("Mapcode \(version)", message: "(build \(build))\n\n\(textAbout)", button: "Dismiss")
     }
 
 
@@ -455,7 +471,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Delegate method to record if the map change was by user interaction.
      */
     func mapView(mapView: MKMapView,
-            regionWillChangeAnimated animated: Bool) {
+                 regionWillChangeAnimated animated: Bool) {
         mapChangedFromUserInteraction = mapViewRegionDidChangeFromUserInteraction()
     }
 
@@ -464,7 +480,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Delegate method gets called whenever a location change is detected.
      */
     func mapView(mapView: MKMapView,
-            regionDidChangeAnimated animated: Bool) {
+                 regionDidChangeAnimated animated: Bool) {
 
         // Stop auto-move, we don't want to keep auto-moving.
         moveMapToUserLocation = false;
@@ -495,7 +511,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let location = gestureRecognizer.locationInView(theMap)
         mapcodeLocation = theMap.convertPoint(location, toCoordinateFromView: theMap)
 
-        // Set map center and update fields.
+        // Set map center and update fields. Do not limit zoom level.
         theMap.setCenterCoordinate(mapcodeLocation, animated: true)
 
         // The map view will move and consequently fields get updated by regionDidChangeAnimated.
@@ -513,7 +529,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
         let newRegion = MKCoordinateRegion(center: mapcodeLocation,
-                span: MKCoordinateSpanMake(spanZoomedInX, spanZoomedInY))
+                                           span: MKCoordinateSpanMake(spanZoomedIn, spanZoomedIn))
         theMap.setRegion(newRegion, animated: true)
     }
 
@@ -699,11 +715,29 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 }
             } else {
                 // Found location.
-                let coordinate = (placemarks?.first!.location!.coordinate)!
+                let first = (placemarks?.first)!
+                let coordinate = first.location!.coordinate
+                var dict = first.addressDictionary!
+
+                // Determine zoom/span for this address.
+                var span = self.spanCountry
+                if dict["SubThoroughfare"] != nil {
+                    span = self.spanHouseNumber
+                } else if dict["Thoroughfare"] != nil {
+                    span = self.spanStreet
+                } else if dict["City"] != nil {
+                    span = self.spanCity
+                }
+                else {
+                    span = self.spanCountry
+                }
+
                 dispatch_async(dispatch_get_main_queue()) {
                     // Update location.
                     self.mapcodeLocation = coordinate
-                    self.theMap.setCenterCoordinate(coordinate, animated: false)
+                    let newRegion = MKCoordinateRegion(center: coordinate,
+                        span: MKCoordinateSpanMake(span, span))
+                    self.theMap.setRegion(newRegion, animated: false)
                     self.showLatLon(coordinate)
                     self.queueUpdateForMapcode(coordinate)
                     self.queueUpdateForAddress(coordinate)
@@ -711,6 +745,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             }
         })
     }
+
 
     /**
      * This method gets called when a mapcode was entered.
@@ -763,7 +798,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     // Update location and set map center.
                     dispatch_async(dispatch_get_main_queue()) {
                         self.mapcodeLocation = coordinate
-                        self.theMap.setCenterCoordinate(coordinate, animated: false)
+                        self.setMapCenterAndLimitZoom(coordinate, maxSpan: self.spanHouseNumber, animated: false)
                         self.showLatLon(coordinate)
                         self.queueUpdateForMapcode(coordinate)
                         self.queueUpdateForAddress(coordinate)
@@ -806,7 +841,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             // Update location.
             mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
-            theMap.setCenterCoordinate(mapcodeLocation, animated: false)
+            setMapCenterAndLimitZoom(mapcodeLocation, maxSpan: spanHouseNumber, animated: false)
             showLatLon(mapcodeLocation)
             queueUpdateForMapcode(mapcodeLocation)
             queueUpdateForAddress(mapcodeLocation)
@@ -1177,37 +1212,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             // Construct address
             if placemarks!.count > 0 {
-                let pm = placemarks![0] as CLPlacemark
-                var address: String = "";
-
-                // Streetname and housenumber.
-                if pm.thoroughfare != nil {
-                    address = pm.thoroughfare!
-                    if pm.subThoroughfare != nil {
-                        // User 'normal' or 'reverse' form of address.
-                        if (self.useStreetThenNumber()) {
-                            address = "\(address) \(pm.subThoroughfare!)";
-                        } else {
-                            address = "\(pm.subThoroughfare!) \(address)";
-                        }
-                    }
-                }
-
-                // City.
-                if pm.locality != nil {
-                    if (!address.isEmpty) {
-                        address = "\(address), ";
-                    }
-                    address = "\(address)\(pm.locality!)";
-                }
-
-                // Country.
-                if pm.ISOcountryCode != nil {
-                    if (!address.isEmpty) {
-                        address = "\(address), ";
-                    }
-                    address = "\(address)\(pm.ISOcountryCode!)";
-                }
+                let pm = placemarks!.first!
+                let address = self.formattedAddressFromAddressDictionary(pm.addressDictionary!)
 
                 // Update address fields.
                 dispatch_async(dispatch_get_main_queue()) {
@@ -1220,6 +1226,30 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         })
     }
 
+
+    /**
+     * This method creates a formatted address from a dictionary.
+     */
+    func formattedAddressFromAddressDictionary(addressDictionary: Dictionary<NSObject, AnyObject>) -> String {
+        let address = CNPostalAddressFormatter.stringFromPostalAddress(
+            postalAddressFromAddressDictionary(addressDictionary),
+            style: .MailingAddress)
+        return address.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).stringByReplacingOccurrencesOfString("\n", withString: ", ").stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+    }
+
+
+    /**
+     * This method creates a postal address object from a dictionary.
+     */
+    func postalAddressFromAddressDictionary(addressDictionary: Dictionary<NSObject, AnyObject>) -> CNMutablePostalAddress {
+        let address = CNMutablePostalAddress()
+        address.street = addressDictionary["Street"] as? String ?? ""
+        address.state = addressDictionary["State"] as? String ?? ""
+        address.city = addressDictionary["City"] as? String ?? ""
+        address.postalCode = addressDictionary["ZIP"] as? String ?? ""
+        address.country = addressDictionary["Country"] as? String ?? ""
+        return address
+    }
 
     /**
      * Queue Mapcode REST API request (to a max of 1 in the queue).
@@ -1408,14 +1438,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called whenever a location change is detected.
      */
     func locationManager(locationManager: CLLocationManager,
-            didUpdateLocations locations: [CLLocation]) {
+                         didUpdateLocations locations: [CLLocation]) {
 
         // Get new location.
         let newLocation = locations[0].coordinate
 
         // Set default span.
-        var spanX = spanZoomedInY
-        var spanY = spanZoomedInY
+        var span = spanZoomedIn
 
         // If it's a valid coordinate and we need to auto-move or it's the first location, move.
         if isValidCoordinate(newLocation) {
@@ -1425,15 +1454,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // First time location ever? Override map zoom.
                 if waitingForFirstLocationSinceStarted {
-                    spanX = spanInitX
-                    spanY = spanInitY
+                    span = spanInit
                     waitingForFirstLocationSinceStarted = false
                 }
                 moveMapToUserLocation = false
 
                 // Change zoom level, pretty much zoomed out.
                 let newRegion = MKCoordinateRegion(center: mapcodeLocation,
-                        span: MKCoordinateSpanMake(spanX, spanY))
+                                                   span: MKCoordinateSpanMake(span, span))
 
                 // Move without animation.
                 theMap.setRegion(newRegion, animated: true)
@@ -1449,8 +1477,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             // Schedule updating the location again in some time.
             timerLocationUpdates = NSTimer.scheduledTimerWithTimeInterval(scheduleUpdateLocationsSecs, target: self,
-                    selector: #selector(turnOnLocationManagerUpdates),
-                    userInfo: nil, repeats: false)
+                                                                          selector: #selector(turnOnLocationManagerUpdates),
+                                                                          userInfo: nil, repeats: false)
         }
     }
 
@@ -1467,7 +1495,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the location cannot be fetched.
      */
     func locationManager(locationManager: CLLocationManager,
-            didFailWithError error: NSError) {
+                         didFailWithError error: NSError) {
 
         // Code 0 is returned when during debugging anyhow.
         if (error.code != 0) {
@@ -1480,7 +1508,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called when the location authorization changes.
      */
     func locationManager(locationManager: CLLocationManager,
-            didChangeAuthorizationStatus status: CLAuthorizationStatus) {
+                         didChangeAuthorizationStatus status: CLAuthorizationStatus) {
         debug(INFO, msg: "locationManager:didChangeAuthorizationStatus, status=\(status)")
 
         let allow: Bool!
@@ -1561,17 +1589,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
-     * Returns true of the house number is to be put after the street name. False otherwise.
-     * The selection is based on a selected number of country codes (incomplete).
+     * This method sets the center of the map and makes sure the zoom-level is limited if necessary.
      */
-    func useStreetThenNumber() -> Bool {
-        let locale = NSLocale.currentLocale()
-        if let country = locale.objectForKey(NSLocaleCountryCode) as? String {
-            if country == "AU" || country == "NZ" || country == "UK" || country == "US" || country == "VN" {
-                return false
-            }
+    func setMapCenterAndLimitZoom(center: CLLocationCoordinate2D, maxSpan: Double, animated: Bool) {
+        if (theMap.region.span.latitudeDelta >= maxSpan) || (theMap.region.span.longitudeDelta >= maxSpan) {
+            let newRegion = MKCoordinateRegion(center: mapcodeLocation,
+                                               span: MKCoordinateSpanMake(maxSpan, maxSpan))
+            theMap.setRegion(newRegion, animated: animated)
+        } else {
+            theMap.setCenterCoordinate(mapcodeLocation, animated: animated)
         }
-        return true
     }
 
 
@@ -1595,7 +1622,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             // New coordinate is not nil, old is nil, so not equal.
             return false;
         } else {
-            // Both are not nil. Check if they are equal/
+            // Both are not nil. Check if they are equal.
             if !isAlmostEqual(prevCoordinate.latitude, degree2: newCoordinate.latitude) ||
                     !isAlmostEqual(prevCoordinate.longitude, degree2: newCoordinate.longitude) {
                 return false
