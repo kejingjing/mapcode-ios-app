@@ -61,7 +61,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Improved auto-zoom level.\n"
+        "* Improved auto-zoom level when searching for an address.\n" +
+        "* Fixed minor issues.\n"
 
     let textAbout = "Copyright (C) 2016\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -733,7 +734,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
 
         // Get coordinate.
-        debug(INFO, msg: "Call Mapcode API: url=\(url)")
+        debug(INFO, msg: "mapcodeWasEntered: Call Mapcode API: url=\(url)")
         rest.get {
             result, httpResponse in
             do {
@@ -767,6 +768,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.setMapCenterAndLimitZoom(coordinate, maxSpan: self.spanZoomedIn, animated: false)
                         self.showLatLon(coordinate)
                         self.queueUpdateForMapcode(coordinate)
+
+                        // Force call.
+                        self.prevQueuedCoordinateForReverseGeocode = nil
                         self.queueUpdateForAddress(coordinate)
                     }
                 } else {
