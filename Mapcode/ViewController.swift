@@ -23,15 +23,13 @@ import Contacts
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate,
         UITextFieldDelegate, UIGestureRecognizerDelegate {
+
     /**
      * List of UI controls that we need to access from code.
      */
 
     @IBOutlet weak var theMap: MKMapView!
-    @IBOutlet weak var theMapType: UISegmentedControl!
     @IBOutlet weak var theFindMyLocation: UIButton!
-    @IBOutlet weak var theZoomIn: UIButton!
-    @IBOutlet weak var theZoomOut: UIButton!
     @IBOutlet weak var theShare: UIButton!
     @IBOutlet weak var theAddress: UITextField!
     @IBOutlet weak var theAddressLabel: UILabel!
@@ -63,35 +61,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Improved address formatting.\n" +
-        "* Improved auto-zoom level.\n" +
-        "\n" +
-        "1.0.3\n(build 20160816018):\n" +
-        "* Proper fix for keyboard show/hide.\n" +
-        "* Pinch no longer accidentally hits zoom or Find My Location.\n" +
-        "* Keyboard hides when users taps map.\n" +
-        "* Fixed issue with 3rd party keyboards.\n" +
-        "* Error dialogs removed, now less intrusive.\n" +
-        "\n" +
-        "1.0.3\n(build 20160814015):\n" +
-        "* Better first territory match.\n" +
-        "* Fixed keyboard issue.\n" +
-        "* Removed clutter from layout.\n" +
-        "* Copy-to-clipboard improved.\n" +
-        "* Fixed bug for int'l mapcode.\n" +
-        "* Fixed bug for very long mapcodes.\n" +
-        "\n" +
-        "1.0.3\n(build 20160812007):\n" +
-        "* Tap on mapcode to copy it to clipboard.\n" +
-        "* Tap on icon/label to show next territory or mapcode.\n" +
-        "* Zoom buttons have larger areas.\n" +
-        "* Improved responsiveness.\n" +
-        "* Improved battery life, optimized location updates and web service calls.\n" +
-        "* Increased font size.\n" +
-        "* Fixed a bug which prevented international code showing up sometimes.\n" +
-        "* New UI and icons.\n" +
-        "* Added explanation in about box on territories.\n" +
-        "* Fixed airplane mode."
+        "* Improved auto-zoom level.\n"
 
     let textAbout = "Copyright (C) 2016\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -124,7 +94,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         "This data is used by the Mapcode Foundation only and not used for commercial purposes."
 
     // Other constants.
-    let host: String = "http:/api.mapcode.com";     // Host name of Mapcode REST API.
+    let host: String = "https:/api.mapcode.com";    // Host name of Mapcode REST API.
     let allowLog: String = "true";                  // API: Allow logging requests.
     let client: String = "ios";                     // API: Client ID.
 
@@ -153,12 +123,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     let zoomFactor = 2.5                            // Factor for zoom in/out.
 
+    let metersPerDegreeLat          = (6378137.0 * 2.0 * 3.141592654) / 360.0
+    let metersPerDegreeLonAtEquator = (6356752.3 * 2.0 * 3.141592654) / 360.0
+
     let spanInit = 8.0                              // Initial zoom, "country level".
     let spanZoomedIn = 0.003                        // Zoomed in, after double tap.
-    let spanCountry = 8.0                           // Country level.
-    let spanCity = 0.1                              // City level.
-    let spanStreet = 0.01                           // Street level.
-    let spanHouseNumber = 0.003                     // House number level.
+    let spanZoomedInMax = 0.0005                    // Zoomed in max.
+    let spanZoomedOutMax = 175.0                    // Zoomed out max.
 
     var locationManager: CLLocationManager!         // Controls and receives location updates.
 
@@ -714,29 +685,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.scheduleResetLabels()
                 }
             } else {
-                // Found location.
+                // Found location; determine coordinate and proper zoom level.
                 let first = (placemarks?.first)!
                 let coordinate = first.location!.coordinate
-                var dict = first.addressDictionary!
+                let region = first.region as! CLCircularRegion
 
-                // Determine zoom/span for this address.
-                var span = self.spanCountry
-                if dict["SubThoroughfare"] != nil {
-                    span = self.spanHouseNumber
-                } else if dict["Thoroughfare"] != nil {
-                    span = self.spanStreet
-                } else if dict["City"] != nil {
-                    span = self.spanCity
-                }
-                else {
-                    span = self.spanCountry
-                }
+                // Add 50% slack around the edges.
+                let spanLat = min(self.spanZoomedOutMax,
+                    max(self.spanZoomedInMax,
+                        1.5 * region.radius / self.metersPerDegreeLat))
+                let spanLon = min(self.spanZoomedOutMax,
+                    max(self.spanZoomedInMax,
+                        1.5 * region.radius / self.metersPerDegreeLonAtLan(coordinate.latitude)))
 
                 dispatch_async(dispatch_get_main_queue()) {
                     // Update location.
                     self.mapcodeLocation = coordinate
                     let newRegion = MKCoordinateRegion(center: coordinate,
-                        span: MKCoordinateSpanMake(span, span))
+                        span: MKCoordinateSpanMake(spanLat, spanLon))
                     self.theMap.setRegion(newRegion, animated: false)
                     self.showLatLon(coordinate)
                     self.queueUpdateForMapcode(coordinate)
@@ -798,7 +764,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     // Update location and set map center.
                     dispatch_async(dispatch_get_main_queue()) {
                         self.mapcodeLocation = coordinate
-                        self.setMapCenterAndLimitZoom(coordinate, maxSpan: self.spanHouseNumber, animated: false)
+                        self.setMapCenterAndLimitZoom(coordinate, maxSpan: self.spanZoomedIn, animated: false)
                         self.showLatLon(coordinate)
                         self.queueUpdateForMapcode(coordinate)
                         self.queueUpdateForAddress(coordinate)
@@ -841,7 +807,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             // Update location.
             mapcodeLocation = CLLocationCoordinate2D(latitude: lat!, longitude: lon!)
-            setMapCenterAndLimitZoom(mapcodeLocation, maxSpan: spanHouseNumber, animated: false)
+            setMapCenterAndLimitZoom(mapcodeLocation, maxSpan: spanZoomedIn, animated: false)
             showLatLon(mapcodeLocation)
             queueUpdateForMapcode(mapcodeLocation)
             queueUpdateForAddress(mapcodeLocation)
@@ -920,8 +886,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         var region = theMap.region
         let lat = region.span.latitudeDelta / zoomFactor
         let lon = region.span.longitudeDelta / zoomFactor
-        region.span.latitudeDelta = max(0.0, lat)
-        region.span.longitudeDelta = max(0.0, lon)
+        region.span.latitudeDelta = max(spanZoomedInMax, lat)
+        region.span.longitudeDelta = max(spanZoomedInMax, lon)
         theMap.setRegion(region, animated: true)
     }
 
@@ -933,8 +899,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         var region = theMap.region
         let lat = region.span.latitudeDelta * zoomFactor
         let lon = region.span.longitudeDelta * zoomFactor
-        region.span.latitudeDelta = min(120.0, lat)
-        region.span.longitudeDelta = min(160.0, lon)
+        region.span.latitudeDelta = min(spanZoomedOutMax, lat)
+        region.span.longitudeDelta = min(spanZoomedOutMax, lon)
         theMap.setRegion(region, animated: true)
     }
 
@@ -1642,6 +1608,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
 
+    /**
+     * Return meters per degree longitude (at a specific latitude).
+     */
+    func metersPerDegreeLonAtLan(atLatitude: Double) -> Double {
+        let meters = metersPerDegreeLonAtEquator *
+            cos(max(-85.0, min(85.0, abs(atLatitude))) / 180.0 * 3.141592654)
+        return meters
+    }
+
+    
     /**
      * Simple debug loggin.
      */

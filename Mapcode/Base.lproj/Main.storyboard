@@ -381,15 +381,12 @@
                         <outlet property="theLon" destination="dA2-FW-eFa" id="vtZ-mV-MJ6"/>
                         <outlet property="theLonLabel" destination="BTj-Rk-wdm" id="6ss-O0-6lJ"/>
                         <outlet property="theMap" destination="ekd-s8-ZkY" id="ryc-Zr-32Z"/>
-                        <outlet property="theMapType" destination="ntQ-Cn-xBr" id="VLM-Fc-QST"/>
                         <outlet property="theMapcode" destination="gXh-R3-KMg" id="tlw-Rn-4fx"/>
                         <outlet property="theMapcodeLabel" destination="xcH-Fl-fHj" id="rP6-ny-ZTo"/>
                         <outlet property="theNextContext" destination="YvQ-0x-P0k" id="a7t-mo-XRg"/>
                         <outlet property="theNextMapcode" destination="ZKZ-a7-cYi" id="5Yq-2d-Mse"/>
                         <outlet property="theShare" destination="FzW-1u-A5W" id="IfE-U4-oAd"/>
                         <outlet property="theView" destination="uKr-t6-5ok" id="2eX-Wy-A3R"/>
-                        <outlet property="theZoomIn" destination="Qcm-6U-D1v" id="pn7-ex-rqu"/>
-                        <outlet property="theZoomOut" destination="44y-Qs-BpH" id="6uQ-1F-w3V"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
