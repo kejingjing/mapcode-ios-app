@@ -53,15 +53,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-    let debugMask = 0
-    let DEBUG = 1
-    let INFO = 2
-    let WARN = 4
-    let ERROR = 8
+    let debugMask: UInt8 = 0xFE
+    let TRACE: UInt8 = 1
+    let DEBUG: UInt8 = 2
+    let INFO: UInt8 = 4
+    let WARN: UInt8 = 8
+    let ERROR: UInt8 = 16
 
     // Help texts.
     let textWhatsNew = "\n" +
         "* Improved auto-zoom level when searching for an address.\n" +
+        "* Moved zoom buttons a bit to prevent sliding the 2nd screen on iPad.\n" +
         "* Fixed minor issues.\n"
 
     let textAbout = "Copyright (C) 2016\n" +
@@ -406,7 +408,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         if prevVersionBuild == nil {
             self.showAbout(self)
         } else if prevVersionBuild != versionBuild {
-            self.showAlert("What's New", message: "\(version)\n(build \(build)):" + textWhatsNew, button: "Dismiss")
+            self.showAlert("What's New", message: "\(version):" + textWhatsNew, button: "Dismiss")
         }
     }
 
@@ -417,7 +419,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func showAbout(sender: AnyObject) {
         let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
         let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
-        self.showAlert("Mapcode \(version)", message: "(build \(build))\n\n\(textAbout)", button: "Dismiss")
+        self.showAlert("Mapcode \(version).\(build)", message: textAbout, button: "Dismiss")
     }
 
 
@@ -720,9 +722,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func mapcodeWasEntered(mapcode: String) {
 
         // Prefix previous territory for local mapcodes.
-        var fullMapcode = mapcode;
-        if (mapcode.characters.count < 10) && !mapcode.containsString(" ") && !allContexts.isEmpty {
-            fullMapcode = "\(allContexts[currentContextIndex]) \(mapcode)"
+        var fullMapcode = trimAllSpace(mapcode)
+
+        if (fullMapcode.characters.count < 10) && !fullMapcode.containsString(" ") && !allContexts.isEmpty {
+            fullMapcode = "\(allContexts[currentContextIndex]) \(fullMapcode)"
         }
 
         // Create URL for REST API call to get mapcodes.
@@ -832,7 +835,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
 
         // Get territories.
-        debug(INFO, msg: "Call Mapcode API: url=\(url)")
+        debug(INFO, msg: "fetchTerritoryNamesFromServer: Call Mapcode API: url=\(url)")
         rest.get {
             result, httpResponse in
             do {
@@ -1142,7 +1145,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Bail out if nothing changed.
         if isEqualOrNil(queuedCoordinateForReverseGeocode, prevCoordinate: prevQueuedCoordinateForReverseGeocode) {
-            debug(DEBUG, msg: "periodicCheckToUpdateAddress: Filtered (no change), coordinate=\(queuedCoordinateForReverseGeocode)")
+            debug(TRACE, msg: "periodicCheckToUpdateAddress: Filtered (no change), coordinate=\(queuedCoordinateForReverseGeocode)")
             return
         }
 
@@ -1156,7 +1159,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let now = NSDate().timeIntervalSince1970
         let timePassed = now - prevTimeForReverseGeocodeSecs
         if timePassed < limitReverseGeocodingSecs {
-            debug(DEBUG, msg: "periodicCheckToUpdateAddress: Filtered (too soon), timePassed=\(timePassed)")
+            debug(TRACE, msg: "periodicCheckToUpdateAddress: Filtered (too soon), timePassed=\(timePassed)")
             return
         }
 
@@ -1204,7 +1207,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let address = CNPostalAddressFormatter.stringFromPostalAddress(
             postalAddressFromAddressDictionary(addressDictionary),
             style: .MailingAddress)
-        return address.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).stringByReplacingOccurrencesOfString("\n", withString: ", ").stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+        return address.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).stringByReplacingOccurrencesOfString("\n", withString: ", ")
     }
 
 
@@ -1246,7 +1249,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Bail out if nothing changed.
         if isEqualOrNil(queuedCoordinateForMapcodeLookup, prevCoordinate: prevQueuedCoordinateForMapcodeLookup) {
-            debug(DEBUG, msg: "periodicCheckToUpdateMapcode: Filtered (no change), coordinate=\(queuedCoordinateForMapcodeLookup)")
+            debug(TRACE, msg: "periodicCheckToUpdateMapcode: Filtered (no change), coordinate=\(queuedCoordinateForMapcodeLookup)")
             return
         }
 
@@ -1260,7 +1263,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let now = NSDate().timeIntervalSince1970
         let timePassed = now - prevTimeForMapcodeLookupSecs
         if timePassed < limitMapcodeLookupSecs {
-            debug(DEBUG, msg: "periodicCheckToUpdateMapcode: Too soon, timePassed=\(timePassed)")
+            debug(TRACE, msg: "periodicCheckToUpdateMapcode: Too soon, timePassed=\(timePassed)")
             return
         }
 
@@ -1583,6 +1586,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
+     * This method trims all spaces around a string and removes double spacing.
+     */
+    func trimAllSpace(input: String) -> String {
+        var output = input.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet());
+        var changed = false
+        repeat {
+            let replaced = output.stringByReplacingOccurrencesOfString("  ", withString: " ")
+            changed = (replaced != output)
+            output = replaced
+        } while changed
+        return output
+    }
+
+
+    /**
      * Returns true if new coordinate is nil or no different from previous one.
      */
     func isEqualOrNil(newCoordinate: CLLocationCoordinate2D!, prevCoordinate: CLLocationCoordinate2D!) -> Bool {
@@ -1625,20 +1643,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Simple debug loggin.
      */
-    func debug(level: Int, msg: String) {
-        if (level & debugMask) != 0 {
-            var prefix: String
-            switch level {
-            case DEBUG:
-                prefix = "DEBUG"
-            case INFO:
-                prefix = "INFO"
-            case WARN:
-                prefix = "WARN"
-            default:
-                prefix = "ERROR"
-            }
-            print("\(prefix): \(msg)")
+    func debug(level: UInt8, msg: String) {
+        var prefix: String!
+        if (level & debugMask) == TRACE {
+            prefix = "TRACE"
+        } else if (level & debugMask) == DEBUG {
+            prefix = "DEBUG"
+        } else if (level & debugMask) == INFO {
+            prefix = "INFO"
+        } else if (level & debugMask) == WARN {
+            prefix = "WARN"
+        } else if (level & debugMask) == ERROR {
+            prefix = "ERROR"
+        } else {
+            prefix = nil
+        }
+        if prefix != nil {
+            print("\(prefix!): \(msg)")
         }
     }
 

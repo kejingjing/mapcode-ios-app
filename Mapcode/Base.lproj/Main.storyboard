@@ -48,12 +48,12 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Qcm-6U-D1v" userLabel="Zoom In">
-                                        <rect key="frame" x="270" y="136" width="50" height="60"/>
+                                        <rect key="frame" x="260" y="133" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="UL2-DQ-knh"/>
-                                            <constraint firstAttribute="width" constant="50" id="VGC-y2-TQ2"/>
-                                            <constraint firstAttribute="height" constant="60" id="X2f-48-Ldi"/>
+                                            <constraint firstAttribute="width" constant="60" id="VGC-y2-TQ2"/>
+                                            <constraint firstAttribute="height" constant="66" id="X2f-48-Ldi"/>
                                             <constraint firstAttribute="width" constant="34" id="dYp-X3-S5d"/>
                                         </constraints>
                                         <state key="normal" image="ZoomInIcon"/>
@@ -68,13 +68,13 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="44y-Qs-BpH" userLabel="Zoom Out">
-                                        <rect key="frame" x="270" y="222" width="50" height="61"/>
+                                        <rect key="frame" x="260" y="199" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <constraints>
-                                            <constraint firstAttribute="width" constant="50" id="514-Go-0kq"/>
+                                            <constraint firstAttribute="width" constant="60" id="514-Go-0kq"/>
                                             <constraint firstAttribute="height" constant="34" id="Fye-yF-3KH"/>
                                             <constraint firstAttribute="width" constant="34" id="X0z-xN-rGl"/>
-                                            <constraint firstAttribute="height" constant="61" id="nmV-SX-U26"/>
+                                            <constraint firstAttribute="height" constant="66" id="nmV-SX-U26"/>
                                         </constraints>
                                         <state key="normal" image="ZoomOutIcon"/>
                                         <variation key="default">
@@ -144,7 +144,7 @@
                                     <constraint firstAttribute="bottom" secondItem="FzW-1u-A5W" secondAttribute="bottom" constant="12" id="B54-Hq-EL8"/>
                                     <constraint firstItem="ekd-s8-ZkY" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" id="E0a-Vw-cbB"/>
                                     <constraint firstItem="ntQ-Cn-xBr" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" constant="8" id="Efl-Gz-zmx"/>
-                                    <constraint firstItem="44y-Qs-BpH" firstAttribute="top" secondItem="Qcm-6U-D1v" secondAttribute="bottom" constant="26" id="Fli-1O-YpT"/>
+                                    <constraint firstItem="44y-Qs-BpH" firstAttribute="top" secondItem="Qcm-6U-D1v" secondAttribute="bottom" id="Fli-1O-YpT"/>
                                     <constraint firstItem="rKN-zi-tQH" firstAttribute="leading" secondItem="PbS-qj-HqD" secondAttribute="trailing" constant="28" id="KJy-Dx-Qsa"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="leading" secondItem="rKN-zi-tQH" secondAttribute="trailing" constant="19" id="O5R-sE-8ay"/>
                                     <constraint firstItem="FzW-1u-A5W" firstAttribute="leading" secondItem="rKN-zi-tQH" secondAttribute="trailing" constant="28" id="XnL-3g-iQP"/>
@@ -400,7 +400,7 @@
         <image name="MapsIcon" width="128" height="128"/>
         <image name="NextIcon" width="260" height="160"/>
         <image name="ShareIcon" width="96" height="120"/>
-        <image name="ZoomInIcon" width="180" height="220"/>
-        <image name="ZoomOutIcon" width="180" height="220"/>
+        <image name="ZoomInIcon" width="210" height="230"/>
+        <image name="ZoomOutIcon" width="210" height="230"/>
     </resources>
 </document>
