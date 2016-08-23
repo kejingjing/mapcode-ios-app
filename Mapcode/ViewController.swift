@@ -61,8 +61,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Compatible with older iOS version (9.0+).\n" +
-        "* Fixed minor issues.\n"
+        "* Compatible with older iOS 8.1+.\n" +
+        "* Fixed issues with address formatting.\n"
 
     let textAbout = "Copyright (C) 2016\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -1197,58 +1197,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             // Construct address
             if placemarks!.count > 0 {
                 let pm = placemarks!.first!
-                var address = "";
 
-                if #available(iOS 9.0, *) {
-
-                    // Use standard iOS method on iOS 9.0+.
-                    let lines = pm.addressDictionary!["FormattedAddressLines"] as! [String]
-                    var address = ""
-                    var separator = ""
-                    for line in lines {
-                        address = address + separator + line
-                        separator = ", "
+                // Use standard iOS method on iOS 9.0+.
+                var address = ""
+                if let lines = pm.addressDictionary!["FormattedAddressLines"] as! [String]! {
+                    address = lines.first!
+                    for line in lines.dropFirst() {
+                        address = address + "\n" + line
                     }
-                } else {
-
-                    // Need to be creative ourselves here to construct an address.
-                    var houseNumberFirst = false;
-                    let locale = NSLocale.currentLocale()
-                    if let country = locale.objectForKey(NSLocaleCountryCode) as? String {
-                        if country == "AU" || country == "NZ" || country == "UK" || country == "US" ||
-                            country == "VN" || country == "FR" {
-                            houseNumberFirst = true
-                        }
-                    }
-
-                    // Streetname and housenumber.
-                    if pm.thoroughfare != nil {
-                        address = pm.thoroughfare!
-                        if pm.subThoroughfare != nil {
-                            // User 'normal' or 'reverse' form of address.
-                            if houseNumberFirst {
-                                address = "\(address) \(pm.subThoroughfare!)";
-                            } else {
-                                address = "\(pm.subThoroughfare!) \(address)";
-                            }
-                        }
-                    }
-
-                    // City.
-                    if pm.locality != nil {
-                        if (!address.isEmpty) {
-                            address = "\(address), ";
-                        }
-                        address = "\(address)\(pm.locality!)";
-                    }
-
-                    // Country.
-                    if pm.ISOcountryCode != nil {
-                        if (!address.isEmpty) {
-                            address = "\(address), ";
-                        }
-                        address = "\(address)\(pm.ISOcountryCode!)";
-                    }
+                    address = address.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).stringByReplacingOccurrencesOfString("\n", withString: ", ")
                 }
 
                 // Update address fields.
