@@ -61,8 +61,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Improved auto-zoom level when searching for an address.\n" +
-        "* Moved zoom buttons a bit to prevent sliding the 2nd screen on iPad.\n" +
+        "* Compatible with older iOS version (9.0+).\n" +
         "* Fixed minor issues.\n"
 
     let textAbout = "Copyright (C) 2016\n" +
@@ -253,8 +252,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMap.delegate = self
         theMap.mapType = MKMapType.Standard
         theMap.showsUserLocation = true
-        theMap.showsScale = true
         theMap.showsBuildings = true
+
+        // Map scale only on iOS 9.0+.
+        if #available(iOS 9.0, *) {
+            theMap.showsScale = true
+        }
 
         // Set initial map and zoom. Pick a decent location to start with until a real location is found.
         let newRegion = MKCoordinateRegion(center: mapcodeLocation,
@@ -1194,7 +1197,59 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             // Construct address
             if placemarks!.count > 0 {
                 let pm = placemarks!.first!
-                let address = self.formattedAddressFromAddressDictionary(pm.addressDictionary!)
+                var address = "";
+
+                if #available(iOS 9.0, *) {
+
+                    // Use standard iOS method on iOS 9.0+.
+                    let lines = pm.addressDictionary!["FormattedAddressLines"] as! [String]
+                    var address = ""
+                    var separator = ""
+                    for line in lines {
+                        address = address + separator + line
+                        separator = ", "
+                    }
+                } else {
+
+                    // Need to be creative ourselves here to construct an address.
+                    var houseNumberFirst = false;
+                    let locale = NSLocale.currentLocale()
+                    if let country = locale.objectForKey(NSLocaleCountryCode) as? String {
+                        if country == "AU" || country == "NZ" || country == "UK" || country == "US" ||
+                            country == "VN" || country == "FR" {
+                            houseNumberFirst = true
+                        }
+                    }
+
+                    // Streetname and housenumber.
+                    if pm.thoroughfare != nil {
+                        address = pm.thoroughfare!
+                        if pm.subThoroughfare != nil {
+                            // User 'normal' or 'reverse' form of address.
+                            if houseNumberFirst {
+                                address = "\(address) \(pm.subThoroughfare!)";
+                            } else {
+                                address = "\(pm.subThoroughfare!) \(address)";
+                            }
+                        }
+                    }
+
+                    // City.
+                    if pm.locality != nil {
+                        if (!address.isEmpty) {
+                            address = "\(address), ";
+                        }
+                        address = "\(address)\(pm.locality!)";
+                    }
+
+                    // Country.
+                    if pm.ISOcountryCode != nil {
+                        if (!address.isEmpty) {
+                            address = "\(address), ";
+                        }
+                        address = "\(address)\(pm.ISOcountryCode!)";
+                    }
+                }
 
                 // Update address fields.
                 dispatch_async(dispatch_get_main_queue()) {
@@ -1207,30 +1262,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         })
     }
 
-
-    /**
-     * This method creates a formatted address from a dictionary.
-     */
-    func formattedAddressFromAddressDictionary(addressDictionary: Dictionary<NSObject, AnyObject>) -> String {
-        let address = CNPostalAddressFormatter.stringFromPostalAddress(
-                postalAddressFromAddressDictionary(addressDictionary),
-                style: .MailingAddress)
-        return address.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).stringByReplacingOccurrencesOfString("\n", withString: ", ")
-    }
-
-
-    /**
-     * This method creates a postal address object from a dictionary.
-     */
-    func postalAddressFromAddressDictionary(addressDictionary: Dictionary<NSObject, AnyObject>) -> CNMutablePostalAddress {
-        let address = CNMutablePostalAddress()
-        address.street = addressDictionary["Street"] as? String ?? ""
-        address.state = addressDictionary["State"] as? String ?? ""
-        address.city = addressDictionary["City"] as? String ?? ""
-        address.postalCode = addressDictionary["ZIP"] as? String ?? ""
-        address.country = addressDictionary["Country"] as? String ?? ""
-        return address
-    }
 
     /**
      * Queue Mapcode REST API request (to a max of 1 in the queue).
