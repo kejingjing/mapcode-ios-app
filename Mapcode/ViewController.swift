@@ -23,7 +23,6 @@ import Contacts
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate,
         UITextFieldDelegate, UIGestureRecognizerDelegate {
-
     /**
      * List of UI controls that we need to access from code.
      */
@@ -704,17 +703,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // Add 50% slack around the edges.
                 let spanLat = min(self.spanZoomedOutMax,
-                    max(self.spanZoomedInMax,
-                        1.5 * region.radius / self.metersPerDegreeLat))
+                                  max(self.spanZoomedInMax,
+                                      1.5 * region.radius / self.metersPerDegreeLat))
                 let spanLon = min(self.spanZoomedOutMax,
-                    max(self.spanZoomedInMax,
-                        1.5 * region.radius / self.metersPerDegreeLonAtLan(coordinate.latitude)))
+                                  max(self.spanZoomedInMax,
+                                      1.5 * region.radius / self.metersPerDegreeLonAtLan(coordinate.latitude)))
 
                 dispatch_async(dispatch_get_main_queue()) {
                     // Update location.
                     self.mapcodeLocation = coordinate
                     let newRegion = MKCoordinateRegion(center: coordinate,
-                        span: MKCoordinateSpanMake(spanLat, spanLon))
+                                                       span: MKCoordinateSpanMake(spanLat, spanLon))
                     self.theMap.setRegion(newRegion, animated: false)
                     self.showLatLon(coordinate)
                     self.queueUpdateForMapcode(coordinate)
@@ -1214,8 +1213,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func formattedAddressFromAddressDictionary(addressDictionary: Dictionary<NSObject, AnyObject>) -> String {
         let address = CNPostalAddressFormatter.stringFromPostalAddress(
-            postalAddressFromAddressDictionary(addressDictionary),
-            style: .MailingAddress)
+                postalAddressFromAddressDictionary(addressDictionary),
+                style: .MailingAddress)
         return address.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).stringByReplacingOccurrencesOfString("\n", withString: ", ")
     }
 
@@ -1644,11 +1643,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func metersPerDegreeLonAtLan(atLatitude: Double) -> Double {
         let meters = metersPerDegreeLonAtEquator *
-            cos(max(-85.0, min(85.0, abs(atLatitude))) / 180.0 * 3.141592654)
+                cos(max(-85.0, min(85.0, abs(atLatitude))) / 180.0 * 3.141592654)
         return meters
     }
 
-    
+
     /**
      * Simple debug loggin.
      */
