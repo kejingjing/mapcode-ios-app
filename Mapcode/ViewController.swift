@@ -53,7 +53,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-    let debugMask: UInt8 = 0xFE
+    let debugMask: UInt8 = 0x00
     let TRACE: UInt8 = 1
     let DEBUG: UInt8 = 2
     let INFO: UInt8 = 4
@@ -93,8 +93,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         "________\n" +
 
-        "NOTICE: Some usage data may be collected to improve the Mapcode REST API service. " +
-        "This data is used by the Mapcode Foundation only and not used for commercial purposes."
+        "Privacy notice: " +
+        "This app uses the Mapcode REST API at https://api.mapcode.com. " +
+        "This free online service is provided for demonstration purposes " +
+        "only and the Mapcode Foundation accepts no claims " +
+        "on its availability or reliability, although we try hard to " +
+        "provide a stable and decent service. Note that anonymized " +
+        "usage and log data, including mapcodes and coordinates, may " +
+        "be collected to improve the service and better anticipate " +
+        "on its scalability needs. The collected data contains no IP " +
+        "addresses, is processed securely in the EEA and is never " +
+        "sold or used for commercial purposes."
 
     // Other constants.
     let host: String = "https:/api.mapcode.com";    // Host name of Mapcode REST API.
