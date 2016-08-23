@@ -29,7 +29,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     @IBOutlet weak var theMap: MKMapView!
     @IBOutlet weak var theFindMyLocation: UIButton!
-    @IBOutlet weak var theShare: UIButton!
     @IBOutlet weak var theAddress: UITextField!
     @IBOutlet weak var theAddressLabel: UILabel!
     @IBOutlet weak var theAddressFirstLine: UILabel!
@@ -63,6 +62,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     // Help texts.
     let textWhatsNew = "\n" +
         "* Compatible with older iOS 8.1+.\n" +
+        "* Added iOS Share button.\n" +
         "* Fixed issues with address formatting.\n"
 
     let textAbout = "Copyright (C) 2016\n" +
@@ -282,9 +282,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theLat.text = ""
         theLon.text = ""
 
-        // Disabled the "share" button.
-        theShare.hidden = true
-
         // Work-around to move screen sufficiently high on iPad.
         if UIDevice().model.containsString("iPad") {
             movementDistanceAddress = iPadMovementDistanceAddress
@@ -433,6 +430,19 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let version = NSBundle.mainBundle().infoDictionary!["CFBundleShortVersionString"] as! String
         let build = NSBundle.mainBundle().infoDictionary!["CFBundleVersion"] as! String
         self.showAlert("Mapcode \(version).\(build)", message: textAbout, button: "Dismiss")
+    }
+
+
+    /**
+     * This gets called if the "share" button gets pressed.
+     */
+    @IBAction func shareButtonClicked(sender: UIButton) {
+        let textToShare = theMapcode.text
+        let objectsToShare = [textToShare]
+        let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
+        activityVC.excludedActivityTypes = [UIActivityTypeAirDrop, UIActivityTypeAddToReadingList]
+        activityVC.popoverPresentationController?.sourceView = sender
+        self.presentViewController(activityVC, animated: true, completion: nil)
     }
 
 
