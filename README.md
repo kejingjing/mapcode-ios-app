@@ -20,9 +20,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Original C library created by Pieter Geelen. Work on Java version
-of the mapcode library by Rijn Buve. Initial port by Matthew Lowden.
-
 # Using Git and `.gitignore`
 
 It's good practice to set up a personal global `.gitignore` file on your machine which filters a number of files
