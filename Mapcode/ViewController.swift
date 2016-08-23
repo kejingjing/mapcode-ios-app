@@ -32,6 +32,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theShare: UIButton!
     @IBOutlet weak var theAddress: UITextField!
     @IBOutlet weak var theAddressLabel: UILabel!
+    @IBOutlet weak var theAddressFirstLine: UILabel!
     @IBOutlet weak var theContext: UITextView!
     @IBOutlet weak var theContextLabel: UILabel!
     @IBOutlet weak var theNextContext: UIButton!
@@ -270,6 +271,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theLon.delegate = self
 
         // Set text fields.
+        theAddressFirstLine.text = ""
         theAddress.text = ""
         theContext.text = ""
         theContextLabel.text = "TERRITORY"
@@ -614,6 +616,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
 
+    /**
+     * This method gets called when user starts editing the address field. This needs to
+     * clear the first address line as well.
+     */
+    @IBAction func beginEditAddress(textField: UITextField) {
+        dispatch_async(dispatch_get_main_queue()) {
+            self.theAddressFirstLine.text = ""
+        }
+        beginEdit(textField)
+    }
+
+    
     /**
      * Delegate method gets called when the Return key is pressed in a text edit field.
      */
@@ -1198,11 +1212,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             if placemarks!.count > 0 {
                 let pm = placemarks!.first!
 
-                // Use standard iOS method on iOS 9.0+.
+                // Get address from formatted address lines. First line seems to be neighborhood or POI sometimes, however.
                 var address = ""
+                var addressFirstLine = ""
                 if let lines = pm.addressDictionary!["FormattedAddressLines"] as! [String]! {
-                    address = lines.first!
-                    for line in lines.dropFirst() {
+                    var start = 0
+                    if lines.count > 3 {
+                        addressFirstLine = lines.first!
+                        start = 1
+                    }
+                    address = lines[start]
+                    for line in lines.dropFirst(start + 1) {
                         address = address + "\n" + line
                     }
                     address = address.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()).stringByReplacingOccurrencesOfString("\n", withString: ", ")
@@ -1210,8 +1230,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // Update address fields.
                 dispatch_async(dispatch_get_main_queue()) {
+                    self.theAddressFirstLine.text = addressFirstLine
                     self.theAddress.textColor = UIColor.blackColor()
-                    self.theAddress.text = address;
+                    self.theAddress.text = address
                 }
             } else {
                 self.debug(self.INFO, msg: "periodicCheckToUpdateAddress: No placemarks, coordinate=\(coordinate)")
