@@ -22,7 +22,7 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    var loadedEnoughToStartMapcode: Bool = false
+    var notificationAllowedToStartMapcode: Bool = false
     var mapcodeNotification: RemoteNotificationMapcode?
 
 
@@ -33,7 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 
-    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject?) -> Bool {
+    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
         print("application: url=\(url)")
         if url.host == nil {
             return true;
@@ -50,20 +50,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func applicationHandleRemoteNotification(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject: AnyObject]) {
-        print("applicationHandleRemoteNotification: application=\(application), userInfo=\(userInfo)")
+        print("applicationHandleRemoteNotification: application=\(application.applicationState.rawValue), userInfo=\(userInfo), allowed=\(notificationAllowedToStartMapcode)")
         if (application.applicationState == UIApplicationState.Background) || (application.applicationState == UIApplicationState.Inactive) {
-            let canDoNow = loadedEnoughToStartMapcode
             self.mapcodeNotification = RemoteNotificationMapcode.create(userInfo)
-            if canDoNow {
-                self.triggerMapcodeIfPresent()
+            if notificationAllowedToStartMapcode {
+                self.triggerNotificationIfPresent()
             }
         }
     }
 
 
-    func triggerMapcodeIfPresent() -> Bool {
-        print("triggerMapcodeIfPresent: \(self.mapcodeNotification)")
-        self.loadedEnoughToStartMapcode = true
+    func triggerNotificationIfPresent() -> Bool {
+        print("triggerNotificationIfPresent: \(self.mapcodeNotification)")
+        self.notificationAllowedToStartMapcode = true
         let ret = (self.mapcodeNotification?.trigger() != nil)
         self.mapcodeNotification = nil
         return ret

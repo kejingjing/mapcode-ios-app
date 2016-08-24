@@ -362,8 +362,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // TODO let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         debug(INFO, msg: "trigger?")
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        appDelegate.triggerMapcodeIfPresent()
-    }
+        appDelegate.triggerNotificationIfPresent()
+}
 
 
     /**

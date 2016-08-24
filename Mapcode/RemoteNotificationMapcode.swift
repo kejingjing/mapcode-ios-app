@@ -20,12 +20,18 @@ import UIKit
 let RemoteNotificationMapcodeAppSectionKey: String = "mapcode"
 
 class RemoteNotificationMapcode: NSObject {
+
     var text: String = ""
 
     class func create(userInfo: [NSObject:AnyObject]) -> RemoteNotificationMapcode? {
         let info = userInfo as NSDictionary
-        self.text = info.objectForKey(RemoteNotificationMapcodeAppSectionKey) as! String
-        return self
+
+        let mapcode = info.objectForKey(RemoteNotificationMapcodeAppSectionKey) as! String
+        var ret: RemoteNotificationMapcode? = nil
+        if !mapcode.isEmpty {
+            ret = RemoteNotificationMapcodeSearch(text: mapcode)
+        }
+        return ret
     }
 
 
@@ -35,23 +41,53 @@ class RemoteNotificationMapcode: NSObject {
     }
 
 
-    private init(providedText: String) {
-        self.text = providedText
+    private init(text: String) {
+        self.text = text
         super.init()
     }
 
 
     final func trigger() {
         dispatch_async(dispatch_get_main_queue()) {
-            print("Triggering Deep Link - %@", self) // TODO
-                var vc = UIViewController()
-                vc = ViewController()
-                // TODO
-//                let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-//                appDelegate.window?.addSubview(vc.view)
-//                completion(nil)
+            print("trigger: text=\(self.text)")
+            self.triggerImp() {
+                (passedData) in
 
+                // Do nothing.
+            }
         }
     }
 
+
+    private func triggerImp(completion: ((AnyObject?) -> (Void))) {
+        completion(nil)
+    }
+}
+
+
+class RemoteNotificationMapcodeSearch: RemoteNotificationMapcode {
+    var mapcode: String!
+
+
+    override init(text: String) {
+        self.mapcode = text
+        super.init(text: text)
+    }
+
+
+    private override func triggerImp(completion: ((AnyObject?) -> (Void))) {
+        super.triggerImp() {
+            (passedData) in
+
+            print("trigger2: text=\(self.text, self.mapcode)")
+//
+//            var vc = UIViewController()
+//            vc = ViewController()
+//
+//            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+//            appDelegate.window?.addSubview(vc.view)
+
+            completion(nil)
+        }
+    }
 }
