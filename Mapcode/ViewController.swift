@@ -277,7 +277,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theContextLabel.text = "TERRITORY"
         theNextContext.enabled = false
         theMapcode.text = ""
-        theMapcodeLabel.text = "SHORTEST"
+        theMapcodeLabel.text = "MAPCODE"
         theNextMapcode.enabled = false
         theLat.text = ""
         theLon.text = ""
