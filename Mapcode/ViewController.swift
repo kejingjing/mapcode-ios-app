@@ -52,7 +52,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-    let debugMask: UInt8 = 0x00
+    let debugMask: UInt8 = 0xFE
     let TRACE: UInt8 = 1
     let DEBUG: UInt8 = 2
     let INFO: UInt8 = 4
@@ -217,6 +217,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     var currentContextIndex = 0                     // Index of current context.
 
     var territoryFullNames = [String: String]()     // List of territory alpha codes and full names. Can be empty.
+    var territoryFullNamesFetched = false           // True if obtained or obtaining from server.
 
     var queuedCoordinateForReverseGeocode: CLLocationCoordinate2D!  // Queue of 1, for periodic rev. geocoding. Nil if none.
     var queuedCoordinateForMapcodeLookup: CLLocationCoordinate2D!   // Queue of 1, for mapcode lookup. Nil if none.
@@ -232,6 +233,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     var timerResetLabels = NSTimer()                // Timer to reset labels.
 
     // @formatter:on
+
+    // TODO ------------------------------------------------------------------
+
+    // TODO ------------------------------------------------------------------
 
     /**
      * Errors that may be thrown when talking to an API.
@@ -352,6 +357,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 limitMapcodeLookupSecs, target: self,
                 selector: #selector(periodicCheckToUpdateMapcode),
                 userInfo: nil, repeats: true)
+
+        // Act on deep link.
+        // TODO let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        debug(INFO, msg: "trigger?")
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        appDelegate.triggerMapcodeIfPresent()
     }
 
 
@@ -637,7 +648,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         beginEdit(textField)
     }
 
-    
+
     /**
      * Delegate method gets called when the Return key is pressed in a text edit field.
      */
@@ -860,17 +871,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Call Mapcode REST API to get territory names.
      */
-    func fetchTerritoryNamesFromServer() {
+    func fetchTerritoryNamesFromServerIfNeeded() {
+
+        // Put something in the maps to make sure we don't call it twice.
+        if territoryFullNamesFetched {
+            return
+        }
+        territoryFullNamesFetched = true
 
         // Fetch territory information from server.
         let url = "\(host)/mapcode/territories/?client=\(client)&allowLog=\(allowLog)"
         guard let rest = RestController.createFromURLString(url) else {
-            debug(ERROR, msg: "fetchTerritoryNamesFromServer: Bad URL, url=\(url)")
+            debug(ERROR, msg: "fetchTerritoryNamesFromServerIfNeeded: Bad URL, url=\(url)")
             return
         }
 
         // Get territories.
-        debug(INFO, msg: "fetchTerritoryNamesFromServer: Call Mapcode API: url=\(url)")
+        debug(INFO, msg: "fetchTerritoryNamesFromServerIfNeeded: Call Mapcode API: url=\(url)")
         rest.get {
             result, httpResponse in
             do {
@@ -879,7 +896,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // The JSON response indicated an error, territory is set to nil.
                 if (json["errors"] != nil) || (json["territories"] == nil) || ((json["territories"]?.jsonArray == nil)) {
-                    self.debug(self.WARN, msg: "fetchTerritoryNamesFromServer: Can get territories from server, errors=\(json["errors"])")
+                    self.debug(self.WARN, msg: "fetchTerritoryNamesFromServerIfNeeded: Can get territories from server, errors=\(json["errors"])")
                 }
 
                 // Get territories and add to our map.
@@ -894,12 +911,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // Update mapcode fields on main thread.
                 dispatch_async(dispatch_get_main_queue()) {
+
                     // Pass territories to main and update context field.
                     self.territoryFullNames = newTerritoryFullNames
                     self.updateContext()
                 }
             } catch {
-                self.debug(self.WARN, msg: "fetchTerritoryNamesFromServer: API call failed, url=\(url), error=\(error)")
+                self.debug(self.WARN, msg: "fetchTerritoryNamesFromServerIfNeeded: API call failed, url=\(url), error=\(error)")
             }
         }
     }
@@ -1115,11 +1133,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Get current context.
         var fullName: String!
         if !allContexts.isEmpty {
+
             // Find its full name.
             let alphaCode = allContexts[currentContextIndex]
             fullName = territoryFullNames[alphaCode]
             if fullName == nil {
-                debug(ERROR, msg: "updateContext: Territory not found, alphaCode=\(alphaCode)")
+                debug(INFO, msg: "updateContext: Territory not found, alphaCode=\(alphaCode)")
             }
         }
 
@@ -1270,9 +1289,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func periodicCheckToUpdateMapcode() {
 
         // Check if the territories were loaded yet from the Mapcode REST API.
-        if territoryFullNames.isEmpty {
-            fetchTerritoryNamesFromServer()
-        }
+        fetchTerritoryNamesFromServerIfNeeded()
 
         // Bail out if nothing changed.
         if isEqualOrNil(queuedCoordinateForMapcodeLookup, prevCoordinate: prevQueuedCoordinateForMapcodeLookup) {

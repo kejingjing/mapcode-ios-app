@@ -11,6 +11,7 @@
 		1EEA17F31D52115A00205837 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EE1D52115A00205837 /* JSON.swift */; };
 		1EEA17F41D52115A00205837 /* RestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EF1D52115A00205837 /* RestController.swift */; };
 		1EEA17F51D52115A00205837 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17F11D52115A00205837 /* Result.swift */; };
+		1EFB30DB1D6DB609006BEB0F /* RemoteNotificationMapcode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFB30DA1D6DB609006BEB0F /* RemoteNotificationMapcode.swift */; };
 		B22CA0AD1D6D76FF009B8F11 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22CA0AC1D6D76FF009B8F11 /* ShareViewController.swift */; };
 		B22CA0B01D6D76FF009B8F11 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B22CA0AE1D6D76FF009B8F11 /* MainInterface.storyboard */; };
 		B22CA0B41D6D76FF009B8F11 /* Show Mapcode.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B22CA0AA1D6D76FF009B8F11 /* Show Mapcode.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -69,6 +70,7 @@
 		1EEA17EF1D52115A00205837 /* RestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RestController.swift; sourceTree = "<group>"; };
 		1EEA17F01D52115A00205837 /* RestEssentials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RestEssentials.h; sourceTree = "<group>"; };
 		1EEA17F11D52115A00205837 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
+		1EFB30DA1D6DB609006BEB0F /* RemoteNotificationMapcode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteNotificationMapcode.swift; sourceTree = "<group>"; };
 		B22CA0A51D6D74DC009B8F11 /* Mapcode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Mapcode.entitlements; sourceTree = "<group>"; };
 		B22CA0AA1D6D76FF009B8F11 /* Show Mapcode.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Show Mapcode.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B22CA0AC1D6D76FF009B8F11 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 				1E045B031D523884004E1AA3 /* RestEssentials */,
 				B2F370F21D50E85F003D6A17 /* AppDelegate.swift */,
 				B2F370F41D50E85F003D6A17 /* ViewController.swift */,
+				1EFB30DA1D6DB609006BEB0F /* RemoteNotificationMapcode.swift */,
 				B2F370F61D50E85F003D6A17 /* Main.storyboard */,
 				B2F370F91D50E85F003D6A17 /* Assets.xcassets */,
 				B2F370FB1D50E85F003D6A17 /* LaunchScreen.storyboard */,
@@ -383,6 +386,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1EEA17F51D52115A00205837 /* Result.swift in Sources */,
+				1EFB30DB1D6DB609006BEB0F /* RemoteNotificationMapcode.swift in Sources */,
 				B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */,
 				B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */,
 				1EEA17F21D52115A00205837 /* ResponseHandler.swift in Sources */,
@@ -577,7 +581,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Mapcode/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.Mapcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -595,7 +599,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Mapcode/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.Mapcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -660,6 +664,7 @@
 				B22CA0B71D6D76FF009B8F11 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		B2F370EA1D50E85F003D6A17 /* Build configuration list for PBXProject "Mapcode" */ = {
 			isa = XCConfigurationList;
