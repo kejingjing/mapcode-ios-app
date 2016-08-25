@@ -142,8 +142,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let spanZoomedInMax = 0.0005                    // Zoomed in max.
     let spanZoomedOutMax = 175.0                    // Zoomed out max.
 
-    var locationManager: CLLocationManager!         // Controls and receives location updates.
-
     let scheduleUpdateLocationsSecs = 300.0         // Switch on update locations every x secs.
     let distanceFilterMeters = 10000.0              // Not interested in local position updates.
 
@@ -232,11 +230,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     var timerLocationUpdates = NSTimer()            // Timer to schedule/limit location updates.
     var timerResetLabels = NSTimer()                // Timer to reset labels.
 
+    var locationManager: CLLocationManager!         // Controls and receives location updates.
+
     // @formatter:on
-
-    // TODO ------------------------------------------------------------------
-
-    // TODO ------------------------------------------------------------------
 
     /**
      * Errors that may be thrown when talking to an API.
@@ -448,8 +444,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This gets called if the "share" button gets pressed.
      */
     @IBAction func shareButtonClicked(sender: UIButton) {
-        let textToShare = theMapcode.text
-        let objectsToShare = [textToShare]
+        let mapcode = theMapcode.text
+        let mapImage = captureMapView(theMap, title: mapcode)
+        let objectsToShare = [mapcode, mapImage]
         let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
         activityVC.excludedActivityTypes = [UIActivityTypeAirDrop, UIActivityTypeAddToReadingList]
         activityVC.popoverPresentationController?.sourceView = sender
@@ -1626,6 +1623,36 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Skip things very close (0, 0). Unfortunately you get (0, 0) sometimes as a coordinate.
         return (abs(coordinate.latitude) > 0.1) || (abs(coordinate.latitude) > 0.1)
+    }
+
+
+    /**
+     * Method to capture a UIView to UIImage.
+     * Source: http://stackoverflow.com/questions/4334233/how-to-capture-uiview-to-uiimage-without-loss-of-quality-on-retina-display
+     */
+    func captureMapView(view: MKMapView, title: String) -> UIImage {
+
+        // Create pin on map.
+        let pin = MKPointAnnotation()
+        pin.coordinate = view.centerCoordinate
+        pin.title = title
+        view.addAnnotation(pin)
+
+        // Reset center of map to update pins.
+        view.selectAnnotation(pin, animated: false)
+        view.setCenterCoordinate(view.centerCoordinate, animated: false)
+
+        // Use temporary graphics context.
+        UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.opaque, 0.0)
+        let context = UIGraphicsGetCurrentContext()!
+        CGContextSetInterpolationQuality(context, CGInterpolationQuality.High)
+        view.drawViewHierarchyInRect(view.frame, afterScreenUpdates: true)
+        let img = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext();
+
+        // Remove pin again.
+        view.removeAnnotation(pin)
+        return img;
     }
 
 
