@@ -52,7 +52,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-    let debugMask: UInt8 = 0xFE
+    let debugMask: UInt8 = 0x00
     let TRACE: UInt8 = 1
     let DEBUG: UInt8 = 2
     let INFO: UInt8 = 4
@@ -63,7 +63,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textWhatsNew = "\n" +
         "* Compatible with older iOS 8.1+.\n" +
         "* Added iOS Share button.\n" +
-        "* Fixed issues with address formatting.\n"
+        "* Fixed issues with address formatting.\n" +
+        "* Improve sharing, includes image.\n"
 
     let textAbout = "Copyright (C) 2016\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -356,7 +357,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Act on deep link.
         // TODO let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        debug(INFO, msg: "trigger?")
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         appDelegate.triggerNotificationIfPresent()
 }

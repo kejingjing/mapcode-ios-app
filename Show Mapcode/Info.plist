@@ -33,9 +33,7 @@
 			<key>NSExtensionActivationRule</key>
 			<dict>
 				<key>NSExtensionActivationSupportsText</key>
-				<true/>
-				<key>NSExtensionA</key>
-				<string></string>
+				<false/>
 			</dict>
 		</dict>
 		<key>NSExtensionMainStoryboard</key>
