@@ -24,13 +24,13 @@ class ShareViewController: SLComposeServiceViewController {
 
     override func isContentValid() -> Bool {
         // Do validation of contentText and/or NSExtensionContext attachments here.
-        print("contentText=\(self.contentText)")
+        // TODO print("contentText=\(self.contentText)")
         return true
     }
 
 
     override func didSelectPost() {
-        print("didSelectPost, contentText=\(self.contentText)")
+        // TODO print("didSelectPost, contentText=\(self.contentText)")
 
         self.contentText
         // This is called after the user selects Post. Do the upload of contentText and/or NSExtensionContext attachments.
@@ -47,6 +47,6 @@ class ShareViewController: SLComposeServiceViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("viewDidLoad")
+        // TODO print("viewDidLoad")
     }
 }

@@ -182,7 +182,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textTerritorySingle = "TERRITORY"
     let textTerritoryXOfY = "TERRITORY %i OF %i"
     let textMapcodeSingle = "MAPCODE"
-    let textMapcodeFirstOfN = "MAPCODE (+%i ALT.)"
+    let textMapcodeFirstOfN = "MAPCODE"
     let textMapcodeXOfY = "ALTERNATIVE %i"
     let textLatLabel = "LATITUDE (Y)"
     let textLonLabel = "LONGITUDE (X)"

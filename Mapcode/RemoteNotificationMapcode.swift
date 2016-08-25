@@ -49,7 +49,7 @@ class RemoteNotificationMapcode: NSObject {
 
     final func trigger() {
         dispatch_async(dispatch_get_main_queue()) {
-            print("trigger: text=\(self.text)")
+            // TODO print("trigger: text=\(self.text)")
             self.triggerImp() {
                 (passedData) in
 
@@ -79,7 +79,7 @@ class RemoteNotificationMapcodeSearch: RemoteNotificationMapcode {
         super.triggerImp() {
             (passedData) in
 
-            print("trigger2: text=\(self.text, self.mapcode)")
+            // TODO print("trigger2: text=\(self.text, self.mapcode)")
 //
 //            var vc = UIViewController()
 //            vc = ViewController()

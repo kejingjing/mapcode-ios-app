@@ -34,14 +34,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
-        print("application: url=\(url)")
+        // TODO print("application: url=\(url)")
         if url.host == nil {
             return true;
         }
 
         let urlString = url.absoluteString
         let queryArray = urlString.componentsSeparatedByString("/")
-        print("application: queryArray=\(queryArray)")
         let query = queryArray[2]
         let userInfo = [RemoteNotificationMapcodeAppSectionKey: query]
         self.applicationHandleRemoteNotification(application, didReceiveRemoteNotification: userInfo)
@@ -50,7 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func applicationHandleRemoteNotification(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject: AnyObject]) {
-        print("applicationHandleRemoteNotification: application=\(application.applicationState.rawValue), userInfo=\(userInfo), allowed=\(notificationAllowedToStartMapcode)")
+        // TODO print("applicationHandleRemoteNotification: application=\(application.applicationState.rawValue), userInfo=\(userInfo), allowed=\(notificationAllowedToStartMapcode)")
         if (application.applicationState == UIApplicationState.Background) || (application.applicationState == UIApplicationState.Inactive) {
             self.mapcodeNotification = RemoteNotificationMapcode.create(userInfo)
             if notificationAllowedToStartMapcode {
@@ -61,7 +60,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func triggerNotificationIfPresent() -> Bool {
-        print("triggerNotificationIfPresent: \(self.mapcodeNotification)")
+        // TODO print("triggerNotificationIfPresent: \(self.mapcodeNotification)")
         self.notificationAllowedToStartMapcode = true
         let ret = (self.mapcodeNotification?.trigger() != nil)
         self.mapcodeNotification = nil
