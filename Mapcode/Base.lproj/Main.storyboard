@@ -41,14 +41,15 @@
                                         </constraints>
                                         <state key="normal" image="CenterIcon"/>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="detailDisclosure" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tgm-Fn-qAP" userLabel="About">
-                                        <rect key="frame" x="8" y="287" width="22" height="22"/>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="infoLight" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tgm-Fn-qAP" userLabel="About">
+                                        <rect key="frame" x="8" y="289" width="22" height="22"/>
+                                        <color key="backgroundColor" red="0.69307589530944824" green="0.80136847496032715" blue="0.9120182991027832" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <connections>
                                             <action selector="showAbout:" destination="BYZ-38-t0r" eventType="touchUpInside" id="pHz-HX-tvU"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Qcm-6U-D1v" userLabel="Zoom In">
-                                        <rect key="frame" x="260" y="232" width="60" height="66"/>
+                                        <rect key="frame" x="260" y="234" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="34" id="UL2-DQ-knh"/>
@@ -68,7 +69,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="44y-Qs-BpH" userLabel="Zoom Out">
-                                        <rect key="frame" x="260" y="298" width="60" height="66"/>
+                                        <rect key="frame" x="260" y="300" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="60" id="514-Go-0kq"/>
@@ -88,11 +89,11 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FzW-1u-A5W" userLabel="Share">
-                                        <rect key="frame" x="8" y="56" width="30" height="38"/>
+                                        <rect key="frame" x="8" y="56" width="30" height="39"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="30" id="GFd-xj-gya"/>
-                                            <constraint firstAttribute="height" constant="38" id="YS6-GD-kxJ"/>
+                                            <constraint firstAttribute="height" constant="39" id="YS6-GD-kxJ"/>
                                         </constraints>
                                         <size key="titleShadowOffset" width="2.2250738585072014e-308" height="2.2250738585072014e-308"/>
                                         <state key="normal" image="ShareIcon"/>
@@ -101,8 +102,8 @@
                                         </connections>
                                     </button>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="ntQ-Cn-xBr" userLabel="Map Type">
-                                        <rect key="frame" x="8" y="325" width="111" height="29"/>
-                                        <color key="backgroundColor" red="0.74812638759613037" green="0.84409934282302856" blue="0.93302714824676514" alpha="0.85175642730496459" colorSpace="calibratedRGB"/>
+                                        <rect key="frame" x="8" y="327" width="111" height="29"/>
+                                        <color key="backgroundColor" red="0.72299337387084961" green="0.83492147922515869" blue="0.94924473762512207" alpha="0.75436613475177305" colorSpace="calibratedRGB"/>
                                         <segments>
                                             <segment title="Map"/>
                                             <segment title="Hybrid"/>
@@ -112,7 +113,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PbS-qj-HqD" userLabel="Maps App">
-                                        <rect key="frame" x="6" y="110" width="36" height="36"/>
+                                        <rect key="frame" x="6" y="111" width="36" height="36"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="36" id="EtC-4r-ag6"/>
@@ -125,7 +126,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rKN-zi-tQH" userLabel="Find My Location">
-                                        <rect key="frame" x="175" y="308" width="45" height="45"/>
+                                        <rect key="frame" x="175" y="310" width="45" height="45"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="45" id="HoA-90-Ctg"/>
@@ -155,6 +156,7 @@
                                     <constraint firstItem="FzW-1u-A5W" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" priority="250" constant="56" id="HuZ-fM-muM"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="centerY" secondItem="FzW-1u-A5W" secondAttribute="centerY" id="I1j-1j-Pc2"/>
                                     <constraint firstItem="Tgm-Fn-qAP" firstAttribute="top" relation="greaterThanOrEqual" secondItem="PbS-qj-HqD" secondAttribute="bottom" id="JfD-GC-jbd"/>
+                                    <constraint firstItem="rKN-zi-tQH" firstAttribute="bottom" secondItem="ntQ-Cn-xBr" secondAttribute="bottom" id="JxB-Rz-5Cn"/>
                                     <constraint firstItem="rKN-zi-tQH" firstAttribute="leading" secondItem="PbS-qj-HqD" secondAttribute="trailing" constant="28" id="KJy-Dx-Qsa"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="leading" secondItem="rKN-zi-tQH" secondAttribute="trailing" constant="19" id="O5R-sE-8ay"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" priority="250" constant="6" id="R6u-Tx-H36"/>
@@ -173,7 +175,7 @@
                                     <constraint firstItem="FzW-1u-A5W" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" constant="8" id="lXD-WY-pDW"/>
                                     <constraint firstItem="ntQ-Cn-xBr" firstAttribute="leading" secondItem="Tgm-Fn-qAP" secondAttribute="leading" id="lcq-aa-0bW"/>
                                     <constraint firstItem="44y-Qs-BpH" firstAttribute="centerY" secondItem="rKN-zi-tQH" secondAttribute="centerY" id="mqR-M2-ZZd"/>
-                                    <constraint firstAttribute="bottom" secondItem="ntQ-Cn-xBr" secondAttribute="bottom" constant="12" id="oun-pi-oKb"/>
+                                    <constraint firstAttribute="bottom" secondItem="ntQ-Cn-xBr" secondAttribute="bottom" constant="10" id="oun-pi-oKb"/>
                                     <constraint firstItem="ekd-s8-ZkY" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" id="rbI-dv-Pbg"/>
                                     <constraint firstItem="FzW-1u-A5W" firstAttribute="top" secondItem="Qcm-6U-D1v" secondAttribute="bottom" constant="6" id="tcP-Br-T61"/>
                                     <constraint firstItem="h46-hV-f3b" firstAttribute="centerX" secondItem="uKr-t6-5ok" secondAttribute="centerX" id="vK0-tZ-uDI"/>
@@ -196,6 +198,7 @@
                                         <exclude reference="92Q-Xz-Dff"/>
                                         <exclude reference="Yph-QY-kJb"/>
                                         <exclude reference="a3M-Fh-jw8"/>
+                                        <exclude reference="5h5-qR-hlw"/>
                                         <exclude reference="KJy-Dx-Qsa"/>
                                         <exclude reference="bDl-MR-cYf"/>
                                     </mask>
@@ -458,10 +461,10 @@
     </scenes>
     <resources>
         <image name="CenterIcon" width="136" height="136"/>
-        <image name="HereIcon" width="120" height="120"/>
+        <image name="HereIcon" width="110" height="110"/>
         <image name="MapsIcon" width="128" height="128"/>
         <image name="NextIcon" width="260" height="160"/>
-        <image name="ShareIcon" width="96" height="120"/>
+        <image name="ShareIcon" width="96" height="124"/>
         <image name="ZoomInIcon" width="210" height="230"/>
         <image name="ZoomOutIcon" width="210" height="230"/>
     </resources>

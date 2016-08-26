@@ -20,51 +20,12 @@ import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
     var window: UIWindow?
-    var notificationAllowedToStartMapcode: Bool = false
-    var mapcodeNotification: RemoteNotificationMapcode?
-
 
     func application(application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [NSObject:AnyObject]?) -> Bool {
         // Override point for customization after application launch.
         return true
-    }
-
-
-    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
-        // TODO print("application: url=\(url)")
-        if url.host == nil {
-            return true;
-        }
-
-        let urlString = url.absoluteString
-        let queryArray = urlString.componentsSeparatedByString("/")
-        let query = queryArray[2]
-        let userInfo = [RemoteNotificationMapcodeAppSectionKey: query]
-        self.applicationHandleRemoteNotification(application, didReceiveRemoteNotification: userInfo)
-        return true
-    }
-
-
-    func applicationHandleRemoteNotification(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject: AnyObject]) {
-        // TODO print("applicationHandleRemoteNotification: application=\(application.applicationState.rawValue), userInfo=\(userInfo), allowed=\(notificationAllowedToStartMapcode)")
-        if (application.applicationState == UIApplicationState.Background) || (application.applicationState == UIApplicationState.Inactive) {
-            self.mapcodeNotification = RemoteNotificationMapcode.create(userInfo)
-            if notificationAllowedToStartMapcode {
-                self.triggerNotificationIfPresent()
-            }
-        }
-    }
-
-
-    func triggerNotificationIfPresent() -> Bool {
-        // TODO print("triggerNotificationIfPresent: \(self.mapcodeNotification)")
-        self.notificationAllowedToStartMapcode = true
-        let ret = (self.mapcodeNotification?.trigger() != nil)
-        self.mapcodeNotification = nil
-        return ret
     }
 
 

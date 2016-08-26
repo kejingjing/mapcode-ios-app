@@ -11,11 +11,6 @@
 		1EEA17F31D52115A00205837 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EE1D52115A00205837 /* JSON.swift */; };
 		1EEA17F41D52115A00205837 /* RestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EF1D52115A00205837 /* RestController.swift */; };
 		1EEA17F51D52115A00205837 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17F11D52115A00205837 /* Result.swift */; };
-		1EFB30DB1D6DB609006BEB0F /* RemoteNotificationMapcode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFB30DA1D6DB609006BEB0F /* RemoteNotificationMapcode.swift */; };
-		B22CA0AD1D6D76FF009B8F11 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22CA0AC1D6D76FF009B8F11 /* ShareViewController.swift */; };
-		B22CA0B01D6D76FF009B8F11 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B22CA0AE1D6D76FF009B8F11 /* MainInterface.storyboard */; };
-		B22CA0B41D6D76FF009B8F11 /* Show Mapcode.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B22CA0AA1D6D76FF009B8F11 /* Show Mapcode.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		B22CA0B91D6D826F009B8F11 /* Assets.xcassets in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F91D50E85F003D6A17 /* Assets.xcassets */; };
 		B2AE668A1D58CED4001D7BBB /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2AE66891D58CED4001D7BBB /* MapKit.framework */; };
 		B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F21D50E85F003D6A17 /* AppDelegate.swift */; };
 		B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F41D50E85F003D6A17 /* ViewController.swift */; };
@@ -27,13 +22,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		B22CA0B21D6D76FF009B8F11 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B2F370E71D50E85F003D6A17 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B22CA0A91D6D76FF009B8F11;
-			remoteInfo = "Show Mapcode";
-		};
 		B2F371041D50E85F003D6A17 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B2F370E71D50E85F003D6A17 /* Project object */;
@@ -57,7 +45,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				B22CA0B41D6D76FF009B8F11 /* Show Mapcode.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,12 +57,7 @@
 		1EEA17EF1D52115A00205837 /* RestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RestController.swift; sourceTree = "<group>"; };
 		1EEA17F01D52115A00205837 /* RestEssentials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RestEssentials.h; sourceTree = "<group>"; };
 		1EEA17F11D52115A00205837 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
-		1EFB30DA1D6DB609006BEB0F /* RemoteNotificationMapcode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteNotificationMapcode.swift; sourceTree = "<group>"; };
 		B22CA0A51D6D74DC009B8F11 /* Mapcode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Mapcode.entitlements; sourceTree = "<group>"; };
-		B22CA0AA1D6D76FF009B8F11 /* Show Mapcode.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Show Mapcode.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B22CA0AC1D6D76FF009B8F11 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
-		B22CA0AF1D6D76FF009B8F11 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
-		B22CA0B11D6D76FF009B8F11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B2AE66891D58CED4001D7BBB /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		B2F370EF1D50E85F003D6A17 /* Mapcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mapcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2F370F21D50E85F003D6A17 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -93,13 +75,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		B22CA0A71D6D76FF009B8F11 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		B2F370EC1D50E85F003D6A17 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,16 +112,6 @@
 			name = RestEssentials;
 			sourceTree = "<group>";
 		};
-		B22CA0AB1D6D76FF009B8F11 /* Show Mapcode */ = {
-			isa = PBXGroup;
-			children = (
-				B22CA0AC1D6D76FF009B8F11 /* ShareViewController.swift */,
-				B22CA0AE1D6D76FF009B8F11 /* MainInterface.storyboard */,
-				B22CA0B11D6D76FF009B8F11 /* Info.plist */,
-			);
-			path = "Show Mapcode";
-			sourceTree = "<group>";
-		};
 		B2F370E61D50E85F003D6A17 = {
 			isa = PBXGroup;
 			children = (
@@ -154,7 +119,6 @@
 				B2F370F11D50E85F003D6A17 /* Mapcode */,
 				B2F371061D50E85F003D6A17 /* MapcodeTests */,
 				B2F371111D50E85F003D6A17 /* MapcodeUITests */,
-				B22CA0AB1D6D76FF009B8F11 /* Show Mapcode */,
 				B2F370F01D50E85F003D6A17 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -165,7 +129,6 @@
 				B2F370EF1D50E85F003D6A17 /* Mapcode.app */,
 				B2F371031D50E85F003D6A17 /* MapcodeTests.xctest */,
 				B2F3710E1D50E85F003D6A17 /* MapcodeUITests.xctest */,
-				B22CA0AA1D6D76FF009B8F11 /* Show Mapcode.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -177,7 +140,6 @@
 				1E045B031D523884004E1AA3 /* RestEssentials */,
 				B2F370F21D50E85F003D6A17 /* AppDelegate.swift */,
 				B2F370F41D50E85F003D6A17 /* ViewController.swift */,
-				1EFB30DA1D6DB609006BEB0F /* RemoteNotificationMapcode.swift */,
 				B2F370F61D50E85F003D6A17 /* Main.storyboard */,
 				B2F370F91D50E85F003D6A17 /* Assets.xcassets */,
 				B2F370FB1D50E85F003D6A17 /* LaunchScreen.storyboard */,
@@ -207,23 +169,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B22CA0A91D6D76FF009B8F11 /* Show Mapcode */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B22CA0B51D6D76FF009B8F11 /* Build configuration list for PBXNativeTarget "Show Mapcode" */;
-			buildPhases = (
-				B22CA0A61D6D76FF009B8F11 /* Sources */,
-				B22CA0A71D6D76FF009B8F11 /* Frameworks */,
-				B22CA0A81D6D76FF009B8F11 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "Show Mapcode";
-			productName = "Show Mapcode";
-			productReference = B22CA0AA1D6D76FF009B8F11 /* Show Mapcode.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		B2F370EE1D50E85F003D6A17 /* Mapcode */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B2F371171D50E860003D6A17 /* Build configuration list for PBXNativeTarget "Mapcode" */;
@@ -236,7 +181,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				B22CA0B31D6D76FF009B8F11 /* PBXTargetDependency */,
 			);
 			name = Mapcode;
 			productName = Mapcode;
@@ -289,10 +233,6 @@
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = "Mapcode Foundation";
 				TargetAttributes = {
-					B22CA0A91D6D76FF009B8F11 = {
-						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = 7XU85Q8A38;
-					};
 					B2F370EE1D50E85F003D6A17 = {
 						CreatedOnToolsVersion = 7.3.1;
 						DevelopmentTeam = 7XU85Q8A38;
@@ -331,20 +271,11 @@
 				B2F370EE1D50E85F003D6A17 /* Mapcode */,
 				B2F371021D50E85F003D6A17 /* MapcodeTests */,
 				B2F3710D1D50E85F003D6A17 /* MapcodeUITests */,
-				B22CA0A91D6D76FF009B8F11 /* Show Mapcode */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		B22CA0A81D6D76FF009B8F11 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B22CA0B01D6D76FF009B8F11 /* MainInterface.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		B2F370ED1D50E85F003D6A17 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -372,21 +303,11 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		B22CA0A61D6D76FF009B8F11 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B22CA0B91D6D826F009B8F11 /* Assets.xcassets in Sources */,
-				B22CA0AD1D6D76FF009B8F11 /* ShareViewController.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		B2F370EB1D50E85F003D6A17 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				1EEA17F51D52115A00205837 /* Result.swift in Sources */,
-				1EFB30DB1D6DB609006BEB0F /* RemoteNotificationMapcode.swift in Sources */,
 				B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */,
 				B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */,
 				1EEA17F21D52115A00205837 /* ResponseHandler.swift in Sources */,
@@ -414,11 +335,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		B22CA0B31D6D76FF009B8F11 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B22CA0A91D6D76FF009B8F11 /* Show Mapcode */;
-			targetProxy = B22CA0B21D6D76FF009B8F11 /* PBXContainerItemProxy */;
-		};
 		B2F371051D50E85F003D6A17 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B2F370EE1D50E85F003D6A17 /* Mapcode */;
@@ -432,14 +348,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		B22CA0AE1D6D76FF009B8F11 /* MainInterface.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				B22CA0AF1D6D76FF009B8F11 /* Base */,
-			);
-			name = MainInterface.storyboard;
-			sourceTree = "<group>";
-		};
 		B2F370F61D50E85F003D6A17 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -459,36 +367,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		B22CA0B61D6D76FF009B8F11 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "Brand Assets";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				INFOPLIST_FILE = "Show Mapcode/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.mapcode.Mapcode.Show-Mapcode";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-			};
-			name = Debug;
-		};
-		B22CA0B71D6D76FF009B8F11 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "Brand Assets";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				INFOPLIST_FILE = "Show Mapcode/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.mapcode.Mapcode.Show-Mapcode";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-			};
-			name = Release;
-		};
 		B2F371151D50E860003D6A17 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -527,7 +405,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -567,7 +445,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -581,7 +459,6 @@
 				CODE_SIGN_ENTITLEMENTS = Mapcode/Mapcode.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Mapcode/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -599,7 +476,6 @@
 				CODE_SIGN_ENTITLEMENTS = Mapcode/Mapcode.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Mapcode/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -659,15 +535,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B22CA0B51D6D76FF009B8F11 /* Build configuration list for PBXNativeTarget "Show Mapcode" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B22CA0B61D6D76FF009B8F11 /* Debug */,
-				B22CA0B71D6D76FF009B8F11 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		B2F370EA1D50E85F003D6A17 /* Build configuration list for PBXProject "Mapcode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
