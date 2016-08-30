@@ -76,22 +76,28 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         "Welcome the official Mapcode App from the Mapcode Foundation!\n\n" +
 
-        "Enter an address or coordinate to get a mapcode, or move the map around. " +
-        "Tap twice to zoom in really deep.\n\n" +
+        "Enter an address or coordinate to get a mapcode, or move the map around.\n\n" +
+
+        "Tap twice on the map to zoom in really deep.\n\n" +
 
         "Enter a mapcode in the address field to show it on the map. Tip: if you omit " +
         "the territory for local mapcodes, the current territory is used.\n\n" +
 
-        "Tap the Next buttons to show next territory or mapcode. " +
+        "Tap the >> buttons to show next territory or mapcode.\n\n" +
+
         "Tap the mapcode itself to copy it to the clipboard.\n\n" +
+
+        "Tap on the Share button to share the mapcode with any other app.\n\n" +
 
         "Tap on the Maps icon to plan a route to it using the Maps app.\n\n" +
 
         "Note that a single location can have mapcodes with different territory codes. " +
-        "The 'correct' territory is always included, but other territories may be presented as well. " +
-        "You can select correct territory by tapping on the Next button.\n\n" +
+        "The 'correct' territory is always included, but other territories may be presented as well.\n\n" +
 
-        "For questions, or more info on mapcodes in general, please visit us at: http://mapcode.com\n\n" +
+        "You can select the correct territory by tapping on the >> button.\n\n" +
+
+        "For questions, or more info on mapcodes in general, please visit us at:\n" +
+        "http://mapcode.com\n\n" +
 
         "Finally, a big thanks to our many beta-testers who have provided invaluable " +
         "feedback during the development of this product!\n\n" +
