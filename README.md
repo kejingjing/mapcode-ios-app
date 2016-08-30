@@ -5,7 +5,7 @@
 **Copyright (C) 2014-2016 Stichting Mapcode Foundation (http://mapcode.com)**
 
 
-### Welcome the official Mapcode App from the Mapcode Foundation!
+### Usage
 
 * Enter an address or coordinate to get a mapcode, or move the map around.
 
@@ -30,8 +30,6 @@ the territory for local mapcodes, the current territory is used.
 For questions, or more info on mapcodes in general, please visit us at:
 http://mapcode.com
 
-Finally, a big thanks to our many beta-testers who have provided invaluable
-feedback during the development of this product!
 
 ### Privacy Notice
 
@@ -46,6 +44,7 @@ on its scalability needs. The collected data contains no IP
 addresses, is processed securely in the EEA and is never
 sold or used for commercial purposes.
 
+
 # License
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,6 +58,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
 
 # Using Git and `.gitignore`
 
@@ -85,6 +85,7 @@ If you're using NetBeans, filter:
 The local `.gitignore` file in the Git repository itself to reflect those file only that are produced by executing
 regular compile, build or release commands, such as:
 `target/ out/`
+
 
 # Bug Reports and New Feature Requests
 
