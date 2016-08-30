@@ -18,9 +18,9 @@ the territory for local mapcodes, the current territory is used.
 
 * Tap the mapcode itself to copy it to the clipboard.
 
-* Tap on the Maps icon to plan a route to it using the Maps app.
+* Tap on the `Maps` icon to plan a route to it using the Maps app.
 
-* Tap on the Share button to share the mapcode with any other app.
+* Tap on the `Share` button to share the mapcode with any other app.
 
 * Note that a single location can have mapcodes with different territory codes.
   The 'correct' territory is always included, but other territories may be presented as well.
