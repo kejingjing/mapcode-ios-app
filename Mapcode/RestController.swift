@@ -106,7 +106,7 @@ public class RestController : NSObject, NSURLSessionDelegate {
     private func makeCall(relativePath: String?, forHTTPMethod httpMethod: String, forAcceptType accept: String, withJSONData json: JSON?, withOptions options: RestOptions, withCallback callback: (Result<(NSData)>, NSHTTPURLResponse?) -> ()) throws {
         let restURL: NSURL;
         if let relativeURL = relativePath {
-            restURL = url.URLByAppendingPathComponent(relativeURL)
+            restURL = url.URLByAppendingPathComponent(relativeURL)!
         } else {
             restURL = url
         }

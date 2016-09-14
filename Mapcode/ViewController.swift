@@ -66,10 +66,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Fixed compatibility with older device (iOS 8.1).\n" +
-        "* Added iOS Share button to share mapcode and map image.\n" +
-        "* Fixed issues with address formatting.\n" +
-        "* Cleaned up UI layout.\n";
+        "* Ready for iOS 10.\n";
 
     let textAbout = "Copyright (C) 2016\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -1658,7 +1655,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Remove pin again.
         view.removeAnnotation(pin)
-        return img;
+        return img!;
     }
 
 
