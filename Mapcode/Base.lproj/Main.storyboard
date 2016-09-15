@@ -15,7 +15,7 @@
                         <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="x" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jgy-L7-nJE" userLabel="Guide Center">
@@ -371,12 +371,12 @@
         </scene>
     </scenes>
     <resources>
-        <image name="CenterIcon" width="45" height="45"/>
-        <image name="HereIcon" width="36" height="36"/>
-        <image name="MapsIcon" width="42" height="42"/>
-        <image name="NextIcon" width="86" height="53"/>
-        <image name="ShareIcon" width="32" height="41"/>
-        <image name="ZoomInIcon" width="70" height="76"/>
-        <image name="ZoomOutIcon" width="70" height="76"/>
+        <image name="CenterIcon" width="68" height="68"/>
+        <image name="HereIcon" width="55" height="55"/>
+        <image name="MapsIcon" width="64" height="64"/>
+        <image name="NextIcon" width="130" height="80"/>
+        <image name="ShareIcon" width="48" height="62"/>
+        <image name="ZoomInIcon" width="105" height="115"/>
+        <image name="ZoomOutIcon" width="105" height="115"/>
     </resources>
 </document>

@@ -66,7 +66,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Ready for iOS 10.\n";
+        "* Fixed minor issues for large screen sizes.\n" +
+        "* Rebuilt for iOS 10.0.\n";
 
     let textAbout = "Copyright (C) 2016\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -151,7 +152,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let spanZoomedInMax = 0.0005                    // Zoomed in max.
     let spanZoomedOutMax = 175.0                    // Zoomed out max.
 
-    let scheduleUpdateLocationsSecs = 300.0         // Switch on update locations every x secs.
+    let scheduleUpdateLocationsSecs = 120.0         // Switch on update locations every x secs.
     let distanceFilterMeters = 10000.0              // Not interested in local position updates.
 
     let limitReverseGeocodingSecs = 1.0             // Limit webservice API's to no
