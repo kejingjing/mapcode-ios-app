@@ -52,7 +52,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-#if true
+#if DEBUG
     let debugMask: UInt8 = 0xFE
 #else
     let debugMask: UInt8 = 0x00
