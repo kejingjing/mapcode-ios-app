@@ -52,7 +52,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-#if DEBUG
+#if true
     let debugMask: UInt8 = 0xFE
 #else
     let debugMask: UInt8 = 0x00
@@ -66,8 +66,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
+        "* You can now use full country names (English) before mapcodes, so you can type 'France 4J.Q4', not just 'FRA 4J.Q4'\n" +
         "* Fixed minor issues for large screen sizes.\n" +
-        "* Rebuilt for iOS 10.0.\n";
+        "* Rebuilt with XCode 8 for iOS 10.\n";
 
     let textAbout = "Copyright (C) 2016\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -158,12 +159,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let limitReverseGeocodingSecs = 1.0             // Limit webservice API's to no
     let limitMapcodeLookupSecs = 1.0                // more than x requests per second.
 
-    let mapcodeRegex = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
+    let mapcodeRegexWithOptionalCountryCode = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
 
         // _______START_[' ']XXx____________________[___-_XXx______________________]' '___XXxxx____________.__XXxx___________[___-_Xxxxxxxx_________][' ']END
         pattern: "\\A\\s*(?:[a-zA-Z][a-zA-Z0-9]{1,2}(?:[-][a-zA-Z][a-zA-Z0-9]{1,2})?\\s+)?[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
         options: [])
 
+    let mapcodeRegexWithCountryName = try! NSRegularExpression(            // Pattern to match mapcodes: X[x...] XXxxx.XXxx[-Xxxxxxxx]
+
+        // _______START_[' ']X[x...__________]__' '___XXxxx________.__XXxx____________[___-_Xxxxxxxx_________][' ']END
+        pattern: "\\A\\s*(([a-zA-Z][a-zA-Z]*\\s+)+)[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
+        options: [])
+    
     let keyVersionBuild = "versionBuild"            // Version and build (for what's new).
 
     let territoryInternationalAlphaCode = "AAA"     // Territory code for international context.
@@ -668,20 +675,36 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Don't auto-zoom to user location anymore.
         waitingForFirstLocationSinceStarted = false
 
+        // Clean up the input a bit.
+        let input = trimAllSpace(theAddress.text!).stringByReplacingOccurrencesOfString("\\s+",
+                                                                                        withString: " ",
+                                                                                        options: NSStringCompareOptions.RegularExpressionSearch,
+                                                                                        range: nil)
         // Determine which field we're in.
         switch textField.tag {
         case theAddress.tag:
 
             // Check if the user entered a mapcode instead of an address.
-            let matches = mapcodeRegex.matchesInString(
-                    theAddress.text!, options: [],
-                    range: NSRange(location: 0, length: theAddress.text!.characters.count))
-            if matches.count == 1 {
-                debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode, mapcode=\(theAddress.text!)")
-                mapcodeWasEntered(theAddress.text!)
+            let matchesMapcodeWithOptionalCountryCode = mapcodeRegexWithOptionalCountryCode.matchesInString(
+                    input, options: [],
+                    range: NSRange(location: 0, length: input.characters.count))
+            if matchesMapcodeWithOptionalCountryCode.count == 1 {
+                debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode with optional country code, mapcode=\(input)")
+                mapcodeWasEntered(input, context: nil)
             } else {
-                debug(DEBUG, msg: "textFieldShouldReturn: Entered address, address=\(theAddress.text!)")
-                addressWasEntered(theAddress.text!)
+                let matchesMapcodeWithCountryName = mapcodeRegexWithCountryName.matchesInString(
+                    input, options: [],
+                    range: NSRange(location: 0, length: input.characters.count))
+                if matchesMapcodeWithCountryName.count == 1 {
+                    let range = input.rangeOfString(" ", options: .BackwardsSearch)
+                    let country = input.substringWithRange((input.startIndex)..<(range?.startIndex)!);
+                    let mapcode = input.substringWithRange((range?.endIndex)!..<(input.endIndex));
+                    debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode with country name, country=\(country) mapcode=\(mapcode)")
+                    mapcodeWasEntered(mapcode, context: country)
+                } else {
+                    debug(DEBUG, msg: "textFieldShouldReturn: Entered address, address=\(theAddress.text!)")
+                    addressWasEntered(input)
+                }
             }
 
         case theLat.tag:
@@ -766,18 +789,22 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when a mapcode was entered.
      */
-    func mapcodeWasEntered(mapcode: String) {
+    func mapcodeWasEntered(mapcode: String, context: String?) {
 
         // Prefix previous territory for local mapcodes.
         var fullMapcode = trimAllSpace(mapcode)
-
-        if (fullMapcode.characters.count < 10) && !fullMapcode.containsString(" ") && !allContexts.isEmpty {
+        if ((context == nil) && fullMapcode.characters.count < 10) && !fullMapcode.containsString(" ") && !allContexts.isEmpty {
             fullMapcode = "\(allContexts[currentContextIndex]) \(fullMapcode)"
         }
 
         // Create URL for REST API call to get mapcodes.
         let encodedMapcode = fullMapcode.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
-        let url = "\(host)/mapcode/coords/\(encodedMapcode)?client=\(client)&allowLog=\(allowLog)"
+
+        var url = "\(host)/mapcode/coords/\(encodedMapcode)?client=\(client)&allowLog=\(allowLog)"
+        if context != nil {
+            let encodedContext = context!.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet())!
+            url = url + "&context=\(encodedContext)"
+        }
         guard let rest = RestController.createFromURLString(url) else {
             debug(ERROR, msg: "mapcodeWasEntered: Bad URL, url=\(url)")
             return
@@ -874,7 +901,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func fetchTerritoryNamesFromServerIfNeeded() {
 
-        // Put something in the maps to make sure we don't call it twice.
+        // Don't fetch the territories twice in a session.
         if territoryFullNamesFetched {
             return
         }
@@ -1104,6 +1131,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method updates the mapcode label text.
      */
     func updateMapcodeLabel() {
+
+        // Bail out if the contexts weren't read yet.
+        if allContexts.count == 0 {
+            return
+        }
 
         // Set the label color.
         theMapcodeLabel.textColor = colorLabelNormal
