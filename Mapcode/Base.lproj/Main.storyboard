@@ -1,8 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="15G1004" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -19,6 +22,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="x" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jgy-L7-nJE" userLabel="Guide Center">
+                                <rect key="frame" x="183.5" y="652.5" width="8" height="14.5"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="8" id="Z8p-EF-nq8"/>
                                 </constraints>
@@ -27,9 +31,13 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uKr-t6-5ok">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="464"/>
                                 <subviews>
-                                    <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" pitchEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ekd-s8-ZkY" userLabel="Map"/>
+                                    <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" pitchEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ekd-s8-ZkY" userLabel="Map">
+                                        <rect key="frame" x="0.0" y="0.0" width="375" height="464"/>
+                                    </mapView>
                                     <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h46-hV-f3b" userLabel="Target">
+                                        <rect key="frame" x="170.5" y="225" width="34" height="34"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="34" id="Qhe-RN-Vre"/>
@@ -38,12 +46,14 @@
                                         <state key="normal" image="CenterIcon"/>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="infoLight" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tgm-Fn-qAP" userLabel="About">
+                                        <rect key="frame" x="8" y="388" width="22" height="22"/>
                                         <color key="backgroundColor" red="0.69307589530944824" green="0.80136847496032715" blue="0.9120182991027832" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <connections>
                                             <action selector="showAbout:" destination="BYZ-38-t0r" eventType="touchUpInside" id="pHz-HX-tvU"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Qcm-6U-D1v" userLabel="Zoom In">
+                                        <rect key="frame" x="315" y="332.5" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="60" id="VGC-y2-TQ2"/>
@@ -55,6 +65,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="44y-Qs-BpH" userLabel="Zoom Out">
+                                        <rect key="frame" x="315" y="398.5" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="60" id="514-Go-0kq"/>
@@ -66,6 +77,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FzW-1u-A5W" userLabel="Share">
+                                        <rect key="frame" x="8" y="56" width="30" height="39"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="30" id="GFd-xj-gya"/>
@@ -78,6 +90,7 @@
                                         </connections>
                                     </button>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="ntQ-Cn-xBr" userLabel="Map Type">
+                                        <rect key="frame" x="8" y="426" width="111" height="29"/>
                                         <color key="backgroundColor" red="0.72299337387084961" green="0.83492147922515869" blue="0.94924473762512207" alpha="0.75436613475177305" colorSpace="custom" customColorSpace="sRGB"/>
                                         <segments>
                                             <segment title="Map"/>
@@ -88,6 +101,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PbS-qj-HqD" userLabel="Maps App">
+                                        <rect key="frame" x="6" y="111" width="36" height="36"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="36" id="EtC-4r-ag6"/>
@@ -100,6 +114,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rKN-zi-tQH" userLabel="Find My Location">
+                                        <rect key="frame" x="230" y="409" width="45" height="45"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="45" id="HoA-90-Ctg"/>
@@ -141,15 +156,18 @@
                                 </constraints>
                             </view>
                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j6Q-dw-r4L" userLabel="Backdrop">
-                                <color key="backgroundColor" red="0.85361999273300171" green="0.88993078470230103" blue="0.94951546192169189" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <rect key="frame" x="0.0" y="464" width="375" height="203"/>
+                                <color key="backgroundColor" red="0.86039019333092004" green="0.90031838937485098" blue="0.96866996699783403" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DPW-Hk-wvj" userLabel="Line">
+                                <rect key="frame" x="0.0" y="464" width="375" height="1"/>
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="1" id="aOs-r3-Hqy"/>
                                 </constraints>
                             </view>
                             <textField opaque="NO" clipsSubviews="YES" tag="2" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" usesAttributedText="YES" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="vFV-Z4-Aim" userLabel="Latitude">
+                                <rect key="frame" x="3" y="633" width="162.5" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="QAv-35-oQs"/>
                                 </constraints>
@@ -168,6 +186,7 @@
                                 </connections>
                             </textField>
                             <textField opaque="NO" clipsSubviews="YES" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" usesAttributedText="YES" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="dA2-FW-eFa" userLabel="Longitude">
+                                <rect key="frame" x="173.5" y="633" width="198.5" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="XGo-BN-4dI"/>
                                 </constraints>
@@ -186,6 +205,7 @@
                                 </connections>
                             </textField>
                             <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TERRITORY" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4eD-gA-qlr" userLabel="Context Label">
+                                <rect key="frame" x="3" y="543" width="162.5" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="8oc-iP-lSr"/>
                                 </constraints>
@@ -193,6 +213,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="SHORTEST" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xcH-Fl-fHj" userLabel="Mapcode Label">
+                                <rect key="frame" x="173.5" y="543" width="198.5" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="qnU-Ph-oez"/>
                                 </constraints>
@@ -200,6 +221,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="right" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YvQ-0x-P0k" userLabel="Next Context">
+                                <rect key="frame" x="149.5" y="552" width="16" height="12"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="16" id="43v-GB-nXl"/>
                                     <constraint firstAttribute="height" constant="12" id="BuC-Hx-44H"/>
@@ -213,6 +235,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="right" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZKZ-a7-cYi" userLabel="Next Mapcode">
+                                <rect key="frame" x="356" y="552" width="16" height="12"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="12" id="70K-ed-ixd"/>
                                     <constraint firstAttribute="width" constant="16" id="zbE-rI-WGy"/>
@@ -226,6 +249,7 @@
                                 </connections>
                             </button>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" usesAttributedText="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kLn-5n-hda" userLabel="Context">
+                                <rect key="frame" x="3" y="573" width="162.5" height="30"/>
                                 <color key="backgroundColor" red="1" green="0.99849534034729004" blue="0.92598170042037964" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="84N-QE-t3p"/>
@@ -234,6 +258,7 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" usesAttributedText="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gXh-R3-KMg" userLabel="Mapcode">
+                                <rect key="frame" x="173.5" y="573" width="198.5" height="30"/>
                                 <color key="backgroundColor" red="1" green="0.99849534034729004" blue="0.92598170042037964" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="arm-jS-UC6"/>
@@ -242,6 +267,7 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ENTER ADDRESS OR MAPCODE" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B9G-bC-hHA" userLabel="Address Label">
+                                <rect key="frame" x="3" y="464" width="369" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="vVo-na-U4w"/>
                                 </constraints>
@@ -249,6 +275,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Neighborhood" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Hc8-SM-OnT" userLabel="Address First Line">
+                                <rect key="frame" x="9" y="518" width="357" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="zDd-eQ-zUY"/>
                                 </constraints>
@@ -257,6 +284,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" clipsSubviews="YES" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" usesAttributedText="YES" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="RV4-F7-Zd0" userLabel="Address">
+                                <rect key="frame" x="3" y="486" width="369" height="30"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="mOi-tG-Hsn"/>
@@ -276,6 +304,7 @@
                                 </connections>
                             </textField>
                             <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="LATITUDE (Y)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9rL-r5-vtn" userLabel="Latitude Label">
+                                <rect key="frame" x="3" y="603" width="162.5" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="MAd-pr-eNY"/>
                                 </constraints>
@@ -283,6 +312,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="LONGITUDE (X)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BTj-Rk-wdm" userLabel="Longitude Label">
+                                <rect key="frame" x="173.5" y="603" width="198.5" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="k0T-ri-pMg"/>
                                 </constraints>

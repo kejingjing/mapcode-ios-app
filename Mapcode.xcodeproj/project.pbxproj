@@ -7,11 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1ECBFBB91F56B25A005C517A /* Deserializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ECBFBB81F56B25A005C517A /* Deserializer.swift */; };
+		1ECBFBBC1F56BB13005C517A /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ECBFBBB1F56BB13005C517A /* MapKit.framework */; };
 		1EEA17F21D52115A00205837 /* ResponseHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17ED1D52115A00205837 /* ResponseHandler.swift */; };
 		1EEA17F31D52115A00205837 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EE1D52115A00205837 /* JSON.swift */; };
 		1EEA17F41D52115A00205837 /* RestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EF1D52115A00205837 /* RestController.swift */; };
 		1EEA17F51D52115A00205837 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17F11D52115A00205837 /* Result.swift */; };
-		B2AE668A1D58CED4001D7BBB /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2AE66891D58CED4001D7BBB /* MapKit.framework */; };
 		B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F21D50E85F003D6A17 /* AppDelegate.swift */; };
 		B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F41D50E85F003D6A17 /* ViewController.swift */; };
 		B2F370F81D50E85F003D6A17 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B2F370F61D50E85F003D6A17 /* Main.storyboard */; };
@@ -52,13 +53,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1ECBFBB81F56B25A005C517A /* Deserializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deserializer.swift; sourceTree = "<group>"; };
+		1ECBFBBB1F56BB13005C517A /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		1EEA17ED1D52115A00205837 /* ResponseHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResponseHandler.swift; sourceTree = "<group>"; };
 		1EEA17EE1D52115A00205837 /* JSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
 		1EEA17EF1D52115A00205837 /* RestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RestController.swift; sourceTree = "<group>"; };
 		1EEA17F01D52115A00205837 /* RestEssentials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RestEssentials.h; sourceTree = "<group>"; };
 		1EEA17F11D52115A00205837 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		B22CA0A51D6D74DC009B8F11 /* Mapcode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Mapcode.entitlements; sourceTree = "<group>"; };
-		B2AE66891D58CED4001D7BBB /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		B2F370EF1D50E85F003D6A17 /* Mapcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mapcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2F370F21D50E85F003D6A17 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B2F370F41D50E85F003D6A17 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -79,7 +81,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B2AE668A1D58CED4001D7BBB /* MapKit.framework in Frameworks */,
+				1ECBFBBC1F56BB13005C517A /* MapKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,6 +105,7 @@
 		1E045B031D523884004E1AA3 /* RestEssentials */ = {
 			isa = PBXGroup;
 			children = (
+				1ECBFBB81F56B25A005C517A /* Deserializer.swift */,
 				1EEA17ED1D52115A00205837 /* ResponseHandler.swift */,
 				1EEA17EE1D52115A00205837 /* JSON.swift */,
 				1EEA17EF1D52115A00205837 /* RestController.swift */,
@@ -112,14 +115,22 @@
 			name = RestEssentials;
 			sourceTree = "<group>";
 		};
+		1ECBFBBA1F56BB13005C517A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1ECBFBBB1F56BB13005C517A /* MapKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		B2F370E61D50E85F003D6A17 = {
 			isa = PBXGroup;
 			children = (
-				B2AE66891D58CED4001D7BBB /* MapKit.framework */,
 				B2F370F11D50E85F003D6A17 /* Mapcode */,
 				B2F371061D50E85F003D6A17 /* MapcodeTests */,
 				B2F371111D50E85F003D6A17 /* MapcodeUITests */,
 				B2F370F01D50E85F003D6A17 /* Products */,
+				1ECBFBBA1F56BB13005C517A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -236,7 +247,7 @@
 					B2F370EE1D50E85F003D6A17 = {
 						CreatedOnToolsVersion = 7.3.1;
 						DevelopmentTeam = 7XU85Q8A38;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0830;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
 								enabled = 1;
@@ -248,12 +259,12 @@
 					};
 					B2F371021D50E85F003D6A17 = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0830;
 						TestTargetID = B2F370EE1D50E85F003D6A17;
 					};
 					B2F3710D1D50E85F003D6A17 = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0830;
 						TestTargetID = B2F370EE1D50E85F003D6A17;
 					};
 				};
@@ -310,6 +321,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1ECBFBB91F56B25A005C517A /* Deserializer.swift in Sources */,
 				1EEA17F51D52115A00205837 /* Result.swift in Sources */,
 				B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */,
 				B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */,
@@ -464,6 +476,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = Mapcode/Mapcode.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -473,7 +486,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.Mapcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -482,6 +495,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_ENTITLEMENTS = Mapcode/Mapcode.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -491,7 +505,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.Mapcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -500,11 +514,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MapcodeTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.MapcodeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mapcode.app/Mapcode";
 			};
 			name = Debug;
@@ -513,11 +528,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MapcodeTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.MapcodeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mapcode.app/Mapcode";
 			};
 			name = Release;
@@ -525,11 +541,12 @@
 		B2F3711E1D50E860003D6A17 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MapcodeUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.MapcodeUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = Mapcode;
 			};
 			name = Debug;
@@ -537,11 +554,12 @@
 		B2F3711F1D50E860003D6A17 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MapcodeUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapcode.MapcodeUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = Mapcode;
 			};
 			name = Release;
