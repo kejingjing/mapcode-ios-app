@@ -482,7 +482,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func shareButtonClicked(_ sender: UIButton) {
         let mapcode = theMapcode.text
         let mapImage = captureMapView(theMap, title: mapcode!)
-        let objectsToShare = [mapcode, mapImage] as [Any]
+        let objectsToShare = [mapcode ?? "", mapImage] as [Any]
         let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
         activityVC.excludedActivityTypes = [UIActivityType.airDrop, UIActivityType.addToReadingList]
         activityVC.popoverPresentationController?.sourceView = sender
@@ -830,7 +830,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             let encodedContext = context!.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
             url = url + "&context=\(encodedContext)"
         }
-        guard let rest = RestController.createFromURLString(url) else {
+        guard let rest = RestController.make(urlString: url) else {
             debug(ERROR, msg: "mapcodeWasEntered: Bad URL, url=\(url)")
             return
         }
@@ -858,10 +858,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 // Check status OK
                 if (status == 200) &&
                         (json["errors"] == nil) &&
-                        (json["latDeg"] != nil) && (json["latDeg"]?.doubleValue != nil) &&
-                        (json["lonDeg"] != nil) && (json["lonDeg"]?.doubleValue != nil) {
-                    let lat = (json["latDeg"]?.doubleValue)!
-                    let lon = (json["lonDeg"]?.doubleValue)!
+                        (json["latDeg"] != nil) && (json["latDeg"].double != nil) &&
+                        (json["lonDeg"] != nil) && (json["lonDeg"].double != nil) {
+                    let lat = (json["latDeg"].double)!
+                    let lon = (json["lonDeg"].double)!
                     let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
 
                     // Update location and set map center.
@@ -934,7 +934,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Fetch territory information from server.
         let url = "\(host)/mapcode/territories/?client=\(client)&allowLog=\(allowLog)"
-        guard let rest = RestController.createFromURLString(url) else {
+        guard let rest = RestController.make(urlString: url) else {
             debug(ERROR, msg: "fetchTerritoryNamesFromServerIfNeeded: Bad URL, url=\(url)")
             return
         }
@@ -948,16 +948,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 let json = try result.value()
 
                 // The JSON response indicated an error, territory is set to nil.
-                if (json["errors"] != nil) || (json["territories"] == nil) || ((json["territories"]?.jsonArray == nil)) {
+                if (json["errors"] != nil) || (json["territories"] == nil) || ((json["territories"].array == nil)) {
                     self.debug(self.WARN, msg: "fetchTerritoryNamesFromServerIfNeeded: Can get territories from server, errors=\(json["errors"])")
                 }
 
                 // Get territories and add to our map.
                 var newTerritoryFullNames = [String: String]()
-                let territories = (json["territories"]?.jsonArray)!
+                let territories = (json["territories"].array)!
                 for territory in territories {
-                    let alphaCode = territory["alphaCode"]?.stringValue
-                    let fullName = territory["fullName"]?.stringValue
+                    let alphaCode = territory["alphaCode"].string
+                    let fullName = territory["fullName"].string
                     newTerritoryFullNames[alphaCode!] = fullName!
                 }
                 newTerritoryFullNames[self.territoryInternationalAlphaCode] = self.territoryInternationalFullName
@@ -1383,7 +1383,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let encodedLatLon = "\(coordinate?.latitude),\(coordinate?.longitude)".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
         let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
-        guard let rest = RestController.createFromURLString(url) else {
+        guard let rest = RestController.make(urlString: url) else {
             debug(ERROR, msg: "periodicCheckToUpdateMapcode: Bad URL, url=\(url)")
             return
         }
@@ -1402,21 +1402,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 }
 
                 // Get international mapcode (must exist).
-                if (json["international"] == nil) || (json["international"]?["mapcode"] == nil) {
-                    throw ApiError.apiUnexpectedMessageFormat(json: json.jsonValue)
+                if (json["international"] == nil) || (json["international"]["mapcode"] == nil) {
+                    throw ApiError.apiUnexpectedMessageFormat(json: json)
                 }
-                let mapcodeInternational = (json["international"]?["mapcode"]?.stringValue)!
+                let mapcodeInternational = (json["international"]["mapcode"].string)!
 
 
                 // Get shortest local mapcode (optional).
                 var mapcodeLocal = ""
                 var territoryLocal = ""
                 if json["local"] != nil {
-                    if (json["local"]?["territory"] == nil) || (json["local"]?["mapcode"] == nil) {
+                    if (json["local"]["territory"] == nil) || (json["local"]["mapcode"] == nil) {
                         throw ApiError.apiUnexpectedMessageFormat(json: json["local"])
                     }
-                    territoryLocal = (json["local"]?["territory"]?.stringValue)!
-                    mapcodeLocal = (json["local"]?["mapcode"]?.stringValue)!
+                    territoryLocal = (json["local"]["territory"].string)!
+                    mapcodeLocal = (json["local"]["mapcode"].string)!
                 }
 
                 // Try to match existing context with 1 from the new list.
@@ -1433,12 +1433,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 var newAllContexts = [String]()
 
                 // Get list of all mapcodes (must exist and must contain at least the international mapcode).
-                if (json["mapcodes"] == nil) || (json["mapcodes"]?.jsonArray == nil) {
-                    throw ApiError.apiUnexpectedMessageFormat(json: json.jsonValue)
+                if (json["mapcodes"] == nil) || (json["mapcodes"].array == nil) {
+                    throw ApiError.apiUnexpectedMessageFormat(json: json)
                 }
 
                 // Store the list of mapcodes (must include the international mapcode).
-                let alt = (json["mapcodes"]?.jsonArray)!
+                let alt = (json["mapcodes"].array)!
                 if alt.count == 0 {
                     throw ApiError.apiUnexpectedMessageFormat(json: json["mapcodes"])
                 }
@@ -1455,8 +1455,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     // Add the alternatives, NOT including the international (which is last and has no territory).
                     for i in 0 ... alt.count - 2 {
                         // Create the full mapcode.
-                        let territory = (alt[i]!["territory"]?.stringValue)!
-                        let mapcode = (alt[i]!["mapcode"]?.stringValue)!
+                        let territory = (alt[i]["territory"].string)!
+                        let mapcode = (alt[i]["mapcode"].string)!
 
                         // Don't add the already added local mapcode (or its territory).
                         if (territory != territoryLocal) || (mapcode != mapcodeLocal) {
@@ -1573,7 +1573,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                          didFailWithError error: Error) {
 
         // Code 0 is returned when during debugging anyhow.
-        if (error.code != 0) {
+        if (error._code != 0) {
             debug(WARN, msg: "LocationManager:didFailWithError, error=\(error)")
         }
     }
