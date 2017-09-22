@@ -91,9 +91,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* You can now use full country names (English) before mapcodes, so you can type 'France 4J.Q4', not just 'FRA 4J.Q4'\n" +
-        "* Fixed minor issues for large screen sizes.\n" +
-    "* Rebuilt with XCode 8 for iOS 10.\n";
+        "* Rebuilt with XCode 9 for iOS 11 and Swift 4.\n";
 
     let textAbout = "Copyright (C) 2016-2017\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
