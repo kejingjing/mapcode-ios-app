@@ -31,6 +31,20 @@ For questions, or more info on mapcodes in general, please visit us at:
 http://mapcode.com
 
 
+### Build
+
+To build for the Apple AppStore, make sure the build scheme is set to a release build.
+
+Set the version number as follows:
+
+    xcrun agvtool new-marketing-version 1.1.0      -- only required if the version changes.
+    xcrun agvtool next-version -all                -- to increment the build number.
+
+Then select `Generic iOS Device` as a target and select `Clean` and `Build` from the `Product` menu.
+
+Finally, select `Archive` from the `Product` menu and upload to the AppStore.
+
+
 ### Privacy Notice
 
 This app uses the Mapcode REST API at https://api.mapcode.com.
