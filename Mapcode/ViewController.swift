@@ -21,7 +21,6 @@ import MapKit
 import UIKit
 import Contacts
 
-// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
 // Consider refactoring the code to use the non-optional operators.
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     switch (lhs, rhs) {
@@ -34,7 +33,6 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
-// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
 // Consider refactoring the code to use the non-optional operators.
 fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     switch (lhs, rhs) {
@@ -44,7 +42,6 @@ fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
         return !(lhs < rhs)
     }
 }
-
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate,
 UITextFieldDelegate, UIGestureRecognizerDelegate {
@@ -92,7 +89,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
     // Help texts.
     let textWhatsNew = "\n" +
         "* Maintenance release, no new features added.\n" +
-        "* Rebuilt for iOS 11 with Xcode 9 (and Swift 4).\n";
+        "* Rebuilt for iOS 11 with Xcode 9 (and Swift 4).\n"
 
     let textAbout = "Copyright (C) 2016-2017\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
@@ -141,13 +138,13 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
 
     // Other constants.
     #if DEBUG
-    let allowLog: String = "false";                 // API: No logging requests.
+    let allowLog: String = "false"                  // API: No logging requests.
     #else
-    let allowLog: String = "true";                  // API: Allow logging requests.
+    let allowLog: String = "true"                   // API: Allow logging requests.
     #endif
 
-    let host: String = "https://api.mapcode.com";   // Host name of Mapcode REST API.
-    let client: String = "ios";                     // API: Client ID.
+    let host: String = "https://api.mapcode.com"    // Host name of Mapcode REST API.
+    let client: String = "ios"                      // API: Client ID.
     let tagTextFieldAddress = 1                     // Tags of text fields.
     let tagTextFieldLatitude = 2
     let tagTextFieldLongitude = 3
@@ -156,11 +153,11 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
     let mapcodeCodeFont = "HelveticaNeue-Bold"
     let mapcodeInternationalFont = "HelveticaNeue-Bold"
     let contextFont = "HelveticaNeue-Medium"
-    let mapcodeTerritoryFontSize: CGFloat = 12.0;
-    let mapcodeCodeFontSize: CGFloat = 16.0;
-    let mapcodeCodeFontSizeSmall: CGFloat = 12.0;
-    let mapcodeInternationalFontSize: CGFloat = 16.0;
-    let contextFontSize: CGFloat = 16.0;
+    let mapcodeTerritoryFontSize: CGFloat = 12.0
+    let mapcodeCodeFontSize: CGFloat = 16.0
+    let mapcodeCodeFontSizeSmall: CGFloat = 12.0
+    let mapcodeInternationalFontSize: CGFloat = 16.0
+    let contextFontSize: CGFloat = 16.0
     let mapcodeFontKern = 0.65
 
     let colorMapcode = UIColor.black         // Colors of mapcode and its territory prefix.
@@ -527,11 +524,11 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
                  regionDidChangeAnimated animated: Bool) {
 
         // Stop auto-move, we don't want to keep auto-moving.
-        moveMapToUserLocation = false;
+        moveMapToUserLocation = false
         if mapChangedFromUserInteraction {
             // Update fields.
             mapcodeLocation = mapView.centerCoordinate
-            showLatLon(mapcodeLocation);
+            showLatLon(mapcodeLocation)
             queueUpdateForMapcode(mapcodeLocation)
             queueUpdateForAddress(mapcodeLocation)
         } else {
@@ -559,7 +556,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
         theMap.setCenter(mapcodeLocation, animated: true)
 
         // The map view will move and consequently fields get updated by regionDidChangeAnimated.
-        showLatLon(mapcodeLocation);
+        showLatLon(mapcodeLocation)
         queueUpdateForMapcode(mapcodeLocation)
         queueUpdateForAddress(mapcodeLocation)
     }
@@ -725,8 +722,8 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
                     range: NSRange(location: 0, length: input.characters.count))
                 if matchesMapcodeWithCountryName.count == 1 {
                     let range = input.range(of: " ", options: .backwards)
-                    let country = String(input[input.startIndex..<(range?.lowerBound)!]);
-                    let mapcode = String(input[(range?.upperBound)!..<(input.endIndex)]);
+                    let country = String(input[input.startIndex..<(range?.lowerBound)!])
+                    let mapcode = String(input[(range?.upperBound)!..<(input.endIndex)])
                     debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode with country name, country=\(country) mapcode=\(mapcode)")
                     mapcodeWasEntered(mapcode, context: country)
                 } else {
@@ -988,7 +985,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
         timerLocationUpdates.invalidate()
 
         // Set auto-move to user location and start collecting updates and update map.
-        moveMapToUserLocation = true;
+        moveMapToUserLocation = true
 
         // Turn on location updates.
         turnOnLocationManagerUpdates()
@@ -1251,7 +1248,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
     func queueUpdateForAddress(_ coordinate: CLLocationCoordinate2D) {
 
         // Keep only the last coordinate.
-        queuedCoordinateForReverseGeocode = coordinate;
+        queuedCoordinateForReverseGeocode = coordinate
 
         // And try immediately.
         periodicCheckToUpdateAddress()
@@ -1342,7 +1339,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
     func queueUpdateForMapcode(_ coordinate: CLLocationCoordinate2D) {
 
         // Keep only the last coordinate.
-        queuedCoordinateForMapcodeLookup = coordinate;
+        queuedCoordinateForMapcodeLookup = coordinate
 
         // And try immediately.
         periodicCheckToUpdateMapcode()
@@ -1533,7 +1530,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
         if isValidCoordinate(newLocation) {
             if waitingForFirstLocationSinceStarted || moveMapToUserLocation {
                 // Update location.
-                mapcodeLocation = newLocation;
+                mapcodeLocation = newLocation
 
                 // First time location ever? Override map zoom.
                 if waitingForFirstLocationSinceStarted {
@@ -1717,11 +1714,11 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
         context.interpolationQuality = CGInterpolationQuality.high
         view.drawHierarchy(in: view.frame, afterScreenUpdates: true)
         let img = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext();
+        UIGraphicsEndImageContext()
 
         // Remove pin again.
         view.removeAnnotation(pin)
-        return img!;
+        return img!
     }
 
 
@@ -1729,7 +1726,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
      * This method trims all spaces around a string and removes double spacing.
      */
     func trimAllSpace(_ input: String) -> String {
-        var output = input.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines);
+        var output = input.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         var changed = false
         repeat {
             let replaced = output.replacingOccurrences(of: "  ", with: " ")
@@ -1748,7 +1745,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
             // Nothing to do; new coordinate is nil.
         } else if prevCoordinate == nil {
             // New coordinate is not nil, old is nil, so not equal.
-            return false;
+            return false
         } else {
             // Both are not nil. Check if they are equal.
             if !isAlmostEqual(prevCoordinate.latitude, degree2: newCoordinate.latitude) ||
@@ -1784,22 +1781,22 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
      * Simple debug loggin.
      */
     func debug(_ level: UInt8, msg: String) {
-        var prefix: String!
+        var pre: String!
         if (level & debugMask) == TRACE {
-            prefix = "TRACE"
+            pre = "TRACE"
         } else if (level & debugMask) == DEBUG {
-            prefix = "DEBUG"
+            pre = "DEBUG"
         } else if (level & debugMask) == INFO {
-            prefix = "INFO"
+            pre = "INFO"
         } else if (level & debugMask) == WARN {
-            prefix = "WARN"
+            pre = "WARN"
         } else if (level & debugMask) == ERROR {
-            prefix = "ERROR"
+            pre = "ERROR"
         } else {
-            prefix = nil
+            pre = nil
         }
-        if prefix != nil {
-            print("\(prefix!): \(msg)")
+        if pre != nil {
+            print("\(pre!): \(msg)")
         }
     }
 
