@@ -91,7 +91,8 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Rebuilt with XCode 9 for iOS 11 and Swift 4.\n";
+        "* Maintenance release, no new features added.\n" +
+        "* Rebuilt for iOS 11 with Xcode 9 (and Swift 4).\n";
 
     let textAbout = "Copyright (C) 2016-2017\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
