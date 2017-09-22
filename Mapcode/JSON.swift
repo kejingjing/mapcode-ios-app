@@ -18,24 +18,24 @@ public struct JSON : CustomStringConvertible, ExpressibleByArrayLiteral, Express
     public typealias Key = String
     
     public typealias Value = JSONValue
-
+    
     private static let kJSONNull = JSON(rawValue: Void())
-
+    
     fileprivate let raw: JSONValue
-
+    
     public var description: String {
         return (raw as AnyObject).description
     }
-
+    
     /// Represents a Null JSON value
     public static var Null: JSON {
         return kJSONNull
     }
-
+    
     fileprivate init(rawValue: JSONValue) {
         raw = rawValue
     }
-
+    
     /// Creates an instance initialized with the given elements.
     public init(arrayLiteral elements: JSONValue...) {
         self.init(array: elements)
@@ -56,14 +56,14 @@ public struct JSON : CustomStringConvertible, ExpressibleByArrayLiteral, Express
     public init(array: [JSONValue]) {
         raw = array
     }
-
+    
     /// Creates a new `JSON` that is a JSON object at the root.
     ///
     /// - parameter dict: The dictionary this `JSON` contains.
     public init(dict: [String : JSONValue]) {
         raw = dict
     }
-
+    
     /// Used if this value represents a JSON object and returns the value associated with the key.
     ///
     /// - parameter key: The key of the value to retrieve.
@@ -72,14 +72,14 @@ public struct JSON : CustomStringConvertible, ExpressibleByArrayLiteral, Express
         guard let dict = object else {
             return JSON.Null
         }
-
+        
         guard let rawValue = dict[key] else {
             return JSON.Null
         }
-
+        
         return JSON(rawValue: rawValue)
     }
-
+    
     /// Used if this value represents a `JSONArray` and returns the value at the given index.
     ///
     /// - parameter index: The index of the value to retrieve.
@@ -87,14 +87,14 @@ public struct JSON : CustomStringConvertible, ExpressibleByArrayLiteral, Express
     public subscript (index: Int) -> JSON {
         return array?[index] ?? JSON.Null
     }
-
+    
     /// Get the JSON object from this value.
     ///
     /// - returns: The JSON object this value represents or `nil` if this value is not a JSON object.
     private var object: [String : JSONValue]? {
         return raw as? [String : JSONValue]
     }
-
+    
     /// Get the `JSONArray` from this value.
     ///
     /// - returns: The `JSONArray` this value represents or `nil` if this value is not a `JSONArray`.
@@ -104,35 +104,35 @@ public struct JSON : CustomStringConvertible, ExpressibleByArrayLiteral, Express
         }
         return nil
     }
-
+    
     /// Get the `String` from this value.
     ///
     /// - returns: The `String` this value represents or `nil` if this value is not a `String`.
     public var string: String? {
         return raw as? String
     }
-
+    
     /// Get the `NSNumber` from this value.
     ///
     /// - returns: The `NSNumber` this value represents or `nil` if this value is not a `NSNumber`.
     public var numerical: NSNumber? {
         return raw as? NSNumber
     }
-
+    
     /// Get the `Int` from this value.
     ///
     /// - returns: The `Int` this value represents or `nil` if this value is not a `Int`. If the value contains a decimal, then the decimal portion will be removed.
     public var int: Int? {
         return numerical?.intValue
     }
-
+    
     /// Get the `Double` from this value.
     ///
     /// - returns: The `Double` this value represents or `nil` if this value is not a `Double`.
     public var double: Double? {
         return numerical?.doubleValue
     }
-
+    
     /// Get the `Bool` from this value.
     ///
     /// - returns: The `Bool` this value represents or `nil` if this value is not a `Bool`.
@@ -143,23 +143,23 @@ public struct JSON : CustomStringConvertible, ExpressibleByArrayLiteral, Express
 
 /// Represents an array of `JSONValue`s.
 public class JSONArray : CustomStringConvertible, Sequence {
-
+    
     fileprivate let backingArray: [JSON]
-
+    
     /// The number of elements in this JSONArray.
     public var count: Int {
         return backingArray.count
     }
-
+    
     public var description: String {
         return backingArray.description
     }
-
+    
     /// Creates a new `JSONArray` that contains the given array.
     public init(array: [JSONValue]) {
         backingArray = array.map { JSON(rawValue: $0) }
     }
-
+    
     /// Gets the `JSON` at the given index.
     ///
     /// - parameter index: The index of the value to retrieve.
@@ -170,7 +170,7 @@ public class JSONArray : CustomStringConvertible, Sequence {
         }
         return JSON.Null
     }
-
+    
     public func makeIterator() -> IndexingIterator<[JSON]> {
         return backingArray.makeIterator()
     }
@@ -193,7 +193,7 @@ internal extension JSON {
             return nil
         }
     }
-
+    
     internal func makeData() throws -> Data {
         return try JSONSerialization.data(withJSONObject: raw, options: [])
     }

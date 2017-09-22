@@ -2,7 +2,7 @@
 // ViewController.swift
 // Mapcode
 //
-// Copyright (C) 2016 Stichting Mapcode Foundation (http://www.mapcode.com)
+// Copyright (C) 2016-2017, Stichting Mapcode Foundation (http://www.mapcode.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,30 +24,30 @@ import Contacts
 // FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
 // Consider refactoring the code to use the non-optional operators.
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
+    switch (lhs, rhs) {
+    case let (l?, r?):
+        return l < r
+    case (nil, _?):
+        return true
+    default:
+        return false
+    }
 }
 
 // FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
 // Consider refactoring the code to use the non-optional operators.
 fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l >= r
-  default:
-    return !(lhs < rhs)
-  }
+    switch (lhs, rhs) {
+    case let (l?, r?):
+        return l >= r
+    default:
+        return !(lhs < rhs)
+    }
 }
 
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate,
-        UITextFieldDelegate, UIGestureRecognizerDelegate {
+UITextFieldDelegate, UIGestureRecognizerDelegate {
     /**
      * List of UI controls that we need to access from code.
      */
@@ -77,11 +77,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     // Current debug messages mask.
-#if DEBUG
-    let debugMask: UInt8 = 0xFF
-#else
+    #if DEBUG
+    let debugMask: UInt8 = 0xFE
+    #else
     let debugMask: UInt8 = 0x00
-#endif
+    #endif
 
     let TRACE: UInt8 = 1
     let DEBUG: UInt8 = 2
@@ -93,9 +93,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textWhatsNew = "\n" +
         "* You can now use full country names (English) before mapcodes, so you can type 'France 4J.Q4', not just 'FRA 4J.Q4'\n" +
         "* Fixed minor issues for large screen sizes.\n" +
-        "* Rebuilt with XCode 8 for iOS 10.\n";
+    "* Rebuilt with XCode 8 for iOS 10.\n";
 
-    let textAbout = "Copyright (C) 2016\n" +
+    let textAbout = "Copyright (C) 2016-2017\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
 
         "Welcome the official Mapcode App from the Mapcode Foundation!\n\n" +
@@ -138,14 +138,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         "be collected to improve the service and better anticipate " +
         "on its scalability needs. The collected data contains no IP " +
         "addresses, is processed securely in the EEA and is never " +
-        "sold or used for commercial purposes."
+    "sold or used for commercial purposes."
 
     // Other constants.
-#if DEBUG
+    #if DEBUG
     let allowLog: String = "false";                 // API: No logging requests.
-#else
+    #else
     let allowLog: String = "true";                  // API: Allow logging requests.
-#endif
+    #endif
 
     let host: String = "https://api.mapcode.com";   // Host name of Mapcode REST API.
     let client: String = "ios";                     // API: Client ID.
@@ -368,9 +368,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Subscribe to notification of keyboard show/hide.
         NotificationCenter.default.addObserver(self,
-                                                         selector: #selector(self.keyboardNotification(_:)),
-                                                         name: NSNotification.Name.UIKeyboardWillChangeFrame,
-                                                         object: nil)
+                                               selector: #selector(self.keyboardNotification(_:)),
+                                               name: NSNotification.Name.UIKeyboardWillChangeFrame,
+                                               object: nil)
 
         // Setup our Location Manager. Only 1 location update is requested when the user presses
         // the "Find My Location" button. Updates are switched off immediately after that. Only
@@ -391,15 +391,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Schedule periodic updates for reverse geocoding and Mapcdode REST API requests.
         timerReverseGeocoding = Timer.scheduledTimer(
-                timeInterval: limitReverseGeocodingSecs, target: self,
-                selector: #selector(periodicCheckToUpdateAddress),
-                userInfo: nil, repeats: true)
+            timeInterval: limitReverseGeocodingSecs, target: self,
+            selector: #selector(periodicCheckToUpdateAddress),
+            userInfo: nil, repeats: true)
 
         timerReverseGeocoding = Timer.scheduledTimer(
-                timeInterval: limitMapcodeLookupSecs, target: self,
-                selector: #selector(periodicCheckToUpdateMapcode),
-                userInfo: nil, repeats: true)
-}
+            timeInterval: limitMapcodeLookupSecs, target: self,
+            selector: #selector(periodicCheckToUpdateMapcode),
+            userInfo: nil, repeats: true)
+    }
 
 
     /**
@@ -427,10 +427,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 self.keyboardHeightLayoutConstraint?.constant = endFrame?.size.height ?? keyboardMinimumDistance
             }
             UIView.animate(withDuration: duration,
-                                       delay: TimeInterval(0),
-                                       options: animationCurve,
-                                       animations: { self.view.layoutIfNeeded() },
-                                       completion: nil)
+                           delay: TimeInterval(0),
+                           options: animationCurve,
+                           animations: { self.view.layoutIfNeeded() },
+                           completion: nil)
         }
     }
 
@@ -624,9 +624,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func scheduleResetLabels() {
         timerResetLabels.invalidate()
         timerResetLabels = Timer.scheduledTimer(
-                timeInterval: resetLabelsAfterSecs, target: self,
-                selector: #selector(ResetLabels),
-                userInfo: nil, repeats: false)
+            timeInterval: resetLabelsAfterSecs, target: self,
+            selector: #selector(ResetLabels),
+            userInfo: nil, repeats: false)
     }
 
 
@@ -715,8 +715,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             // Check if the user entered a mapcode instead of an address.
             let matchesMapcodeWithOptionalCountryCode = mapcodeRegexWithOptionalCountryCode.matches(
-                    in: input, options: [],
-                    range: NSRange(location: 0, length: input.characters.count))
+                in: input, options: [],
+                range: NSRange(location: 0, length: input.characters.count))
             if matchesMapcodeWithOptionalCountryCode.count == 1 {
                 debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode with optional country code, mapcode=\(input)")
                 mapcodeWasEntered(input, context: nil)
@@ -860,9 +860,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // Check status OK
                 if (status == 200) &&
-                        (json["errors"].array == nil) &&
-                        (json["latDeg"].double != nil) &&
-                        (json["lonDeg"].double != nil) {
+                    (json["errors"].array == nil) &&
+                    (json["latDeg"].double != nil) &&
+                    (json["lonDeg"].double != nil) {
                     let lat = (json["latDeg"].double)!
                     let lon = (json["lonDeg"].double)!
                     let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
@@ -1561,8 +1561,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
             // Schedule updating the location again in some time.
             timerLocationUpdates = Timer.scheduledTimer(timeInterval: scheduleUpdateLocationsSecs, target: self,
-                                                                          selector: #selector(turnOnLocationManagerUpdates),
-                                                                          userInfo: nil, repeats: false)
+                                                        selector: #selector(turnOnLocationManagerUpdates),
+                                                        userInfo: nil, repeats: false)
         }
     }
 
@@ -1634,8 +1634,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let span = theMap.region.span
         let center = theMap.region.center
         let options = [
-                MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: center),
-                MKLaunchOptionsMapSpanKey: NSValue(mkCoordinateSpan: span)
+            MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: center),
+            MKLaunchOptionsMapSpanKey: NSValue(mkCoordinateSpan: span)
         ]
 
         // Set a placemark at the mapcode location.
@@ -1753,7 +1753,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         } else {
             // Both are not nil. Check if they are equal.
             if !isAlmostEqual(prevCoordinate.latitude, degree2: newCoordinate.latitude) ||
-                    !isAlmostEqual(prevCoordinate.longitude, degree2: newCoordinate.longitude) {
+                !isAlmostEqual(prevCoordinate.longitude, degree2: newCoordinate.longitude) {
                 return false
             }
 
@@ -1776,7 +1776,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     func metersPerDegreeLonAtLan(_ atLatitude: Double) -> Double {
         let meters = metersPerDegreeLonAtEquator *
-                cos(max(-85.0, min(85.0, abs(atLatitude))) / 180.0 * 3.141592654)
+            cos(max(-85.0, min(85.0, abs(atLatitude))) / 180.0 * 3.141592654)
         return meters
     }
 
