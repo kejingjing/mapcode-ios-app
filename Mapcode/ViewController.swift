@@ -78,7 +78,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Current debug messages mask.
 #if DEBUG
-    let debugMask: UInt8 = 0xFE
+    let debugMask: UInt8 = 0xFF
 #else
     let debugMask: UInt8 = 0x00
 #endif
@@ -141,10 +141,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         "sold or used for commercial purposes."
 
     // Other constants.
-    let host: String = "https:/api.mapcode.com";    // Host name of Mapcode REST API.
+#if DEBUG
+    let allowLog: String = "false";                 // API: No logging requests.
+#else
     let allowLog: String = "true";                  // API: Allow logging requests.
-    let client: String = "ios";                     // API: Client ID.
+#endif
 
+    let host: String = "https://api.mapcode.com";   // Host name of Mapcode REST API.
+    let client: String = "ios";                     // API: Client ID.
     let tagTextFieldAddress = 1                     // Tags of text fields.
     let tagTextFieldLatitude = 2
     let tagTextFieldLongitude = 3
@@ -769,7 +773,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             (placemarks, error) -> Void in
 
             if (error != nil) || (placemarks == nil) || (placemarks?.first == nil) || (placemarks?.first?.location == nil) {
-                self.debug(self.INFO, msg: "addressWasEntered: Geocode failed, address=\(address), error=\(String(describing: error))")
+                self.debug(self.INFO, msg: "addressWasEntered: Geocode failed, address=\(address), error=\(error!))")
 
                 DispatchQueue.main.async {
                     self.theAddressLabel.textColor = self.colorLabelAlert
@@ -841,9 +845,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             result, httpResponse in
             do {
                 let json = try result.value()
-
                 let status = httpResponse?.statusCode
-                if (status != 200) || (json["errors"] != nil) {
+                if (status != 200) {
                     self.debug(self.INFO, msg: "mapcodeWasEntered: Incorrect mapcode=\(mapcode)")
                     DispatchQueue.main.async {
                         // Show error in label.
@@ -857,9 +860,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
                 // Check status OK
                 if (status == 200) &&
-                        (json["errors"] == nil) &&
-                        (json["latDeg"] != nil) && (json["latDeg"].double != nil) &&
-                        (json["lonDeg"] != nil) && (json["lonDeg"].double != nil) {
+                        (json["errors"].array == nil) &&
+                        (json["latDeg"].double != nil) &&
+                        (json["lonDeg"].double != nil) {
                     let lat = (json["latDeg"].double)!
                     let lon = (json["lonDeg"].double)!
                     let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
@@ -876,7 +879,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.queueUpdateForAddress(coordinate)
                     }
                 } else {
-                    self.debug(self.INFO, msg: "mapcodeWasEntered: Find mapcode failed, url=\(url), status=\(String(describing: httpResponse?.statusCode)), json=\(json)")
+                    self.debug(self.INFO, msg: "mapcodeWasEntered: Find mapcode failed, url=\(url), status=\(httpResponse!.statusCode), json=\(json)")
 
                     // Revert to previous address; need to call REST API because previous text is lost.
                     DispatchQueue.main.async {
@@ -946,9 +949,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             do {
                 // Get JSON response.
                 let json = try result.value()
+                let status = httpResponse?.statusCode
 
                 // The JSON response indicated an error, territory is set to nil.
-                if (json["errors"] != nil) || (json["territories"] == nil) || ((json["territories"].array == nil)) {
+                if (status != 200) || (json["errors"].array != nil) || (json["territories"].array == nil) {
                     self.debug(self.WARN, msg: "fetchTerritoryNamesFromServerIfNeeded: Can get territories from server, errors=\(json["errors"])")
                 }
 
@@ -1088,9 +1092,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         for m in allMapcodes {
             // Add the code if the territory is OK, or the context is international and
             // it's the international code.
-            if m.contains("\(territory) ") ||
-                    ((territory == nil) && !m.contains(" ")) {
-                selection.append(m)
+            if territory == nil {
+                if !m.contains(" ") {
+                    selection.append(m)
+                }
+            } else {
+                if m.starts(with: territory) {
+                    selection.append(m)
+                }
             }
         }
         return selection
@@ -1380,7 +1389,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         queuedCoordinateForMapcodeLookup = nil
 
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
-        let encodedLatLon = "\(String(describing: coordinate?.latitude)),\(String(describing: coordinate?.longitude))".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
+        let encodedLatLon = "\(coordinate!.latitude),\(coordinate!.longitude)".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
         let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
         guard let rest = RestController.make(urlString: url) else {
@@ -1395,14 +1404,15 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             do {
                 // Get JSON response.
                 let json = try result.value()
+                let status = httpResponse?.statusCode
 
                 // The JSON response indicated an error, territory is set to nil.
-                if json["errors"] != nil {
+                if (status != 200) || (json["errors"].array != nil) {
                     throw ApiError.apiReturnsErrors(json: json["errors"])
                 }
 
                 // Get international mapcode (must exist).
-                if (json["international"] == nil) || (json["international"]["mapcode"] == nil) {
+                if (json["international"]["mapcode"].string == nil) {
                     throw ApiError.apiUnexpectedMessageFormat(json: json)
                 }
                 let mapcodeInternational = (json["international"]["mapcode"].string)!
@@ -1411,11 +1421,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 // Get shortest local mapcode (optional).
                 var mapcodeLocal = ""
                 var territoryLocal = ""
-                if json["local"] != nil {
-                    if (json["local"]["territory"] == nil) || (json["local"]["mapcode"] == nil) {
-                        throw ApiError.apiUnexpectedMessageFormat(json: json["local"])
-                    }
+                if json["local"]["territory"].string != nil {
                     territoryLocal = (json["local"]["territory"].string)!
+                }
+                if json["local"]["mapcode"].string != nil {
                     mapcodeLocal = (json["local"]["mapcode"].string)!
                 }
 
@@ -1433,7 +1442,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 var newAllContexts = [String]()
 
                 // Get list of all mapcodes (must exist and must contain at least the international mapcode).
-                if (json["mapcodes"] == nil) || (json["mapcodes"].array == nil) {
+                if (json["mapcodes"].array == nil) {
                     throw ApiError.apiUnexpectedMessageFormat(json: json)
                 }
 
