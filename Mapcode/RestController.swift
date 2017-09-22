@@ -129,11 +129,8 @@ public class RestController : NSObject, URLSessionDelegate {
             request.httpBody = try jsonObj.makeData()
         }
         
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        
         session.dataTask(with: request) { (data, response, error) -> Void in
-            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            
+
             if let err = error {
                 callback(.failure(err), nil)
                 return
@@ -155,7 +152,7 @@ public class RestController : NSObject, URLSessionDelegate {
             }
             
             callback(.success(returnedData), httpResponse)
-            }.resume()
+        }.resume()
     }
     
     private func makeCall<T: Deserializer>(_ relativePath: String?, httpMethod: String, json: JSON?, responseDeserializer: T, options: RestOptions, callback: @escaping (Result<T.ResponseType>, HTTPURLResponse?) -> ()) {
