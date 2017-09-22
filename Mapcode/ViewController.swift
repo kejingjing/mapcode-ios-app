@@ -410,7 +410,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This method gets called whenever the keyboard is about to show/hide. Nice solution from:
      * http://stackoverflow.com/questions/25693130/move-textfield-when-keyboard-appears-swift
      */
-    func keyboardNotification(_ notification: Notification) {
+    @objc func keyboardNotification(_ notification: Notification) {
         if let userInfo = notification.userInfo {
             let endFrame = (userInfo[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
             let duration: TimeInterval = (userInfo[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
@@ -540,7 +540,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Gesture recognizer: this method gets called when the user taps the map once.
      */
-    func handleMapTap1(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleMapTap1(_ gestureRecognizer: UITapGestureRecognizer) {
 
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
@@ -566,7 +566,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Gesture recognizer: this method gets called when the user taps the map twice. Mind you:
      * The first tap has already been handled by the "tap once" recognizer.
      */
-    func handleMapTap2(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleMapTap2(_ gestureRecognizer: UITapGestureRecognizer) {
 
         // Auto zoom-in on lat tap. No need to update fields - single tap has already been handled.
         let newRegion = MKCoordinateRegion(center: mapcodeLocation,
@@ -578,7 +578,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Gesture recognizer: this method gets called when the user taps the mapcode.
      */
-    func handleCopyMapcodeTap(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleCopyMapcodeTap(_ gestureRecognizer: UITapGestureRecognizer) {
         UIPasteboard.general.string = theMapcode.text
         theMapcodeLabel.textColor = colorLabelCopiedToClipboard
         theMapcodeLabel.text = textCopiedToClipboard
@@ -589,7 +589,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Gesture recognizer: this method gets called when the user taps the latitude.
      */
-    func handleCopyLatitudeTap(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleCopyLatitudeTap(_ gestureRecognizer: UITapGestureRecognizer) {
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
 
@@ -603,7 +603,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Gesture recognizer: this method gets called when the user taps the longitude.
      */
-    func handleCopyLongitudeTap(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleCopyLongitudeTap(_ gestureRecognizer: UITapGestureRecognizer) {
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
 
@@ -629,7 +629,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method reset the latitude and longitude labels to their default values.
      */
-    func ResetLabels() {
+    @objc func ResetLabels() {
 
         // Update coordinate labels.
         theAddressLabel.textColor = colorLabelNormal
@@ -702,9 +702,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Clean up the input a bit.
         let input = trimAllSpace(theAddress.text!).replacingOccurrences(of: "\\s+",
-                                                                                        with: " ",
-                                                                                        options: NSString.CompareOptions.regularExpression,
-                                                                                        range: nil)
+                                                                        with: " ",
+                                                                        options: NSString.CompareOptions.regularExpression,
+                                                                        range: nil)
         // Determine which field we're in.
         switch textField.tag {
         case theAddress.tag:
@@ -722,8 +722,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     range: NSRange(location: 0, length: input.characters.count))
                 if matchesMapcodeWithCountryName.count == 1 {
                     let range = input.range(of: " ", options: .backwards)
-                    let country = input.substring(with: (input.startIndex)..<(range?.lowerBound)!);
-                    let mapcode = input.substring(with: (range?.upperBound)!..<(input.endIndex));
+                    let country = String(input[input.startIndex..<(range?.lowerBound)!]);
+                    let mapcode = String(input[(range?.upperBound)!..<(input.endIndex)]);
                     debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode with country name, country=\(country) mapcode=\(mapcode)")
                     mapcodeWasEntered(mapcode, context: country)
                 } else {
@@ -769,7 +769,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             (placemarks, error) -> Void in
 
             if (error != nil) || (placemarks == nil) || (placemarks?.first == nil) || (placemarks?.first?.location == nil) {
-                self.debug(self.INFO, msg: "addressWasEntered: Geocode failed, address=\(address), error=\(error)")
+                self.debug(self.INFO, msg: "addressWasEntered: Geocode failed, address=\(address), error=\(String(describing: error))")
 
                 DispatchQueue.main.async {
                     self.theAddressLabel.textColor = self.colorLabelAlert
@@ -876,7 +876,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.queueUpdateForAddress(coordinate)
                     }
                 } else {
-                    self.debug(self.INFO, msg: "mapcodeWasEntered: Find mapcode failed, url=\(url), status=\(httpResponse?.statusCode), json=\(json)")
+                    self.debug(self.INFO, msg: "mapcodeWasEntered: Find mapcode failed, url=\(url), status=\(String(describing: httpResponse?.statusCode)), json=\(json)")
 
                     // Revert to previous address; need to call REST API because previous text is lost.
                     DispatchQueue.main.async {
@@ -1021,7 +1021,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the user taps the context label, which means: next item.
      */
-    func handleNextContextTap(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleNextContextTap(_ gestureRecognizer: UITapGestureRecognizer) {
 
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
@@ -1058,7 +1058,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method gets called when the user taps the mapcode label, which means: next item.
      */
-    func handleNextMapcodeTap(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleNextMapcodeTap(_ gestureRecognizer: UITapGestureRecognizer) {
 
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
@@ -1127,25 +1127,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let fullRange = NSMakeRange(0, mapcode.characters.distance(from: mapcode.characters.startIndex, to: mapcode.characters.endIndex))
 
         // Set color of mapcode itself.
-        attributedText.addAttributes([NSForegroundColorAttributeName: colorMapcode], range: fullRange)
+        attributedText.addAttributes([NSAttributedStringKey.foregroundColor: colorMapcode], range: fullRange)
 
         // Set font size, reduce size for really large mapcodes.
         var fontSize = mapcodeCodeFontSize
         if mapcode.characters.count >= longestMapcode.characters.count {
             fontSize = mapcodeCodeFontSizeSmall
         }
-        attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeCodeFont, size: fontSize)!], range: fullRange)
-        attributedText.addAttributes([NSKernAttributeName: mapcodeFontKern], range: fullRange)
+        attributedText.addAttributes([NSAttributedStringKey.font: UIFont(name: mapcodeCodeFont, size: fontSize)!], range: fullRange)
+        attributedText.addAttributes([NSAttributedStringKey.kern: mapcodeFontKern], range: fullRange)
 
         // If the code has a territory, make it look different.
         let index = mapcode.characters.index(of: Character(" "))
         if index != nil {
             let n = mapcode.characters.distance(from: mapcode.characters.startIndex, to: index!)
-            attributedText.addAttributes([NSForegroundColorAttributeName: colorTerritoryPrefix], range: NSMakeRange(0, n))
-            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, n))
+            attributedText.addAttributes([NSAttributedStringKey.foregroundColor: colorTerritoryPrefix], range: NSMakeRange(0, n))
+            attributedText.addAttributes([NSAttributedStringKey.font: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, n))
         } else {
             // If the code has no territory, it is the international code.
-            attributedText.addAttributes([NSFontAttributeName: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
+            attributedText.addAttributes([NSAttributedStringKey.font: UIFont(name: mapcodeInternationalFont, size: mapcodeInternationalFontSize)!], range: fullRange)
         }
         theMapcode.attributedText = attributedText
         updateMapcodeLabel()
@@ -1210,7 +1210,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Show full name.
         let attributedText = NSMutableAttributedString(string: fullName!)
         let fullRange = NSMakeRange(0, fullName!.characters.distance(from: fullName!.characters.startIndex, to: fullName!.characters.endIndex))
-        attributedText.addAttributes([NSFontAttributeName: UIFont(name: contextFont, size: contextFontSize)!], range: fullRange)
+        attributedText.addAttributes([NSAttributedStringKey.font: UIFont(name: contextFont, size: contextFontSize)!], range: fullRange)
         theContext.attributedText = attributedText
 
         // Set the mapcode label text. There's always a context.
@@ -1253,7 +1253,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method limits the calls to the Apple API to once every x secs.
      */
-    func periodicCheckToUpdateAddress() {
+    @objc func periodicCheckToUpdateAddress() {
 
         // Bail out if nothing changed.
         if isEqualOrNil(queuedCoordinateForReverseGeocode, prevCoordinate: prevQueuedCoordinateForReverseGeocode) {
@@ -1344,7 +1344,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Call Mapcode REST API to get mapcode codes from latitude, longitude.
      */
-    func periodicCheckToUpdateMapcode() {
+    @objc func periodicCheckToUpdateMapcode() {
 
         // Check if the territories were loaded yet from the Mapcode REST API.
         fetchTerritoryNamesFromServerIfNeeded()
@@ -1380,7 +1380,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         queuedCoordinateForMapcodeLookup = nil
 
         // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
-        let encodedLatLon = "\(coordinate?.latitude),\(coordinate?.longitude)".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
+        let encodedLatLon = "\(String(describing: coordinate?.latitude)),\(String(describing: coordinate?.longitude))".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
         let url = "\(host)/mapcode/codes/\(encodedLatLon)?client=\(client)&allowLog=\(allowLog)"
 
         guard let rest = RestController.make(urlString: url) else {
@@ -1561,7 +1561,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Method to switch on the location manager updates.
      */
-    func turnOnLocationManagerUpdates() {
+    @objc func turnOnLocationManagerUpdates() {
         locationManager.startUpdatingLocation()
     }
 
