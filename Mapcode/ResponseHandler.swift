@@ -11,14 +11,14 @@ import UIKit
 
 /// Protocol for de-serializing responses from the web server.
 public protocol ResponseHandler {
-    
+
     associatedtype ResponseType = Any
-    
+
     /// The `Accept` Hader value, ex: `application/json`
     var acceptHeaderValue: String { get }
-    
+
     init()
-    
+
     /// Transforms the data returned by the web server to the desired type.
     /// - parameter data: The data returned by the server.
     /// - returns: The transformed type of the desired type.
@@ -27,13 +27,16 @@ public protocol ResponseHandler {
 
 /// A `ResponseHandler` for `JSON`
 open class JSONResponseHandler: ResponseHandler {
-    
+
     public typealias ResponseType = JSON
-    
+
     open let acceptHeaderValue = "application/json"
-    
-    public required init() { }
-    
+
+
+    public required init() {
+    }
+
+
     open func transform(_ data: Data) -> JSON? {
         return JSON(fromData: data)
     }
@@ -41,13 +44,16 @@ open class JSONResponseHandler: ResponseHandler {
 
 /// A `ResponseHandler` for `Void` (for use with servers that return no data).
 open class VoidResponseHandler: ResponseHandler {
-    
+
     public typealias ResponseType = Void
-    
+
     open let acceptHeaderValue = "*/*"
-    
-    public required init() { }
-    
+
+
+    public required init() {
+    }
+
+
     open func transform(_ data: Data) -> Void? {
         // do nothing
         return Void()
@@ -56,13 +62,16 @@ open class VoidResponseHandler: ResponseHandler {
 
 /// A `ResponseHandler` for `UIImage`
 open class ImageResponseHandler: ResponseHandler {
-    
+
     public typealias ResponseType = UIImage
-    
+
     open let acceptHeaderValue = "image/*"
-    
-    public required init() { }
-    
+
+
+    public required init() {
+    }
+
+
     open func transform(_ data: Data) -> UIImage? {
         return UIImage(data: data)
     }
@@ -70,13 +79,16 @@ open class ImageResponseHandler: ResponseHandler {
 
 /// A `ResponseHandler` for `NSData`
 open class DataResponseHandler: ResponseHandler {
-    
+
     public typealias ResponseType = Data
-    
+
     open let acceptHeaderValue = "*/*"
-    
-    public required init() { }
-    
+
+
+    public required init() {
+    }
+
+
     open func transform(_ data: Data) -> Data? {
         return data
     }

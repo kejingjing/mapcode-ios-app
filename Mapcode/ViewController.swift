@@ -21,8 +21,9 @@ import MapKit
 import UIKit
 import Contacts
 
+
 // Consider refactoring the code to use the non-optional operators.
-fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+fileprivate func <<T:Comparable>(lhs: T?, rhs: T?) -> Bool {
     switch (lhs, rhs) {
     case let (l?, r?):
         return l < r
@@ -33,8 +34,9 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
+
 // Consider refactoring the code to use the non-optional operators.
-fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+fileprivate func >=<T:Comparable>(lhs: T?, rhs: T?) -> Bool {
     switch (lhs, rhs) {
     case let (l?, r?):
         return l >= r
@@ -43,8 +45,9 @@ fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
+
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate,
-UITextFieldDelegate, UIGestureRecognizerDelegate {
+        UITextFieldDelegate, UIGestureRecognizerDelegate {
     /**
      * List of UI controls that we need to access from code.
      */
@@ -74,11 +77,11 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
      */
 
     // Current debug messages mask.
-    #if DEBUG
+#if DEBUG
     let debugMask: UInt8 = 0xFE
-    #else
+#else
     let debugMask: UInt8 = 0x00
-    #endif
+#endif
 
     let TRACE: UInt8 = 1
     let DEBUG: UInt8 = 2
@@ -137,11 +140,11 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
     "sold or used for commercial purposes."
 
     // Other constants.
-    #if DEBUG
+#if DEBUG
     let allowLog: String = "false"                  // API: No logging requests.
-    #else
+#else
     let allowLog: String = "true"                   // API: Allow logging requests.
-    #endif
+#endif
 
     let host: String = "https://api.mapcode.com"    // Host name of Mapcode REST API.
     let client: String = "ios"                      // API: Client ID.
@@ -220,17 +223,17 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
     let textNoInternet = "No internet connection?"
 
     // Labels.
-    let textTerritorySingle = "TERRITORY"
-    let textTerritoryXOfY = "TERRITORY %i OF %i"
-    let textMapcodeSingle = "MAPCODE"
-    let textMapcodeFirstOfN = "MAPCODE"
-    let textMapcodeXOfY = "ALTERNATIVE %i"
-    let textLatLabel = "LATITUDE (Y)"
-    let textLonLabel = "LONGITUDE (X)"
-    let textCopiedToClipboard = "COPIED TO CLIPBOARD"
-    let textAddressLabel = "ENTER ADDRESS OR MAPCODE"
-    let textWrongAddress = "CANNOT FIND: "
-    let textWrongMapcode = "INCORRECT MAPCODE: "
+    let textTerritorySingle = "Territory"
+    let textTerritoryXOfY = "Territory %i of %i"
+    let textMapcodeSingle = "Mapcode"
+    let textMapcodeFirstOfN = "Mapcode"
+    let textMapcodeXOfY = "Alternative %i"
+    let textLatLabel = "Latitude (Y)"
+    let textLonLabel = "Longitude (X)"
+    let textCopiedToClipboard = "Copied to clipboard"
+    let textAddressLabel = "Enter address or mapcode"
+    let textWrongAddress = "Cannot find: "
+    let textWrongMapcode = "Incorrect mapcode: "
 
     // Special mapcodes.
     let longestMapcode = "MX-GRO MWWW.WWWW"
@@ -281,8 +284,8 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
      */
 
     enum ApiError: Error {
-        case apiReturnsErrors(json:JSONValue?)
-        case apiUnexpectedMessageFormat(json:JSONValue?)
+        case apiReturnsErrors(json: JSONValue?)
+        case apiUnexpectedMessageFormat(json: JSONValue?)
     }
 
 
@@ -317,10 +320,10 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
         theAddressFirstLine.text = ""
         theAddress.text = ""
         theContext.text = ""
-        theContextLabel.text = "TERRITORY"
+        theContextLabel.text = "Territory"
         theNextContext.isEnabled = false
         theMapcode.text = ""
-        theMapcodeLabel.text = "MAPCODE"
+        theMapcodeLabel.text = "Mapcode"
         theNextMapcode.isEnabled = false
         theLat.text = ""
         theLon.text = ""
@@ -387,14 +390,14 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
 
         // Schedule periodic updates for reverse geocoding and Mapcdode REST API requests.
         timerReverseGeocoding = Timer.scheduledTimer(
-            timeInterval: limitReverseGeocodingSecs, target: self,
-            selector: #selector(periodicCheckToUpdateAddress),
-            userInfo: nil, repeats: true)
+                timeInterval: limitReverseGeocodingSecs, target: self,
+                selector: #selector(periodicCheckToUpdateAddress),
+                userInfo: nil, repeats: true)
 
         timerReverseGeocoding = Timer.scheduledTimer(
-            timeInterval: limitMapcodeLookupSecs, target: self,
-            selector: #selector(periodicCheckToUpdateMapcode),
-            userInfo: nil, repeats: true)
+                timeInterval: limitMapcodeLookupSecs, target: self,
+                selector: #selector(periodicCheckToUpdateMapcode),
+                userInfo: nil, repeats: true)
     }
 
 
@@ -620,9 +623,9 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
     func scheduleResetLabels() {
         timerResetLabels.invalidate()
         timerResetLabels = Timer.scheduledTimer(
-            timeInterval: resetLabelsAfterSecs, target: self,
-            selector: #selector(ResetLabels),
-            userInfo: nil, repeats: false)
+                timeInterval: resetLabelsAfterSecs, target: self,
+                selector: #selector(ResetLabels),
+                userInfo: nil, repeats: false)
     }
 
 
@@ -711,15 +714,15 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
 
             // Check if the user entered a mapcode instead of an address.
             let matchesMapcodeWithOptionalCountryCode = mapcodeRegexWithOptionalCountryCode.matches(
-                in: input, options: [],
-                range: NSRange(location: 0, length: input.characters.count))
+                    in: input, options: [],
+                    range: NSRange(location: 0, length: input.characters.count))
             if matchesMapcodeWithOptionalCountryCode.count == 1 {
                 debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode with optional country code, mapcode=\(input)")
                 mapcodeWasEntered(input, context: nil)
             } else {
                 let matchesMapcodeWithCountryName = mapcodeRegexWithCountryName.matches(
-                    in: input, options: [],
-                    range: NSRange(location: 0, length: input.characters.count))
+                        in: input, options: [],
+                        range: NSRange(location: 0, length: input.characters.count))
                 if matchesMapcodeWithCountryName.count == 1 {
                     let range = input.range(of: " ", options: .backwards)
                     let country = String(input[input.startIndex..<(range?.lowerBound)!])
@@ -856,9 +859,9 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
 
                 // Check status OK
                 if (status == 200) &&
-                    (json["errors"].array == nil) &&
-                    (json["latDeg"].double != nil) &&
-                    (json["lonDeg"].double != nil) {
+                           (json["errors"].array == nil) &&
+                           (json["latDeg"].double != nil) &&
+                           (json["lonDeg"].double != nil) {
                     let lat = (json["latDeg"].double)!
                     let lon = (json["lonDeg"].double)!
                     let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
@@ -1458,7 +1461,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
                     }
 
                     // Add the alternatives, NOT including the international (which is last and has no territory).
-                    for i in 0 ... alt.count - 2 {
+                    for i in 0...alt.count - 2 {
                         // Create the full mapcode.
                         let territory = (alt[i]["territory"].string)!
                         let mapcode = (alt[i]["mapcode"].string)!
@@ -1749,7 +1752,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
         } else {
             // Both are not nil. Check if they are equal.
             if !isAlmostEqual(prevCoordinate.latitude, degree2: newCoordinate.latitude) ||
-                !isAlmostEqual(prevCoordinate.longitude, degree2: newCoordinate.longitude) {
+                       !isAlmostEqual(prevCoordinate.longitude, degree2: newCoordinate.longitude) {
                 return false
             }
 
@@ -1772,7 +1775,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
      */
     func metersPerDegreeLonAtLan(_ atLatitude: Double) -> Double {
         let meters = metersPerDegreeLonAtEquator *
-            cos(max(-85.0, min(85.0, abs(atLatitude))) / 180.0 * 3.141592654)
+                cos(max(-85.0, min(85.0, abs(atLatitude))) / 180.0 * 3.141592654)
         return meters
     }
 
@@ -1799,6 +1802,7 @@ UITextFieldDelegate, UIGestureRecognizerDelegate {
             print("\(pre!): \(msg)")
         }
     }
+
 
     /**
      * This method gets called when on low memory.

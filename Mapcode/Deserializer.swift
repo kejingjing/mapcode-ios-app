@@ -32,7 +32,10 @@ public class JSONDeserializer: Deserializer {
 
     public let acceptHeader = "application/json"
 
-    public required init() { }
+
+    public required init() {
+    }
+
 
     public func deserialize(_ data: Data) -> JSON? {
         return JSON(fromData: data)
@@ -46,7 +49,10 @@ public class VoidDeserializer: Deserializer {
 
     public let acceptHeader = "*/*"
 
-    public required init() { }
+
+    public required init() {
+    }
+
 
     public func deserialize(_ data: Data) -> Void? {
         // do nothing
@@ -61,7 +67,10 @@ public class ImageDeserializer: Deserializer {
 
     public let acceptHeader = "image/*"
 
-    public required init() { }
+
+    public required init() {
+    }
+
 
     public func deserialize(_ data: Data) -> UIImage? {
         return UIImage(data: data)
@@ -75,7 +84,10 @@ public class DataDeserializer: Deserializer {
 
     public let acceptHeader = "*/*"
 
-    public required init() { }
+
+    public required init() {
+    }
+
 
     public func deserialize(_ data: Data) -> Data? {
         return data
