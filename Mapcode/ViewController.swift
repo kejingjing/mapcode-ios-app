@@ -69,8 +69,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBOutlet weak var theLatLabel: UILabel!
     @IBOutlet weak var theLonLabel: UILabel!
     @IBOutlet weak var theView: UIView!
-    @IBOutlet weak var keyboardHeightLayoutConstraint: NSLayoutConstraint!
     @IBOutlet weak var theUseMapcodeLibrary: UISwitch!
+    @IBOutlet weak var keyboardHeightLayoutConstraint: NSLayoutConstraint!
 
     //@formatter:off
 
@@ -79,12 +79,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
 
     let SHOW_ALTERNATIVES: Bool = false
-    var USE_MAPCODE_LIBRARY: Bool = true
-
-    // Constants from C library.
-    let MAX_NR_OF_MAPCODE_RESULTS = 22
-    let MAX_MAPCODE_RESULT_ASCII_LEN = 28
-    let MAX_MAPCODE_RESULT_UTF8_LEN = 84
+    var USE_MAPCODE_LIBRARY: Bool = false
 
     // Current debug messages mask.
 #if DEBUG
@@ -198,6 +193,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     let limitReverseGeocodingSecs = 1.0             // Limit webservice API's to no
     let limitMapcodeLookupSecs = 1.0                // more than x requests per second.
+    let limitSwitchToOnlineAPISecs = 60.0           // Switch back to online API every x secs.
 
     let mapcodeRegexWithOptionalCountryCode = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
 
@@ -286,6 +282,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     var timerReverseGeocoding = Timer()           // Timer to schedule/limit reverse geocoding.
     var timerLocationUpdates = Timer()            // Timer to schedule/limit location updates.
+    var timerSwitchToOnlineAPI = Timer()          // Timer to switch back to online API.
     var timerResetLabels = Timer()                // Timer to reset labels.
 
     var locationManager: CLLocationManager!         // Controls and receives location updates.
@@ -388,6 +385,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         #else
             theUseMapcodeLibrary.isHidden = true
         #endif
+        theUseMapcodeLibrary.setOn(USE_MAPCODE_LIBRARY, animated: true)
 
         // Subscribe to notification of keyboard show/hide.
         NotificationCenter.default.addObserver(self,
@@ -858,7 +856,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             var lon: Double = 0.0
             let mapcodeError = decodeMapcodeToLatLonUtf8(&lat, &lon, fullMapcode, territory, nil)
             if mapcodeError == ERR_OK {
-                debug(DEBUG, msg: "Decode mapcode, fullMapcode=\(fullMapcode), territory=\(territory), lat=\(lat), lon=\(lon)")
+                debug(INFO, msg: "mapcodeWasEntered: Decode using onboard mapcode library, fullMapcode=\(fullMapcode), territory=\(territory), lat=\(lat), lon=\(lon)")
                 let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
 
                 // Update location and set map center.
@@ -873,7 +871,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.queueUpdateForAddress(coordinate)
                 }
             } else {
-                debug(DEBUG, msg: "Cannot decode mapcode, fullMapcode=\(fullMapcode), territory=\(territory), mapcodeError=\(mapcodeError)")
+                debug(INFO, msg: "mapcodeWasEntered: Cannot decode mapcode, fullMapcode=\(fullMapcode), territory=\(territory), mapcodeError=\(mapcodeError)")
 
                 // Revert to previous address; need to call again because previous text is lost.
                 DispatchQueue.main.async {
@@ -955,6 +953,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.queuedCoordinateForMapcodeLookup = self.mapcodeLocation
                         self.queuedCoordinateForReverseGeocode = self.mapcodeLocation
                         self.theAddress.text = self.textNoInternet
+
+                        // Switch to using the library in case of a network error.
+                        self.switchToMapcodeLibrary(useLib: true)
                     }
                 }
             }
@@ -998,11 +999,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         if USE_MAPCODE_LIBRARY {
 
             // Using onboard mapcode library to fetch territory names.
-            debug(DEBUG, msg: "Using onboard mapcode library to fetch territory names.")
+            debug(INFO, msg: "fetchTerritoryNamesFromServerIfNeeded: Using onboard mapcode library to fetch territory names.")
 
             // Declare UTF8 buffer.
-            let buffer  = UnsafeMutablePointer<CChar>.allocate(capacity: Int(MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
-            buffer.initialize(to: 0, count: Int(MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
+            let buffer = UnsafeMutablePointer<CChar>.allocate(capacity: Int(_MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
+            buffer.initialize(to: 0, count: Int(_MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
 
             // Get territories and add to our map.
             var newTerritoryFullNames = [String: String]()
@@ -1072,6 +1073,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     self.debug(self.WARN, msg: "fetchTerritoryNamesFromServerIfNeeded: API call failed, url=\(url), error=\(error)")
                     DispatchQueue.main.async {
                         self.theAddress.text = self.textNoInternet
+
+                        // Switch to using the library in case of a network error.
+                        self.switchToMapcodeLibrary(useLib: true)
                     }
                 }
             }
@@ -1170,13 +1174,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
 
 
-    @IBAction func SwitchUseREST(_ sender: UISwitch) {
-        USE_MAPCODE_LIBRARY = sender.isOn
-        if USE_MAPCODE_LIBRARY {
-            debug(INFO, msg: "Using onboard C library to encode/decode mapcodes...")
+    func switchToMapcodeLibrary(useLib: Bool) {
+        USE_MAPCODE_LIBRARY = useLib
+        theUseMapcodeLibrary.setOn(useLib, animated: true)
+        if useLib {
+            debug(DEBUG, msg: "Using onboard C library to encode/decode mapcodes...")
+
+            // Automatically switch back after some time.
+            timerSwitchToOnlineAPI = Timer.scheduledTimer(
+                    timeInterval: limitSwitchToOnlineAPISecs, target: self,
+                    selector: #selector(periodicSwitchToOnlineAPI),
+                    userInfo: nil, repeats: false)
         } else {
-            debug(INFO, msg: "Using REST service to encode/decode mapcodes...")
+            debug(DEBUG, msg: "Using online API to encode/decode mapcodes...")
         }
+    }
+
+
+    @IBAction func SwitchUseREST(_ sender: UISwitch) {
+        switchToMapcodeLibrary(useLib: sender.isOn)
     }
 
 
@@ -1375,6 +1391,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * This method limits the calls to the Apple API to once every x secs.
      */
+    @objc func periodicSwitchToOnlineAPI() {
+        switchToMapcodeLibrary(useLib: false)
+    }
+
+
+    /**
+     * This method limits the calls to the Apple API to once every x secs.
+     */
     @objc func periodicCheckToUpdateAddress() {
 
         // Bail out if nothing changed.
@@ -1523,10 +1547,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             var newAllContexts = [String]()
 
             // Use onboard mapcode library to create international mapcode.
-            debug(DEBUG, msg: "Using onboard mapcode library to encode a lat/lon into mapcodes.")
+            debug(INFO, msg: "periodicCheckToUpdateMapcode: Using onboard mapcode library to encode (\(coordinate!.latitude), \(coordinate!.longitude))")
 
-            let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: MAX_MAPCODE_RESULT_ASCII_LEN)
-            buffer.initialize(to: 0, count: MAX_MAPCODE_RESULT_ASCII_LEN)
+            let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(_MAX_MAPCODE_RESULT_ASCII_LEN))
+            buffer.initialize(to: 0, count: Int(_MAX_MAPCODE_RESULT_ASCII_LEN))
             var prevTerritoryLocal: String = ""
             var total: Int32 = 0;
             var i: Int32 = 0
@@ -1537,7 +1561,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     let index = mapcode.index(of: " ") ?? mapcode.endIndex;
                     if index != mapcode.endIndex {
                         let territoryLocal = String(mapcode[..<index])
-                        debug(DEBUG, msg: "total=\(total), i=\(i), mapcode=\(mapcode), territoryLocal=\(territoryLocal)")
+                        debug(DEBUG, msg: "periodicCheckToUpdateMapcode: total=\(total), i=\(i), mapcode=\(mapcode), territoryLocal=\(territoryLocal)")
                         if territoryLocal != prevTerritoryLocal {
                             newAllContexts.append(territoryLocal)
 
@@ -1552,7 +1576,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 }
                 i = i + 1
             } while (i < total)
-                newAllContexts.append(self.territoryInternationalAlphaCode)
+            newAllContexts.append(self.territoryInternationalAlphaCode)
 
             // Now, if we still didn't find a matching territory, fall back to the first one.
             if newContextIndex == nil {
@@ -1694,6 +1718,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.queuedCoordinateForMapcodeLookup = coordinate
                         self.queuedCoordinateForReverseGeocode = coordinate
                         self.theAddress.text = self.textNoInternet
+
+                        // Switch to using the library in case of a network error.
+                        self.switchToMapcodeLibrary(useLib: true)
                     }
                 }
             }
