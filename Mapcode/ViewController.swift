@@ -210,7 +210,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         options: [])
 
     let keySendUserFeedback = "keySendUserFeedback"     // Use online API or onboard library.
-    let keyPrevVersionBuild = "keyPrevVersionBuild"     // Version and build (for what's new).
+    let keyVersionBuild = "keyVersionBuild"             // Version and build (for what's new).
+    let keyPrevVersionBuild = "keyPrevVersionBuild"     // Previous one.
 
     let territoryInternationalAlphaCode = "AAA"     // Territory code for international context.
     let territoryInternationalFullName = "Earth"    // Territory full name for international context.
@@ -401,6 +402,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Switch to online API or onboard library.
         let defaults = UserDefaults.standard
         defaults.set(useOnlineAPI, forKey: keySendUserFeedback)
+        let version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
+        let build = Bundle.main.infoDictionary!["CFBundleVersion"] as! String
+        let versionBuild = "\(version) (\(build))"
+        defaults.set(versionBuild, forKey: keyVersionBuild)
         switchToOnlineAPI(online: useOnlineAPI)
 
         // Get territory names.

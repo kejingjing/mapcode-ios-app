@@ -15,7 +15,6 @@
 		1EEA17F41D52115A00205837 /* RestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EF1D52115A00205837 /* RestController.swift */; };
 		1EEA17F51D52115A00205837 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17F11D52115A00205837 /* Result.swift */; };
 		B2E066621F8380E8001D277C /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = B2E066611F8380E8001D277C /* Settings.bundle */; };
-		B2E066641F8384C7001D277C /* SettingsBundleHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E066631F8384C7001D277C /* SettingsBundleHelper.swift */; };
 		B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F21D50E85F003D6A17 /* AppDelegate.swift */; };
 		B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F41D50E85F003D6A17 /* ViewController.swift */; };
 		B2F370F81D50E85F003D6A17 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B2F370F61D50E85F003D6A17 /* Main.storyboard */; };
@@ -105,7 +104,6 @@
 		1EEA17F11D52115A00205837 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		B22CA0A51D6D74DC009B8F11 /* Mapcode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Mapcode.entitlements; sourceTree = "<group>"; };
 		B2E066611F8380E8001D277C /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
-		B2E066631F8384C7001D277C /* SettingsBundleHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsBundleHelper.swift; sourceTree = "<group>"; };
 		B2F370EF1D50E85F003D6A17 /* Mapcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mapcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2F370F21D50E85F003D6A17 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B2F370F41D50E85F003D6A17 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -245,7 +243,6 @@
 				1E045B031D523884004E1AA3 /* RestEssentials */,
 				B2F370F21D50E85F003D6A17 /* AppDelegate.swift */,
 				B2F370F41D50E85F003D6A17 /* ViewController.swift */,
-				B2E066631F8384C7001D277C /* SettingsBundleHelper.swift */,
 				B2F370F61D50E85F003D6A17 /* Main.storyboard */,
 				B2F370F91D50E85F003D6A17 /* Assets.xcassets */,
 				B2F370FB1D50E85F003D6A17 /* LaunchScreen.storyboard */,
@@ -421,7 +418,6 @@
 				1ECBFBB91F56B25A005C517A /* Deserializer.swift in Sources */,
 				1EEA17F51D52115A00205837 /* Result.swift in Sources */,
 				B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */,
-				B2E066641F8384C7001D277C /* SettingsBundleHelper.swift in Sources */,
 				B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */,
 				1EEA17F21D52115A00205837 /* ResponseHandler.swift in Sources */,
 				1EEA17F41D52115A00205837 /* RestController.swift in Sources */,
