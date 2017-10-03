@@ -249,8 +249,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textAddressLabel = "Enter address or mapcode"
     let textWrongAddress = "Cannot find: "
     let textWrongMapcode = "Incorrect mapcode: "
-    let textIndicatorOnlineAPI = "API"
-    let textIndicatorOfflineLibrary = "LIB"
+    let textIndicatorOnlineAPI = ""
+    let textIndicatorOfflineLibrary = "*"
 
     // Special mapcodes.
     let longestMapcode = "MX-GRO MWWW.WWWW"

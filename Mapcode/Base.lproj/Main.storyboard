@@ -124,7 +124,7 @@
                                         </connections>
                                     </button>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="IND" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AJb-4p-5Zk" userLabel="Online">
-                                        <rect key="frame" x="4" y="20" width="21" height="15"/>
+                                        <rect key="frame" x="6" y="20" width="21" height="15"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="15" id="puL-uq-mXX"/>
                                         </constraints>
@@ -145,7 +145,7 @@
                                     <constraint firstItem="FzW-1u-A5W" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" priority="250" constant="56" id="HuZ-fM-muM"/>
                                     <constraint firstItem="Tgm-Fn-qAP" firstAttribute="top" relation="greaterThanOrEqual" secondItem="PbS-qj-HqD" secondAttribute="bottom" id="JfD-GC-jbd"/>
                                     <constraint firstItem="rKN-zi-tQH" firstAttribute="bottom" secondItem="ntQ-Cn-xBr" secondAttribute="bottom" id="JxB-Rz-5Cn"/>
-                                    <constraint firstItem="AJb-4p-5Zk" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" constant="4" id="NYL-Ij-3Tj"/>
+                                    <constraint firstItem="AJb-4p-5Zk" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" constant="6" id="NYL-Ij-3Tj"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" priority="250" constant="6" id="R6u-Tx-H36"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="top" secondItem="FzW-1u-A5W" secondAttribute="bottom" constant="16" id="SUo-WS-58Z"/>
                                     <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="ntQ-Cn-xBr" secondAttribute="trailing" constant="20" symbolic="YES" id="SsH-1h-dHz"/>
