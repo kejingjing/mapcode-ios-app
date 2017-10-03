@@ -7,12 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1EC57E7A1F80E082002174D0 /* mapcoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EC57E771F80DF72002174D0 /* mapcoder.c */; };
 		1ECBFBB91F56B25A005C517A /* Deserializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ECBFBB81F56B25A005C517A /* Deserializer.swift */; };
 		1ECBFBBC1F56BB13005C517A /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ECBFBBB1F56BB13005C517A /* MapKit.framework */; };
 		1EEA17F21D52115A00205837 /* ResponseHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17ED1D52115A00205837 /* ResponseHandler.swift */; };
 		1EEA17F31D52115A00205837 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EE1D52115A00205837 /* JSON.swift */; };
 		1EEA17F41D52115A00205837 /* RestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17EF1D52115A00205837 /* RestController.swift */; };
 		1EEA17F51D52115A00205837 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEA17F11D52115A00205837 /* Result.swift */; };
+		B2E066621F8380E8001D277C /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = B2E066611F8380E8001D277C /* Settings.bundle */; };
+		B2E066641F8384C7001D277C /* SettingsBundleHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E066631F8384C7001D277C /* SettingsBundleHelper.swift */; };
 		B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F21D50E85F003D6A17 /* AppDelegate.swift */; };
 		B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F370F41D50E85F003D6A17 /* ViewController.swift */; };
 		B2F370F81D50E85F003D6A17 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B2F370F61D50E85F003D6A17 /* Main.storyboard */; };
@@ -53,6 +56,46 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1EC57E521F80DF72002174D0 /* internal_alphabet_recognizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_alphabet_recognizer.h; sourceTree = "<group>"; };
+		1EC57E531F80DF72002174D0 /* internal_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_data.h; sourceTree = "<group>"; };
+		1EC57E541F80DF72002174D0 /* internal_iso3166_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_iso3166_data.h; sourceTree = "<group>"; };
+		1EC57E551F80DF72002174D0 /* internal_territory_alphabets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_alphabets.h; sourceTree = "<group>"; };
+		1EC57E561F80DF72002174D0 /* internal_territory_names_af.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_af.h; sourceTree = "<group>"; };
+		1EC57E571F80DF72002174D0 /* internal_territory_names_ar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_ar.h; sourceTree = "<group>"; };
+		1EC57E581F80DF72002174D0 /* internal_territory_names_be.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_be.h; sourceTree = "<group>"; };
+		1EC57E591F80DF72002174D0 /* internal_territory_names_cn.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_cn.h; sourceTree = "<group>"; };
+		1EC57E5A1F80DF72002174D0 /* internal_territory_names_cs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_cs.h; sourceTree = "<group>"; };
+		1EC57E5B1F80DF72002174D0 /* internal_territory_names_da.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_da.h; sourceTree = "<group>"; };
+		1EC57E5C1F80DF72002174D0 /* internal_territory_names_de.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_de.h; sourceTree = "<group>"; };
+		1EC57E5D1F80DF72002174D0 /* internal_territory_names_en.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_en.h; sourceTree = "<group>"; };
+		1EC57E5E1F80DF72002174D0 /* internal_territory_names_es.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_es.h; sourceTree = "<group>"; };
+		1EC57E5F1F80DF72002174D0 /* internal_territory_names_fi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_fi.h; sourceTree = "<group>"; };
+		1EC57E601F80DF72002174D0 /* internal_territory_names_fr.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_fr.h; sourceTree = "<group>"; };
+		1EC57E611F80DF72002174D0 /* internal_territory_names_he.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_he.h; sourceTree = "<group>"; };
+		1EC57E621F80DF72002174D0 /* internal_territory_names_hi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_hi.h; sourceTree = "<group>"; };
+		1EC57E631F80DF72002174D0 /* internal_territory_names_hr.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_hr.h; sourceTree = "<group>"; };
+		1EC57E641F80DF72002174D0 /* internal_territory_names_id.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_id.h; sourceTree = "<group>"; };
+		1EC57E651F80DF72002174D0 /* internal_territory_names_it.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_it.h; sourceTree = "<group>"; };
+		1EC57E661F80DF72002174D0 /* internal_territory_names_ja.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_ja.h; sourceTree = "<group>"; };
+		1EC57E671F80DF72002174D0 /* internal_territory_names_ko.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_ko.h; sourceTree = "<group>"; };
+		1EC57E681F80DF72002174D0 /* internal_territory_names_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_local.h; sourceTree = "<group>"; };
+		1EC57E691F80DF72002174D0 /* internal_territory_names_nl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_nl.h; sourceTree = "<group>"; };
+		1EC57E6A1F80DF72002174D0 /* internal_territory_names_no.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_no.h; sourceTree = "<group>"; };
+		1EC57E6B1F80DF72002174D0 /* internal_territory_names_pl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_pl.h; sourceTree = "<group>"; };
+		1EC57E6C1F80DF72002174D0 /* internal_territory_names_pt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_pt.h; sourceTree = "<group>"; };
+		1EC57E6D1F80DF72002174D0 /* internal_territory_names_ru.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_ru.h; sourceTree = "<group>"; };
+		1EC57E6E1F80DF72002174D0 /* internal_territory_names_sv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_sv.h; sourceTree = "<group>"; };
+		1EC57E6F1F80DF72002174D0 /* internal_territory_names_sw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_sw.h; sourceTree = "<group>"; };
+		1EC57E701F80DF72002174D0 /* internal_territory_names_tr.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_tr.h; sourceTree = "<group>"; };
+		1EC57E711F80DF72002174D0 /* internal_territory_names_uk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_names_uk.h; sourceTree = "<group>"; };
+		1EC57E721F80DF72002174D0 /* internal_territory_search.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal_territory_search.h; sourceTree = "<group>"; };
+		1EC57E731F80DF72002174D0 /* mapcode_alphabets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mapcode_alphabets.h; sourceTree = "<group>"; };
+		1EC57E741F80DF72002174D0 /* mapcode_legacy.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mapcode_legacy.c; sourceTree = "<group>"; };
+		1EC57E751F80DF72002174D0 /* mapcode_legacy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mapcode_legacy.h; sourceTree = "<group>"; };
+		1EC57E761F80DF72002174D0 /* mapcode_territories.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mapcode_territories.h; sourceTree = "<group>"; };
+		1EC57E771F80DF72002174D0 /* mapcoder.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mapcoder.c; sourceTree = "<group>"; };
+		1EC57E781F80DF72002174D0 /* mapcoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mapcoder.h; sourceTree = "<group>"; };
+		1EC57E7B1F80E134002174D0 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		1ECBFBB81F56B25A005C517A /* Deserializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deserializer.swift; sourceTree = "<group>"; };
 		1ECBFBBB1F56BB13005C517A /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		1EEA17ED1D52115A00205837 /* ResponseHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResponseHandler.swift; sourceTree = "<group>"; };
@@ -61,6 +104,8 @@
 		1EEA17F01D52115A00205837 /* RestEssentials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RestEssentials.h; sourceTree = "<group>"; };
 		1EEA17F11D52115A00205837 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		B22CA0A51D6D74DC009B8F11 /* Mapcode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Mapcode.entitlements; sourceTree = "<group>"; };
+		B2E066611F8380E8001D277C /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		B2E066631F8384C7001D277C /* SettingsBundleHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsBundleHelper.swift; sourceTree = "<group>"; };
 		B2F370EF1D50E85F003D6A17 /* Mapcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mapcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2F370F21D50E85F003D6A17 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B2F370F41D50E85F003D6A17 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -115,6 +160,53 @@
 			name = RestEssentials;
 			sourceTree = "<group>";
 		};
+		1EC57E511F80DF72002174D0 /* mapcodelib */ = {
+			isa = PBXGroup;
+			children = (
+				1EC57E521F80DF72002174D0 /* internal_alphabet_recognizer.h */,
+				1EC57E531F80DF72002174D0 /* internal_data.h */,
+				1EC57E541F80DF72002174D0 /* internal_iso3166_data.h */,
+				1EC57E551F80DF72002174D0 /* internal_territory_alphabets.h */,
+				1EC57E561F80DF72002174D0 /* internal_territory_names_af.h */,
+				1EC57E571F80DF72002174D0 /* internal_territory_names_ar.h */,
+				1EC57E581F80DF72002174D0 /* internal_territory_names_be.h */,
+				1EC57E591F80DF72002174D0 /* internal_territory_names_cn.h */,
+				1EC57E5A1F80DF72002174D0 /* internal_territory_names_cs.h */,
+				1EC57E5B1F80DF72002174D0 /* internal_territory_names_da.h */,
+				1EC57E5C1F80DF72002174D0 /* internal_territory_names_de.h */,
+				1EC57E5D1F80DF72002174D0 /* internal_territory_names_en.h */,
+				1EC57E5E1F80DF72002174D0 /* internal_territory_names_es.h */,
+				1EC57E5F1F80DF72002174D0 /* internal_territory_names_fi.h */,
+				1EC57E601F80DF72002174D0 /* internal_territory_names_fr.h */,
+				1EC57E611F80DF72002174D0 /* internal_territory_names_he.h */,
+				1EC57E621F80DF72002174D0 /* internal_territory_names_hi.h */,
+				1EC57E631F80DF72002174D0 /* internal_territory_names_hr.h */,
+				1EC57E641F80DF72002174D0 /* internal_territory_names_id.h */,
+				1EC57E651F80DF72002174D0 /* internal_territory_names_it.h */,
+				1EC57E661F80DF72002174D0 /* internal_territory_names_ja.h */,
+				1EC57E671F80DF72002174D0 /* internal_territory_names_ko.h */,
+				1EC57E681F80DF72002174D0 /* internal_territory_names_local.h */,
+				1EC57E691F80DF72002174D0 /* internal_territory_names_nl.h */,
+				1EC57E6A1F80DF72002174D0 /* internal_territory_names_no.h */,
+				1EC57E6B1F80DF72002174D0 /* internal_territory_names_pl.h */,
+				1EC57E6C1F80DF72002174D0 /* internal_territory_names_pt.h */,
+				1EC57E6D1F80DF72002174D0 /* internal_territory_names_ru.h */,
+				1EC57E6E1F80DF72002174D0 /* internal_territory_names_sv.h */,
+				1EC57E6F1F80DF72002174D0 /* internal_territory_names_sw.h */,
+				1EC57E701F80DF72002174D0 /* internal_territory_names_tr.h */,
+				1EC57E711F80DF72002174D0 /* internal_territory_names_uk.h */,
+				1EC57E721F80DF72002174D0 /* internal_territory_search.h */,
+				1EC57E731F80DF72002174D0 /* mapcode_alphabets.h */,
+				1EC57E741F80DF72002174D0 /* mapcode_legacy.c */,
+				1EC57E751F80DF72002174D0 /* mapcode_legacy.h */,
+				1EC57E761F80DF72002174D0 /* mapcode_territories.h */,
+				1EC57E771F80DF72002174D0 /* mapcoder.c */,
+				1EC57E781F80DF72002174D0 /* mapcoder.h */,
+				1EC57E7B1F80E134002174D0 /* module.modulemap */,
+			);
+			path = mapcodelib;
+			sourceTree = "<group>";
+		};
 		1ECBFBBA1F56BB13005C517A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -126,6 +218,7 @@
 		B2F370E61D50E85F003D6A17 = {
 			isa = PBXGroup;
 			children = (
+				B2E066611F8380E8001D277C /* Settings.bundle */,
 				B2F370F11D50E85F003D6A17 /* Mapcode */,
 				B2F371061D50E85F003D6A17 /* MapcodeTests */,
 				B2F371111D50E85F003D6A17 /* MapcodeUITests */,
@@ -147,10 +240,12 @@
 		B2F370F11D50E85F003D6A17 /* Mapcode */ = {
 			isa = PBXGroup;
 			children = (
+				1EC57E511F80DF72002174D0 /* mapcodelib */,
 				B22CA0A51D6D74DC009B8F11 /* Mapcode.entitlements */,
 				1E045B031D523884004E1AA3 /* RestEssentials */,
 				B2F370F21D50E85F003D6A17 /* AppDelegate.swift */,
 				B2F370F41D50E85F003D6A17 /* ViewController.swift */,
+				B2E066631F8384C7001D277C /* SettingsBundleHelper.swift */,
 				B2F370F61D50E85F003D6A17 /* Main.storyboard */,
 				B2F370F91D50E85F003D6A17 /* Assets.xcassets */,
 				B2F370FB1D50E85F003D6A17 /* LaunchScreen.storyboard */,
@@ -294,6 +389,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B2E066621F8380E8001D277C /* Settings.bundle in Resources */,
 				B2F370FD1D50E85F003D6A17 /* LaunchScreen.storyboard in Resources */,
 				B2F370FA1D50E85F003D6A17 /* Assets.xcassets in Resources */,
 				B2F370F81D50E85F003D6A17 /* Main.storyboard in Resources */,
@@ -321,9 +417,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1EC57E7A1F80E082002174D0 /* mapcoder.c in Sources */,
 				1ECBFBB91F56B25A005C517A /* Deserializer.swift in Sources */,
 				1EEA17F51D52115A00205837 /* Result.swift in Sources */,
 				B2F370F51D50E85F003D6A17 /* ViewController.swift in Sources */,
+				B2E066641F8384C7001D277C /* SettingsBundleHelper.swift in Sources */,
 				B2F370F31D50E85F003D6A17 /* AppDelegate.swift in Sources */,
 				1EEA17F21D52115A00205837 /* ResponseHandler.swift in Sources */,
 				1EEA17F41D52115A00205837 /* RestController.swift in Sources */,
@@ -493,6 +591,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1006;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Mapcode/mapcodelib";
 				INFOPLIST_FILE = Mapcode/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -516,6 +615,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1006;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Mapcode/mapcodelib";
 				INFOPLIST_FILE = Mapcode/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

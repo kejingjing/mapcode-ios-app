@@ -1,0 +1,6 @@
+module mapcodelib [system][extern_c]{
+    header "mapcode_alphabets.h"
+    header "mapcode_territories.h"
+    header "mapcoder.h"
+    export *
+}

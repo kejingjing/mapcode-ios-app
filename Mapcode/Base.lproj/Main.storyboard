@@ -22,7 +22,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="x" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jgy-L7-nJE" userLabel="Guide Center">
-                                <rect key="frame" x="156.5" y="553.5" width="7" height="14.5"/>
+                                <rect key="frame" x="157" y="553" width="7" height="15"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
@@ -34,7 +34,7 @@
                                         <rect key="frame" x="0.0" y="0.0" width="320" height="365"/>
                                     </mapView>
                                     <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h46-hV-f3b" userLabel="Target">
-                                        <rect key="frame" x="143" y="175.5" width="34" height="34"/>
+                                        <rect key="frame" x="143" y="176" width="34" height="34"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="34" id="Qhe-RN-Vre"/>
@@ -50,7 +50,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Qcm-6U-D1v" userLabel="Zoom In">
-                                        <rect key="frame" x="260" y="233.5" width="60" height="66"/>
+                                        <rect key="frame" x="260" y="234" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="60" id="VGC-y2-TQ2"/>
@@ -62,7 +62,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="44y-Qs-BpH" userLabel="Zoom Out">
-                                        <rect key="frame" x="260" y="299.5" width="60" height="66"/>
+                                        <rect key="frame" x="260" y="300" width="60" height="66"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="60" id="514-Go-0kq"/>
@@ -123,18 +123,29 @@
                                             <action selector="findMyLocation:" destination="BYZ-38-t0r" eventType="touchUpInside" id="U7Q-hg-PGu"/>
                                         </connections>
                                     </button>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="IND" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AJb-4p-5Zk" userLabel="Online">
+                                        <rect key="frame" x="6" y="20" width="21" height="15"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="15" id="puL-uq-mXX"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                 </subviews>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="bottom" secondItem="ekd-s8-ZkY" secondAttribute="bottom" id="0o5-IE-c0a"/>
                                     <constraint firstItem="ntQ-Cn-xBr" firstAttribute="top" secondItem="Tgm-Fn-qAP" secondAttribute="bottom" constant="16" id="5on-FM-9wt"/>
                                     <constraint firstAttribute="trailing" secondItem="Qcm-6U-D1v" secondAttribute="trailing" id="A8s-iT-4vA"/>
+                                    <constraint firstItem="AJb-4p-5Zk" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" constant="20" id="AQB-99-Jn7"/>
                                     <constraint firstItem="ekd-s8-ZkY" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" id="E0a-Vw-cbB"/>
                                     <constraint firstItem="ntQ-Cn-xBr" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" constant="8" id="Efl-Gz-zmx"/>
                                     <constraint firstItem="44y-Qs-BpH" firstAttribute="top" secondItem="Qcm-6U-D1v" secondAttribute="bottom" id="Fli-1O-YpT"/>
                                     <constraint firstItem="FzW-1u-A5W" firstAttribute="top" secondItem="uKr-t6-5ok" secondAttribute="top" priority="250" constant="56" id="HuZ-fM-muM"/>
                                     <constraint firstItem="Tgm-Fn-qAP" firstAttribute="top" relation="greaterThanOrEqual" secondItem="PbS-qj-HqD" secondAttribute="bottom" id="JfD-GC-jbd"/>
                                     <constraint firstItem="rKN-zi-tQH" firstAttribute="bottom" secondItem="ntQ-Cn-xBr" secondAttribute="bottom" id="JxB-Rz-5Cn"/>
+                                    <constraint firstItem="AJb-4p-5Zk" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" constant="6" id="NYL-Ij-3Tj"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" priority="250" constant="6" id="R6u-Tx-H36"/>
                                     <constraint firstItem="PbS-qj-HqD" firstAttribute="top" secondItem="FzW-1u-A5W" secondAttribute="bottom" constant="16" id="SUo-WS-58Z"/>
                                     <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="ntQ-Cn-xBr" secondAttribute="trailing" constant="20" symbolic="YES" id="SsH-1h-dHz"/>
@@ -149,6 +160,7 @@
                                     <constraint firstAttribute="bottom" secondItem="ntQ-Cn-xBr" secondAttribute="bottom" constant="10" id="oun-pi-oKb"/>
                                     <constraint firstItem="ekd-s8-ZkY" firstAttribute="centerX" secondItem="uKr-t6-5ok" secondAttribute="centerX" id="pET-jf-XMi"/>
                                     <constraint firstItem="ekd-s8-ZkY" firstAttribute="leading" secondItem="uKr-t6-5ok" secondAttribute="leading" id="rbI-dv-Pbg"/>
+                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="AJb-4p-5Zk" secondAttribute="trailing" id="uSS-gI-ZCj"/>
                                     <constraint firstItem="h46-hV-f3b" firstAttribute="centerX" secondItem="uKr-t6-5ok" secondAttribute="centerX" id="vK0-tZ-uDI"/>
                                     <constraint firstItem="ekd-s8-ZkY" firstAttribute="centerY" secondItem="uKr-t6-5ok" secondAttribute="centerY" id="wXL-3v-PL2"/>
                                 </constraints>
@@ -165,7 +177,7 @@
                                 </constraints>
                             </view>
                             <textField opaque="NO" clipsSubviews="YES" tag="2" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" usesAttributedText="YES" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="vFV-Z4-Aim" userLabel="Latitude">
-                                <rect key="frame" x="3" y="534" width="135.5" height="30"/>
+                                <rect key="frame" x="3" y="534" width="136" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="QAv-35-oQs"/>
                                 </constraints>
@@ -184,7 +196,7 @@
                                 </connections>
                             </textField>
                             <textField opaque="NO" clipsSubviews="YES" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" usesAttributedText="YES" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="dA2-FW-eFa" userLabel="Longitude">
-                                <rect key="frame" x="146.5" y="534" width="170.5" height="30"/>
+                                <rect key="frame" x="147" y="534" width="170" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="XGo-BN-4dI"/>
                                 </constraints>
@@ -203,23 +215,23 @@
                                 </connections>
                             </textField>
                             <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Territory" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4eD-gA-qlr" userLabel="Context Label">
-                                <rect key="frame" x="3" y="444" width="135.5" height="30"/>
+                                <rect key="frame" x="3" y="444" width="136" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="8oc-iP-lSr"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" name=".SFNSText" family=".SF NS Text" pointSize="14"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Mapcode" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xcH-Fl-fHj" userLabel="Mapcode Label">
-                                <rect key="frame" x="146.5" y="444" width="170.5" height="30"/>
+                            <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Mapcode (tap to copy)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xcH-Fl-fHj" userLabel="Mapcode Label">
+                                <rect key="frame" x="147" y="444" width="170" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="qnU-Ph-oez"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" name=".SFNSText" family=".SF NS Text" pointSize="14"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="right" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YvQ-0x-P0k" userLabel="Next Context">
-                                <rect key="frame" x="122.5" y="453" width="16" height="12"/>
+                                <rect key="frame" x="123" y="453" width="16" height="12"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="16" id="43v-GB-nXl"/>
                                     <constraint firstAttribute="height" constant="12" id="BuC-Hx-44H"/>
@@ -247,7 +259,7 @@
                                 </connections>
                             </button>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" usesAttributedText="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kLn-5n-hda" userLabel="Context">
-                                <rect key="frame" x="3" y="474" width="135.5" height="30"/>
+                                <rect key="frame" x="3" y="474" width="136" height="30"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="84N-QE-t3p"/>
@@ -256,8 +268,8 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" usesAttributedText="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gXh-R3-KMg" userLabel="Mapcode">
-                                <rect key="frame" x="146.5" y="474" width="170.5" height="30"/>
-                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <rect key="frame" x="147" y="474" width="170" height="30"/>
+                                <color key="backgroundColor" red="0.99982351059999997" green="0.99726906712166674" blue="0.84655690189999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="arm-jS-UC6"/>
                                 </constraints>
@@ -269,7 +281,7 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="vVo-na-U4w"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" name=".SFNSText" family=".SF NS Text" pointSize="14"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Neighborhood" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Hc8-SM-OnT" userLabel="Address First Line">
@@ -277,7 +289,7 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="zDd-eQ-zUY"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="14"/>
                                 <color key="textColor" red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -302,19 +314,19 @@
                                 </connections>
                             </textField>
                             <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Latitude (Y)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9rL-r5-vtn" userLabel="Latitude Label">
-                                <rect key="frame" x="3" y="504" width="135.5" height="30"/>
+                                <rect key="frame" x="3" y="504" width="136" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="MAd-pr-eNY"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" name=".SFNSText" family=".SF NS Text" pointSize="14"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Longitude (X)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BTj-Rk-wdm" userLabel="Longitude Label">
-                                <rect key="frame" x="146.5" y="504" width="170.5" height="30"/>
+                                <rect key="frame" x="147" y="504" width="170" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="k0T-ri-pMg"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" name=".SFNSText" family=".SF NS Text" pointSize="14"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
@@ -390,12 +402,13 @@
                         <outlet property="theMapcodeLabel" destination="xcH-Fl-fHj" id="rP6-ny-ZTo"/>
                         <outlet property="theNextContext" destination="YvQ-0x-P0k" id="a7t-mo-XRg"/>
                         <outlet property="theNextMapcode" destination="ZKZ-a7-cYi" id="5Yq-2d-Mse"/>
+                        <outlet property="theOnlineAPIIndicator" destination="AJb-4p-5Zk" id="w7x-N1-OaT"/>
                         <outlet property="theView" destination="uKr-t6-5ok" id="2eX-Wy-A3R"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="356.52173913043481" y="433.69565217391306"/>
+            <point key="canvasLocation" x="356.25" y="433.0985915492958"/>
         </scene>
     </scenes>
     <resources>
