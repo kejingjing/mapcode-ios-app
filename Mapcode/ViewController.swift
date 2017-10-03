@@ -79,9 +79,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Constants.
      */
 
-    let showAlternatives: Bool = false
-    var useOnlineAPI: Bool = true
-
     // Current debug messages mask.
 #if DEBUG
     let debugMask: UInt8 = 0xFE
@@ -98,6 +95,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     // Help texts.
     let textWhatsNew = "\n" +
         "* Uses embedded Mapcode library, no longer requires REST service to encode/decode mapcodes.\n" +
+        "* Added a privacy setting in the Settings/Mapcode menu.\n" +
         "* Removed alternative mapcodes (showing only use shortest).\n" +
         "* Improved and simplified UI.\n" +
         "* Rebuilt for iOS 11 with Xcode 9 (and Swift 4).\n"
@@ -114,7 +112,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         "Enter a mapcode in the address field to show it on the map. Tip: if you omit " +
         "the territory for local mapcodes, the current territory is used.\n\n" +
 
-        "Tap the >> buttons to show next territory or mapcode.\n\n" +
+        "Tap the >> buttons to scroll through the territories.\n\n" +
 
         "Tap the mapcode itself to copy it to the clipboard.\n\n" +
 
@@ -124,8 +122,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         "Note that a single location can have mapcodes with different territory codes. " +
         "The 'correct' territory is always included, but other territories may be presented as well.\n\n" +
-
-        "You can select the correct territory by tapping on the >> button.\n\n" +
 
         "For questions, or more info on mapcodes in general, please visit us at:\n" +
         "http://mapcode.com\n\n" +
@@ -154,7 +150,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let allowLog: String = "true"                   // API: Allow logging requests.
 #endif
 
-    let host: String = "https://api.mapcode.com"    // Host name of Mapcode REST API.
+    let host: String = "https://api2.mapcode.com"    // Host name of Mapcode REST API.
     let client: String = "ios"                      // API: Client ID.
     let tagTextFieldAddress = 1                     // Tags of text fields.
     let tagTextFieldLatitude = 2
@@ -198,7 +194,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     #if DEBUG
         let limitSwitchToOnlineAPISecs = 10.0       // Switch back to online API every x secs.
     #else
-        let limitSwitchToOnlineAPISecs = 300.0      // Switch back to online API every x secs.
+        let limitSwitchToOnlineAPISecs = 120.0
     #endif
 
     let mapcodeRegexWithOptionalCountryCode = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
@@ -212,8 +208,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // _______START_[' ']X[x...__________]__' '___XXxxx________.__XXxx____________[___-_Xxxxxxxx_________][' ']END
         pattern: "\\A\\s*(([a-zA-Z][a-zA-Z]*\\s+)+)[a-zA-Z0-9]{2,5}[.][a-zA-Z0-9]{2,4}(?:[-][a-zA-Z0-9]{1,8})?\\s*\\Z",
         options: [])
-    
-    let keyVersionBuild = "versionBuild"            // Version and build (for what's new).
+
+    let keySendUserFeedback = "keySendUserFeedback"     // Use online API or onboard library.
+    let keyPrevVersionBuild = "keyPrevVersionBuild"     // Version and build (for what's new).
 
     let territoryInternationalAlphaCode = "AAA"     // Territory code for international context.
     let territoryInternationalFullName = "Earth"    // Territory full name for international context.
@@ -250,7 +247,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let textWrongAddress = "Cannot find: "
     let textWrongMapcode = "Incorrect mapcode: "
     let textIndicatorOnlineAPI = ""
-    let textIndicatorOfflineLibrary = "*"
+    let textIndicatorOfflineLibrary = "."
 
     // Special mapcodes.
     let longestMapcode = "MX-GRO MWWW.WWWW"
@@ -260,6 +257,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Global state.
      */
+
+    let showAlternatives: Bool = false
+    var useOnlineAPI: Bool = true
+    var sendUserFeedback: Bool = true
 
     // Provide a sensible screen if no user location is available (rather than mid Pacific).
     var mapcodeLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
@@ -414,6 +415,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         queueUpdateForMapcode(mapcodeLocation)
         queueUpdateForAddress(mapcodeLocation)
 
+        // Switch to online API or onboard library.
+        switchToOnlineAPI(online: useOnlineAPI)
+        fetchTerritoryNames()
+
         // Schedule periodic updates for reverse geocoding and Mapcdode REST API requests.
         timerReverseGeocoding = Timer.scheduledTimer(
                 timeInterval: limitReverseGeocodingSecs, target: self,
@@ -424,6 +429,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 timeInterval: limitMapcodeLookupSecs, target: self,
                 selector: #selector(periodicCheckToUpdateMapcode),
                 userInfo: nil, repeats: true)
+
+        timerSwitchToOnlineAPI = Timer.scheduledTimer(
+            timeInterval: limitSwitchToOnlineAPISecs, target: self,
+            selector: #selector(periodicSwitchToOnlineAPI),
+            userInfo: nil, repeats: true)
     }
 
 
@@ -477,20 +487,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func showStartUpText() {
         let version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
         let build = Bundle.main.infoDictionary!["CFBundleVersion"] as! String
-        let versionBuild = "\(version)\(build)"
+        let versionBuild = "\(version) (\(build))"
 
         let defaults = UserDefaults.standard
-        let prevVersionBuild = defaults.string(forKey: keyVersionBuild)
+        let prevVersionBuild = defaults.string(forKey: keyPrevVersionBuild)
 
         // Update settings.
-        defaults.setValue(versionBuild, forKey: keyVersionBuild)
-        defaults.synchronize()
+        defaults.setValue(versionBuild, forKey: keyPrevVersionBuild)
 
         // Check if the app was updated.
         if prevVersionBuild == nil {
             self.showAbout(self)
         } else if prevVersionBuild != versionBuild {
-            self.showAlert("What's New", message: "\(version):" + textWhatsNew, button: "Dismiss")
+            self.showAlert("What's New", message: "\(versionBuild):" + textWhatsNew, button: "Dismiss")
+        } else {
+            // No message needed.
         }
     }
 
@@ -501,7 +512,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     @IBAction func showAbout(_ sender: AnyObject) {
         let version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
         let build = Bundle.main.infoDictionary!["CFBundleVersion"] as! String
-        self.showAlert("Mapcode \(version).\(build)", message: textAbout, button: "Dismiss")
+        self.showAlert("Mapcode \(version) (\(build))", message: textAbout, button: "Dismiss")
     }
 
 
@@ -856,6 +867,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         }
 
         // Use REST service or onboard client library.
+        switchToOnlineAPI(online: useOnlineAPI)
         if useOnlineAPI {
 
             // Create URL for REST API call to get mapcodes.
@@ -993,101 +1005,37 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
 
     /**
-     * Call Mapcode REST API to get territory names.
+     * Fetch all territory names.
      */
-    func fetchTerritoryNamesFromServerIfNeeded() {
+    func fetchTerritoryNames() {
 
-        // Don't fetch the territories twice in a session.
-        if territoryFullNamesFetched {
-            return
+        // Using onboard mapcode library to fetch territory names.
+        debug(INFO, msg: "fetchTerritoryNames: Using onboard mapcode library to fetch territory names.")
+
+        // Declare UTF8 buffer.
+        let buffer = UnsafeMutablePointer<CChar>.allocate(capacity: Int(_MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
+        buffer.initialize(to: 0, count: Int(_MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
+
+        // Get territories and add to our map.
+        var newTerritoryFullNames = [String: String]()
+        var territory = Territory.init(_TERRITORY_MIN.rawValue + 1)
+        while territory != _TERRITORY_MAX {
+
+            // Get alpha code.
+            getTerritoryIsoName(buffer, territory, 0)
+            let alphaCode = String.init(cString: buffer)
+
+            // Get full name.
+            getFullTerritoryNameEnglish(buffer, territory, 0)
+            let fullName = String.init(cString: buffer)
+
+            newTerritoryFullNames[alphaCode] = fullName
+            territory = Territory.init(territory.rawValue + 1)
         }
-        territoryFullNamesFetched = true
 
-        // Use REST service or onboard client library.
-        if useOnlineAPI {
-
-            // Fetch territory information from server.
-            let url = "\(host)/mapcode/territories/?client=\(client)&allowLog=\(allowLog)"
-            guard let rest = RestController.make(urlString: url) else {
-                debug(ERROR, msg: "fetchTerritoryNamesFromServerIfNeeded: Bad URL, url=\(url)")
-                return
-            }
-
-            // Get territories.
-            debug(INFO, msg: "fetchTerritoryNamesFromServerIfNeeded: Call Mapcode API: url=\(url)")
-            rest.get {
-                result, httpResponse in
-                do {
-                    // Get JSON response.
-                    let json = try result.value()
-                    let status = httpResponse?.statusCode
-
-                    // The JSON response indicated an error, territory is set to nil.
-                    if (status != 200) || (json["errors"].array != nil) || (json["territories"].array == nil) {
-                        self.debug(self.WARN, msg: "fetchTerritoryNamesFromServerIfNeeded: Can get territories from server, errors=\(json["errors"])")
-                    }
-
-                    // Get territories and add to our map.
-                    var newTerritoryFullNames = [String: String]()
-                    let territories = (json["territories"].array)!
-                    for territory in territories {
-                        let alphaCode = territory["alphaCode"].string
-                        let fullName = territory["fullName"].string
-                        newTerritoryFullNames[alphaCode!] = fullName!
-                    }
-                    newTerritoryFullNames[self.territoryInternationalAlphaCode] = self.territoryInternationalFullName
-
-                    // Update mapcode fields on main thread.
-                    DispatchQueue.main.async {
-
-                        // Pass territories to main and update context field.
-                        self.territoryFullNames = newTerritoryFullNames
-                        self.updateContext()
-                    }
-                } catch {
-                    self.debug(self.WARN, msg: "fetchTerritoryNamesFromServerIfNeeded: API call failed, url=\(url), error=\(error)")
-                    DispatchQueue.main.async {
-                        self.theAddress.text = self.textNoInternet
-
-                        // Switch to using the library in case of a network error.
-                        self.switchToOnlineAPI(online: false)
-                    }
-                }
-            }
-        } else {
-
-            // Using onboard mapcode library to fetch territory names.
-            debug(INFO, msg: "fetchTerritoryNamesFromServerIfNeeded: Using onboard mapcode library to fetch territory names.")
-
-            // Declare UTF8 buffer.
-            let buffer = UnsafeMutablePointer<CChar>.allocate(capacity: Int(_MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
-            buffer.initialize(to: 0, count: Int(_MAX_TERRITORY_FULLNAME_UTF8_LEN + 1))
-
-            // Get territories and add to our map.
-            var newTerritoryFullNames = [String: String]()
-            var territory = Territory.init(_TERRITORY_MIN.rawValue + 1)
-            while territory != _TERRITORY_MAX {
-
-                // Get alpha code.
-                getTerritoryIsoName(buffer, territory, 0)
-                let alphaCode = String.init(cString: buffer)
-
-                // Get full name.
-                getFullTerritoryNameEnglish(buffer, territory, 0)
-                let fullName = String.init(cString: buffer)
-
-                newTerritoryFullNames[alphaCode] = fullName
-                territory = Territory.init(territory.rawValue + 1)
-            }
-
-            // Update mapcode fields on main thread.
-            DispatchQueue.main.async {
-
-                // Pass territories to main and update context field.
-                self.territoryFullNames = newTerritoryFullNames
-                self.updateContext()
-            }
-        }
+        // Pass territories to main and update context field.
+        territoryFullNames = newTerritoryFullNames
+        updateContext()
     }
 
 
@@ -1183,29 +1131,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         self.view.endEditing(true)
 
         nextMapcode(self)
-    }
-
-
-    func switchToOnlineAPI(online: Bool) {
-        useOnlineAPI = online
-        if online {
-            debug(DEBUG, msg: "switchToOnlineAPI: Switch to online API to encode/decode mapcodes...")
-            theOnlineAPIIndicator.text = textIndicatorOnlineAPI
-        } else {
-            debug(DEBUG, msg: "switchToOnlineAPI: Switch to onboard C library to encode/decode mapcodes...")
-            theOnlineAPIIndicator.text = textIndicatorOfflineLibrary
-
-            // Automatically switch back after some time, stop previous timer.
-            DispatchQueue.main.async {
-                if self.timerSwitchToOnlineAPI != nil {
-                    self.timerSwitchToOnlineAPI!.invalidate()
-                }
-                self.timerSwitchToOnlineAPI = Timer.scheduledTimer(
-                        timeInterval: self.limitSwitchToOnlineAPISecs, target: self,
-                        selector: #selector(self.periodicSwitchToOnlineAPI),
-                        userInfo: nil, repeats: false)
-            }
-        }
     }
 
 
@@ -1508,9 +1433,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      */
     @objc func periodicCheckToUpdateMapcode() {
 
-        // Check if the territories were loaded yet from the Mapcode REST API.
-        fetchTerritoryNamesFromServerIfNeeded()
-
         // Bail out if nothing changed.
         if isEqualOrNil(queuedCoordinateForMapcodeLookup, prevCoordinate: prevQueuedCoordinateForMapcodeLookup) {
             debug(TRACE, msg: "periodicCheckToUpdateMapcode: Filtered (no change), coordinate=\(queuedCoordinateForMapcodeLookup)")
@@ -1542,6 +1464,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         queuedCoordinateForMapcodeLookup = nil
 
         // Use REST service or onboard client library.
+        switchToOnlineAPI(online: useOnlineAPI)
         if useOnlineAPI {
 
             // Create URL for REST API call to get mapcodes, URL-encode lat/lon.
@@ -1705,7 +1628,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                     let index = mapcode.index(of: " ") ?? mapcode.endIndex;
                     if index != mapcode.endIndex {
                         let territoryLocal = String(mapcode[..<index])
-                        debug(DEBUG, msg: "periodicCheckToUpdateMapcode: total=\(total), i=\(i), mapcode=\(mapcode), territoryLocal=\(territoryLocal)")
+                        debug(TRACE, msg: "periodicCheckToUpdateMapcode: total=\(total), i=\(i), mapcode=\(mapcode), territoryLocal=\(territoryLocal)")
                         if territoryLocal != prevTerritoryLocal {
                             newAllContexts.append(territoryLocal)
 
@@ -1950,6 +1873,27 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Remove pin again.
         view.removeAnnotation(pin)
         return img!
+    }
+
+
+    /**
+     * Switch to using the online API or the onboard client library.
+     */
+    func switchToOnlineAPI(online: Bool) {
+        sendUserFeedback = UserDefaults.standard.bool(forKey: keySendUserFeedback)
+        if online && sendUserFeedback {
+            if !useOnlineAPI {
+                debug(DEBUG, msg: "switchToOnlineAPI: Enable online API...")
+            }
+            theOnlineAPIIndicator.text = textIndicatorOnlineAPI
+            useOnlineAPI = true
+        } else {
+            if useOnlineAPI {
+                debug(DEBUG, msg: "switchToOnlineAPI: Enable onboard C library...")
+            }
+            theOnlineAPIIndicator.text = textIndicatorOfflineLibrary
+            useOnlineAPI = false
+        }
     }
 
 
