@@ -112,7 +112,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         "Enter a mapcode in the address field to show it on the map. Tip: if you omit " +
         "the territory for local mapcodes, the current territory is used.\n\n" +
 
-        "Tap the >> buttons to scroll through the territories.\n\n" +
+        "Tap the territory to scroll through the territories/countries.\n\n" +
 
         "Tap the mapcode itself to copy it to the clipboard.\n\n" +
 
@@ -194,7 +194,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     #if DEBUG
         let limitSwitchToOnlineAPISecs = 10.0       // Switch back to online API every x secs.
     #else
-        let limitSwitchToOnlineAPISecs = 120.0
+        let limitSwitchToOnlineAPISecs = 60.0
     #endif
 
     let mapcodeRegexWithOptionalCountryCode = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
