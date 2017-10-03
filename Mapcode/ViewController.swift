@@ -194,7 +194,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     #if DEBUG
         let limitSwitchToOnlineAPISecs = 10.0       // Switch back to online API every x secs.
     #else
-        let limitSwitchToOnlineAPISecs = 60.0
+        let limitSwitchToOnlineAPISecs = 30.0
     #endif
 
     let mapcodeRegexWithOptionalCountryCode = try! NSRegularExpression(    // Pattern to match mapcodes: XXx[-XXx] XXxxx.XXxx[-Xxxxxxxx]
@@ -398,6 +398,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                                                name: NSNotification.Name.UIKeyboardWillChangeFrame,
                                                object: nil)
 
+        // Switch to online API or onboard library.
+        let defaults = UserDefaults.standard
+        defaults.set(useOnlineAPI, forKey: keySendUserFeedback)
+        switchToOnlineAPI(online: useOnlineAPI)
+
+        // Get territory names.
+        fetchTerritoryNames()
+
         // Setup our Location Manager. Only 1 location update is requested when the user presses
         // the "Find My Location" button. Updates are switched off immediately after that. Only
         // once every couple of minutes it is switched on for a single event again (or finding your
@@ -414,10 +422,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         showLatLon(mapcodeLocation)
         queueUpdateForMapcode(mapcodeLocation)
         queueUpdateForAddress(mapcodeLocation)
-
-        // Switch to online API or onboard library.
-        switchToOnlineAPI(online: useOnlineAPI)
-        fetchTerritoryNames()
 
         // Schedule periodic updates for reverse geocoding and Mapcdode REST API requests.
         timerReverseGeocoding = Timer.scheduledTimer(

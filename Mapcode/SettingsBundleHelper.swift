@@ -23,11 +23,12 @@ class SettingsBundleHelper {
         }
     }
 
-    class func setVersionAndBuildNumber() {
+    class func setDefaultSettings() {
         let defaults = UserDefaults.standard
         let version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
         let build = Bundle.main.infoDictionary!["CFBundleVersion"] as! String
         let versionBuild = "\(version) (\(build))"
         defaults.set(versionBuild, forKey: SettingsBundleKeys.keyVersionBuild)
+        defaults.set(true, forKey: SettingsBundleKeys.keySendUserFeedback)
     }
 }
