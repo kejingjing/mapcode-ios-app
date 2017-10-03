@@ -171,9 +171,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let colorTerritoryPrefix = UIColor(hue: 0.6, saturation: 0.7, brightness: 0.5, alpha: 1.0)
 
     let colorWaitingForUpdate = UIColor.lightGray    // Color for 'outdated' fields, waiting for update.
-    let colorLabelNormal = UIColor.black             // Normal label.
-    let colorLabelAlert = UIColor.red                // Alert message.
-    let colorLabelCopiedToClipboard = UIColor(hue: 0.35, saturation: 0.8, brightness: 0.6, alpha: 1.0)
+    let colorLabelNormal = UIColor.white             // Normal label.
+    let colorLabelAlert = UIColor.yellow             // Alert message.
+    let colorLabelCopiedToClipboard = UIColor(hue: 0.35, saturation: 0.6, brightness: 0.8, alpha: 1.0)
 
     let zoomFactor = 2.5                            // Factor for zoom in/out.
 
@@ -217,7 +217,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let territoryInternationalFullName = "Earth"    // Territory full name for international context.
 
     let alphaEnabled: CGFloat = 1.0                 // Transparency of enabled button.
-    let alphaDisabled: CGFloat = 0.5                // Transparency of disabled button.
+    let alphaDisabled: CGFloat = 0.0                // Transparency of disabled button.
     let alphaInvisible: CGFloat = 0.0               // Transparency hidden button.
 
     let resetLabelsAfterSecs = 5.0                  // Reset coordinate labels after copy to clipboard.
