@@ -150,7 +150,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     let allowLog: String = "true"                   // API: Allow logging requests.
 #endif
 
-    let host: String = "https://api2.mapcode.com"    // Host name of Mapcode REST API.
+    let host: String = "https://api.mapcode.com"    // Host name of Mapcode REST API.
     let client: String = "ios"                      // API: Client ID.
     let tagTextFieldAddress = 1                     // Tags of text fields.
     let tagTextFieldLatitude = 2
