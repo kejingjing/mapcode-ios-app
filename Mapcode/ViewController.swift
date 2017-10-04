@@ -259,9 +259,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * Global state.
      */
 
-    let showAlternatives: Bool = false
-    var useOnlineAPI: Bool = true
-    var sendUserFeedback: Bool = true
+    let showAlternatives: Bool = false                  // Show alternative mapcodes next to shortest one, or not.
+    var useOnlineAPI: Bool = true                       // Currently using online API, or onboard library.
+    var sendUserFeedback: Bool = true                   // Allowed to use online API at all, or not (privacy setting).
 
     // Provide a sensible screen if no user location is available (rather than mid Pacific).
     var mapcodeLocation = CLLocationCoordinate2D(latitude: 52.373293, longitude: 4.893718)
