@@ -94,6 +94,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
+        "* Improved sharing capabilities.\n" +
         "* Uses embedded Mapcode library, no longer requires REST service to encode/decode mapcodes.\n" +
         "* Added a privacy setting in the Settings/Mapcode menu.\n" +
         "* Removed alternative mapcodes (showing only use shortest).\n" +
@@ -529,10 +530,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
      * This gets called if the "share" button gets pressed.
      */
     @IBAction func shareButtonClicked(_ sender: UIButton) {
-        let mapcode = theMapcode.text
-        let mapImage = captureMapView(theMap, title: mapcode!)
-        let objectsToShare = [mapcode ?? "", mapImage] as [Any]
+        let mapcode = "Mapcode: " + (theMapcode.text ?? "")
+        let address = "Address: " + (theAddress.text ?? "")
+        let mapImage = captureMapView(theMap, title: mapcode)
+        let footer = "Visit http://mapcode.com to find out more about Mapcodes."
+        let objectsToShare = [mapcode, address, mapImage, "", footer] as [Any]
         let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
+        activityVC.setValue(mapcode, forKey: "subject")
         activityVC.excludedActivityTypes = [UIActivityType.airDrop, UIActivityType.addToReadingList]
         activityVC.popoverPresentationController?.sourceView = sender
         self.present(activityVC, animated: true, completion: nil)
@@ -949,7 +953,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.prevQueuedCoordinateForReverseGeocode = nil
                         self.queuedCoordinateForMapcodeLookup = self.mapcodeLocation
                         self.queuedCoordinateForReverseGeocode = self.mapcodeLocation
-                        self.theAddress.text = self.textNoInternet
+                        self.theAddress.text = ""
+                        self.theAddressFirstLine.text = self.textNoInternet
 
                         // Switch to using the library in case of a network error.
                         self.switchToOnlineAPI(online: false)
@@ -1386,7 +1391,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                 // Print an message to console, but don't show a user dialog (not an error).
                 self.debug(self.INFO, msg: "periodicCheckToUpdateAddress: No reverse geocode info, coordinate=\(coordinate), error=\(error!.localizedDescription)")
                 DispatchQueue.main.async {
-                    self.theAddress.text = self.textNoInternet
+                    self.theAddress.text = ""
+                    self.theAddressFirstLine.text = self.textNoInternet
                 }
                 return
             }
@@ -1599,7 +1605,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
                         self.prevQueuedCoordinateForReverseGeocode = nil
                         self.queuedCoordinateForMapcodeLookup = coordinate
                         self.queuedCoordinateForReverseGeocode = coordinate
-                        self.theAddress.text = self.textNoInternet
+                        self.theAddress.text = ""
+                        self.theAddressFirstLine.text = self.textNoInternet
 
                         // Switch to using the library in case of a network error.
                         self.switchToOnlineAPI(online: false)
