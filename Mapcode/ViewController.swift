@@ -2,7 +2,7 @@
 // ViewController.swift
 // Mapcode
 //
-// Copyright (C) 2016-2017, Stichting Mapcode Foundation (http://www.mapcode.com)
+// Copyright (C) 2016-2018, Stichting Mapcode Foundation (http://www.mapcode.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,14 +94,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
     // Help texts.
     let textWhatsNew = "\n" +
-        "* Improved sharing capabilities.\n" +
-        "* Uses embedded Mapcode library, no longer requires REST service to encode/decode mapcodes.\n" +
-        "* Added a privacy setting in the Settings/Mapcode menu.\n" +
-        "* Removed alternative mapcodes (showing only use shortest).\n" +
-        "* Improved and simplified UI.\n" +
-        "* Rebuilt for iOS 11 with Xcode 9 (and Swift 4).\n"
+        "* Copying latitude and longitude is now a single click.\n" +
+        "* Minor improvements.\n";
 
-    let textAbout = "Copyright (C) 2016-2017\n" +
+    let textAbout = "Copyright (C) 2016-2018\n" +
         "Rijn Buve, Mapcode Foundation\n\n" +
 
         "Welcome the official Mapcode App from the Mapcode Foundation!\n\n" +
@@ -646,7 +642,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
 
-        UIPasteboard.general.string = theLat.text
+        UIPasteboard.general.string = theLat.text! + "," + theLon.text!
         theLatLabel.textColor = colorLabelCopiedToClipboard
         theLatLabel.text = textCopiedToClipboard
         scheduleResetLabels()
@@ -660,7 +656,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
 
-        UIPasteboard.general.string = theLon.text
+        UIPasteboard.general.string = theLat.text! + "," + theLon.text!
         theLonLabel.textColor = colorLabelCopiedToClipboard
         theLonLabel.text = textCopiedToClipboard
         scheduleResetLabels()
@@ -769,14 +765,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             // Check if the user entered a mapcode instead of an address.
             let matchesMapcodeWithOptionalCountryCode = mapcodeRegexWithOptionalCountryCode.matches(
                     in: input, options: [],
-                    range: NSRange(location: 0, length: input.characters.count))
+                    range: NSRange(location: 0, length: input.count))
             if matchesMapcodeWithOptionalCountryCode.count == 1 {
                 debug(DEBUG, msg: "textFieldShouldReturn: Entered mapcode with optional country code, mapcode=\(input)")
                 mapcodeWasEntered(input, context: nil)
             } else {
                 let matchesMapcodeWithCountryName = mapcodeRegexWithCountryName.matches(
                         in: input, options: [],
-                        range: NSRange(location: 0, length: input.characters.count))
+                        range: NSRange(location: 0, length: input.count))
                 if matchesMapcodeWithCountryName.count == 1 {
                     let range = input.range(of: " ", options: .backwards)
                     let country = String(input[input.startIndex..<(range?.lowerBound)!])
@@ -875,7 +871,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Prefix previous territory for local mapcodes.
         var fullMapcode = trimAllSpace(mapcode)
-        if ((context == nil) && fullMapcode.characters.count < 10) && !fullMapcode.contains(" ") && !allContexts.isEmpty {
+        if ((context == nil) && fullMapcode.count < 10) && !fullMapcode.contains(" ") && !allContexts.isEmpty {
             fullMapcode = "\(allContexts[currentContextIndex]) \(fullMapcode)"
         }
 
@@ -1210,23 +1206,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let attributedText = NSMutableAttributedString(string: mapcode)
 
         // Set defaults.
-        let fullRange = NSMakeRange(0, mapcode.characters.distance(from: mapcode.characters.startIndex, to: mapcode.characters.endIndex))
+        let fullRange = NSMakeRange(0, mapcode.distance(from: mapcode.startIndex, to: mapcode.endIndex))
 
         // Set color of mapcode itself.
         attributedText.addAttributes([NSAttributedStringKey.foregroundColor: colorMapcode], range: fullRange)
 
         // Set font size, reduce size for really large mapcodes.
         var fontSize = mapcodeCodeFontSize
-        if mapcode.characters.count >= longestMapcode.characters.count {
+        if mapcode.count >= longestMapcode.count {
             fontSize = mapcodeCodeFontSizeSmall
         }
         attributedText.addAttributes([NSAttributedStringKey.font: UIFont(name: mapcodeCodeFont, size: fontSize)!], range: fullRange)
         attributedText.addAttributes([NSAttributedStringKey.kern: mapcodeFontKern], range: fullRange)
 
         // If the code has a territory, make it look different.
-        let index = mapcode.characters.index(of: Character(" "))
+        let index = mapcode.index(of: Character(" "))
         if index != nil {
-            let n = mapcode.characters.distance(from: mapcode.characters.startIndex, to: index!)
+            let n = mapcode.distance(from: mapcode.startIndex, to: index!)
             attributedText.addAttributes([NSAttributedStringKey.foregroundColor: colorTerritoryPrefix], range: NSMakeRange(0, n))
             attributedText.addAttributes([NSAttributedStringKey.font: UIFont(name: mapcodeTerritoryFont, size: mapcodeTerritoryFontSize)!], range: NSMakeRange(0, n))
         } else {
@@ -1299,7 +1295,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 
         // Show full name.
         let attributedText = NSMutableAttributedString(string: fullName!)
-        let fullRange = NSMakeRange(0, fullName!.characters.distance(from: fullName!.characters.startIndex, to: fullName!.characters.endIndex))
+        let fullRange = NSMakeRange(0, fullName!.distance(from: fullName!.startIndex, to: fullName!.endIndex))
         attributedText.addAttributes([NSAttributedStringKey.font: UIFont(name: contextFont, size: contextFontSize)!], range: fullRange)
         theContext.attributedText = attributedText
 
