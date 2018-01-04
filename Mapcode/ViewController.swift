@@ -369,11 +369,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         theMapcode.addGestureRecognizer(tapMapcode)
 
         // Recognize 1 tap on latitude.
-        let tapLatitude = UITapGestureRecognizer(target: self, action: #selector(handleCopyLatitudeTap))
+        let tapLatitude = UITapGestureRecognizer(target: self, action: #selector(handleCopyLatitudeLongitudeTap))
         theLatLabel.addGestureRecognizer(tapLatitude)
 
         // Recognize 1 tap on longitude.
-        let tapLongitude = UITapGestureRecognizer(target: self, action: #selector(handleCopyLongitudeTap))
+        let tapLongitude = UITapGestureRecognizer(target: self, action: #selector(handleCopyLatitudeLongitudeTap))
         theLonLabel.addGestureRecognizer(tapLongitude)
 
         // Recognize 1 tap on context, context label and mapcode label
@@ -638,25 +638,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     /**
      * Gesture recognizer: this method gets called when the user taps the latitude.
      */
-    @objc func handleCopyLatitudeTap(_ gestureRecognizer: UITapGestureRecognizer) {
+    @objc func handleCopyLatitudeLongitudeTap(_ gestureRecognizer: UITapGestureRecognizer) {
         // Resign keyboard form text field when user taps map.
         self.view.endEditing(true)
 
         UIPasteboard.general.string = theLat.text! + "," + theLon.text!
         theLatLabel.textColor = colorLabelCopiedToClipboard
         theLatLabel.text = textCopiedToClipboard
-        scheduleResetLabels()
-    }
-
-
-    /**
-     * Gesture recognizer: this method gets called when the user taps the longitude.
-     */
-    @objc func handleCopyLongitudeTap(_ gestureRecognizer: UITapGestureRecognizer) {
-        // Resign keyboard form text field when user taps map.
-        self.view.endEditing(true)
-
-        UIPasteboard.general.string = theLat.text! + "," + theLon.text!
         theLonLabel.textColor = colorLabelCopiedToClipboard
         theLonLabel.text = textCopiedToClipboard
         scheduleResetLabels()
